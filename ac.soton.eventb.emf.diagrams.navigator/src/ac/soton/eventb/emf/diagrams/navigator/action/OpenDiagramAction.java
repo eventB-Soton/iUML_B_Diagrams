@@ -136,6 +136,7 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 				// create and initialise a file, if it doesn't exist
 				if (diagramFile.exists() == false) {
 					Resource resource = getEditingDomain().getResourceSet().createResource(diagramURI);
+					//TODO: initialise the diagram file not with selected element, but the root element
 					initializeNewDiagram(resource);
 				}
 			
