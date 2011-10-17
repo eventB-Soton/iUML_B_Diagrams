@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="Diagrams Feature"
-      version="1.0.0.qualifier"
+      version="1.0.1.qualifier"
       provider-name="University of Southampton">
 
    <description url="http://www.example.com/description">
