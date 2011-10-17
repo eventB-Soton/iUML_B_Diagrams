@@ -11,5 +11,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: ac.soton.eventb.emf.diagrams.provider
 Require-Bundle: org.eclipse.core.runtime,
  ac.soton.eventb.emf.diagrams;bundle-version="[1.0.0,1.1.0)";visibility:=reexport,
- org.eclipse.emf.edit;bundle-version="[2.6.0,2.7.0)";visibility:=reexport
+ org.eclipse.emf.edit;bundle-version="[2.6.0,2.8.0)";visibility:=reexport
 Bundle-ActivationPolicy: lazy
