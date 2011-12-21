@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="ac.soton.eventb.emf.diagrams.generator" xmlns="http://www.w3.org/2001/XMLSchema">
+<annotation>
+      <appinfo>
+         <meta.schema plugin="ac.soton.eventb.emf.diagrams.generator" id="ac.soton.eventb.emf.diagrams.generator" name="generator rule"/>
+      </appinfo>
+      <documentation>
+         This extension point allows contributors to contribute the rules of their Event-B generator
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+         <documentation>
+            Defines generators that generate EventB EMF models from source EventB EMf models.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="generator"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  optional id for this part of the extension
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  optional user friendly name for this part of the extension
+               </documentation>
+               <appinfo>
+                  <meta.attribute translatable="true"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="generator">
+      <annotation>
+         <documentation>
+            Defines a generator
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence minOccurs="1" maxOccurs="unbounded">
+            <element ref="rule"/>
+         </sequence>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  optional user friendly name for this part of the extension
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="generatorID" type="string" use="required">
+            <annotation>
+               <documentation>
+                  An identifier used to identify this generator exclusively and used to annotate generated elements.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="sourcePackage" type="string" use="required">
+            <annotation>
+               <documentation>
+                  Namespace URI of the emf package which the source elements are based on.
+The package will be retrieved from the package registry using
+EPackage.Registry.INSTANCE.getEPackage(nsURI)
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="root_source_class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The (unqualified) name of an EMF meta classifier. The generator will be used for elements that subclass this kind.
+e.g. Statemachine
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="rule">
+      <annotation>
+         <documentation>
+            A translation rule to be used in the generation
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="source_class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The (unqualified) name of an EMF meta classifier. The rule will be fired for elements that subclass this kind.
+e.g. Invariant
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="rule_class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The fully qualified name of a class that implements IRule
+               </documentation>
+               <appinfo>
+                  <meta.attribute kind="java" basedOn=":ac.soton.eventb.emf.diagrams.generator.IRule"/>
+               </appinfo>
+            </annotation>
+         </attribute>
+         <attribute name="target_feature" type="string">
+            <annotation>
+               <documentation>
+                  CURRENTLY NOT USED
+The EMF id of an EReference feature in the target meta-model which will contain the generated target element
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="target_priority" type="string">
+            <annotation>
+               <documentation>
+                  CURRENTLY NOT USED
+Can be used to indicate positioning within the containment feature. 
+
+10 - must come first
+0 - not important
+-10 must come last
+
+The numbers can be used to ensure relative positioning within the rules of this generator
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="since"/>
+      </appinfo>
+      <documentation>
+         [Enter the first release in which this extension point appears.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="examples"/>
+      </appinfo>
+      <documentation>
+         [Enter extension point usage example here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="apiinfo"/>
+      </appinfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appinfo>
+         <meta.section type="implementation"/>
+      </appinfo>
+      <documentation>
+         [Enter information about supplied implementation of this extension point.]
+      </documentation>
+   </annotation>
+
+
+</schema>

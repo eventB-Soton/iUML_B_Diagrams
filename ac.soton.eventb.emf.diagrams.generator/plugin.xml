@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="ac.soton.eventb.emf.diagrams.generator.rule" name="generator rule" schema="schema/ac.soton.eventb.emf.diagrams.generator.rule.exsd"/>
+
+
+<extension
+      name="EventB Diagrams"
+      point="org.eclipse.ui.menus">
+  <menuContribution
+        allPopups="true"
+        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar">
+     <command
+           commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB"
+           icon="icons/UtoB.png"
+           label="generate"
+           style="push">
+     </command>
+  </menuContribution>
+</extension>
+<extension
+     point="org.eclipse.ui.commands">
+  <command
+        description="command.description.generate"
+        id="ac.soton.eventb.emf.diagrams.generator.generateEventB"
+        name="command.name.generate">
+  </command>
+</extension>
+
+
+</plugin>
