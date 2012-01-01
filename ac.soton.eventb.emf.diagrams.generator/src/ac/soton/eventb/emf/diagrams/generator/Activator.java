@@ -1,7 +1,5 @@
 package ac.soton.eventb.emf.diagrams.generator;
 
-import java.io.IOException;
-
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
