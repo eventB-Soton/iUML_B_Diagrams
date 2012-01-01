@@ -8,12 +8,9 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.EMap;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
@@ -21,7 +18,6 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.edit.command.DeleteCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eclipse.emf.transaction.impl.EditingDomainManager;
 import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.AttributeType;
 import org.eventb.emf.core.CoreFactory;
@@ -242,29 +238,86 @@ public class Generator {
 		}
 	}
 
+	private Map<EventBElement, List<IRule>> deferredRules = new HashMap<EventBElement,List<IRule>>();
+	private void defer(EventBElement sourceElement, IRule rule){
+		List<IRule> rules = deferredRules.get(sourceElement);
+		if (rules == null) rules = new ArrayList<IRule>();
+		rules.add(rule);
+		deferredRules.put(sourceElement, rules);
+	}
+	
 	/**
-	 * recursively traverse the model firing any appropriate rules that are enabled
+	 * The generation is done in two stage:
+	 * 1) traverse the model firing any appropriate rules that are enabled. This may result in deferred
+	 *    rules that are enabled but cannot be fired due to dependencies on other rules.
+	 * 2) repeatedly iterate through the deferred rules firing any that can fire until none are left or
+	 *    if no progress is made raise an exception.
 	 * 
 	 * @param sourceElement
-	 * @throws CoreException
+	 * @throws Exception - for any exception, abort
 	 */
-	private void doGenerate(final EventBElement sourceElement) throws CoreException {
+	private void doGenerate(final EventBElement rootSourceElement) throws Exception {
+		
+		// stage 1 - traverse the model
+		traverseModel(rootSourceElement);
+		
+		// stage 2 - deal with any deferred rules
+		while (deferredRules.size() >0 ){
+			boolean progress = false;
+			List<EventBElement> empties = new ArrayList<EventBElement>();
+			for (EventBElement sourceElement : deferredRules.keySet()){
+				List<IRule> firedRules = new ArrayList<IRule>();
+				for (IRule rule : deferredRules.get(sourceElement)){
+					if (rule != null && rule.enabled(sourceElement)) {
+						if (rule.dependenciesOK(sourceElement, generatedElements)){
+							generatedElements.addAll(rule.fire(sourceElement, generatedElements));
+							firedRules.add(rule);
+						}
+					}
+				}
+				if (firedRules.size()>0) {
+					progress = true;
+					deferredRules.get(sourceElement).removeAll(firedRules);
+				}
+				if (deferredRules.get(sourceElement).size()==0){
+					empties.add(sourceElement);
+				}
+			}
+			deferredRules.keySet().removeAll(empties);
+			if (progress == false) throw new Exception("Generator Rules contain circlar dependencies");
+		} 
+	}
+		
+	private void traverseModel(final EventBElement sourceElement) throws Exception {
+		
 		//this ensures that we do not generate from our own generated elements
 		if (generatorConfig.generatorID.equals(sourceElement.getAttributes().get(GENERATOR_ID_KEY))) return;
 		
 		//try to fire all the rules listed for this kind of source element
-		List<IRule> rules = generatorConfig.ruleMapping.get(sourceElement.eClass());
-		if (rules == null) return;
+		List<IRule> rules = new ArrayList<IRule>();
+		List<EClass> types = new ArrayList<EClass>();
+		types.addAll(sourceElement.eClass().getEAllSuperTypes());
+		types.add(sourceElement.eClass());
+		for (EClass type : types ){
+			if (generatorConfig.ruleMapping.get(type)!=null)
+				rules.addAll(generatorConfig.ruleMapping.get(type));
+		}
 		for (final IRule rule : rules){
-			if (rule != null && rule.enabled(sourceElement, generatedElements)) {
-				generatedElements.addAll(rule.fire(sourceElement));
+			if (rule != null && rule.enabled(sourceElement)) {
+				if (rule.dependenciesOK(sourceElement, generatedElements)){
+					generatedElements.addAll(rule.fire(sourceElement, generatedElements));
+				}else{
+					defer(sourceElement,rule);
+				}
 			}
 		}
 
 		for (final EObject child : sourceElement.eContents()) {
 			if (child instanceof EventBElement)
-				doGenerate((EventBElement) child);
+				traverseModel((EventBElement) child);
 		}
 	}
+	
+	
 
 }

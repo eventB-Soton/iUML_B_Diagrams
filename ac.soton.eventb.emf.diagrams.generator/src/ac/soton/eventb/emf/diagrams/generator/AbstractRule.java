@@ -1,5 +1,6 @@
 package ac.soton.eventb.emf.diagrams.generator;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.emf.ecore.EReference;
@@ -20,16 +21,29 @@ public abstract class AbstractRule implements IRule {
 	protected static EReference variables = MachinePackage.Literals.MACHINE__VARIABLES;
 	protected static EReference invariants = MachinePackage.Literals.MACHINE__INVARIANTS;
 	protected static EReference events = MachinePackage.Literals.MACHINE__EVENTS;
+	protected static EReference parameters = MachinePackage.Literals.EVENT__PARAMETERS;
 	protected static EReference guards = MachinePackage.Literals.EVENT__GUARDS;
 	protected static EReference actions = MachinePackage.Literals.EVENT__ACTIONS;
 	
 	@Override
-	public boolean enabled(EventBElement sourceElement, final List<GenerationDescriptor> generatedElements) {
+	public boolean enabled(EventBElement sourceElement) throws Exception  {
 		return true;
 	}
 
 	@Override
-	public EventBNamedCommentedComponentElement getTargetEventBComponent(EventBNamedCommentedComponentElement sourceComponent, EventBElement sourceElement) {
+	public List<GenerationDescriptor> fire(EventBElement sourceElement, List<GenerationDescriptor> generatedElements) throws Exception {
+		assert(enabled(sourceElement));
+		return Collections.emptyList();
+	}
+	
+	@Override
+	public boolean dependenciesOK(EventBElement sourceElement, final List<GenerationDescriptor> generatedElements) throws Exception  {
+		return true;
+	}
+
+		
+	@Override
+	public EventBNamedCommentedComponentElement getTargetEventBComponent(EventBNamedCommentedComponentElement sourceComponent, EventBElement sourceElement) throws Exception  {
 		return sourceComponent;
 	}
 
