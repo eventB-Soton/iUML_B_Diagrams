@@ -258,7 +258,7 @@ public class Generator {
 	 */
 	private void doGenerate(final EventBElement rootSourceElement) throws Exception {
 		
-		// stage 1 - traverse the model
+		// stage 1 - traverse the model firing appropriate enabled rules
 		traverseModel(rootSourceElement);
 		
 		// stage 2 - deal with any deferred rules
