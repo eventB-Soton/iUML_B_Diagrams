@@ -18,6 +18,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.edit.command.DeleteCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
+import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.AttributeType;
 import org.eventb.emf.core.CoreFactory;
@@ -31,6 +32,7 @@ public class Generator {
 
 	private class GeneratorConfig{
 		public String generatorID;
+		@SuppressWarnings("unused")
 		public EPackage sourcePackage;
 		public EClass rootSourceClass;
 		public Map<EClassifier, List<IRule>> ruleMapping;
@@ -131,51 +133,67 @@ public class Generator {
  * 
  */
 	public Map<EventBObject,EventBObject> generate (TransactionalEditingDomain editingDomain, final EventBElement sourceElement){
+		String sourceExtensionID;
 		try {
+			
+			//check we have a valid configuration for the generator
 			if (generatorConfig==null) {
 				Activator.logError("no generator found for "+ sourceElement);
 				return null;
 			}
+			
+			//check we have the correct generator configuration for the source element
 			if (sourceElement.eClass() != generatorConfig.rootSourceClass){
 				Activator.logError("Incorrect generator called for "+ sourceElement);
 				return null;
 			}
+			
+			//Obtain the extension ID from the source element
+			sourceExtensionID = ((AbstractExtension)sourceElement).getExtensionId();
+			assert(sourceExtensionID != null && sourceExtensionID.startsWith(generatorConfig.generatorID));
+			
+			//do the generation
 			doGenerate(sourceElement);
+			
+			//Remove previously generated elements	
+			List<EObject> previouslyGeneratedElements = getGeneratedElements(
+					(EventBNamedCommentedComponentElement) sourceElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT),
+					sourceExtensionID);
+			if (previouslyGeneratedElements.size()>0){
+				Command deleteCommand = DeleteCommand.create(editingDomain, previouslyGeneratedElements);
+				if (deleteCommand.canExecute()){
+					deleteCommand.execute();
+				}else{
+					Activator.logError("failed to delete previously generated elements");
+					return null;
+				}
+			}
+			
 		} catch (Exception e) {
 			Activator.logError(e.getMessage(),e);
 			return null;
 		} 
 
-		//Remove previously generated elements	
-		Command deleteCommand = DeleteCommand.create(editingDomain, getGeneratedElements(sourceElement));
-		if (deleteCommand.canExecute()){
-			deleteCommand.execute();
-
-			//place the newly generated elements in their correct parent features
-			//(this is done in a separate post-generation phase and only if the deletion of old generated elements succeeds. 
-			// This is so that we do not leave the model in an inconsistent state if the generation fails)
-			placeGenerated();
+		//place the newly generated elements in their correct parent features
+		//(this is done in a separate post-generation phase and only if the deletion of old generated elements succeeds. 
+		// This is so that we do not leave the model in an inconsistent state if the generation fails)
+		placeGenerated(sourceExtensionID);
+		
+		return trace;
 			
-			return trace;
-			
-		}else{
-			Activator.logError("failed to delete previously generated elements");
-			return null;
-		}
 	}
 
 	/**
 	 * finds all elements that have been generated with this generators generatorID
 	 * @return 
 	 */
-		public ArrayList<EObject> getGeneratedElements(final EventBElement sourceElement) {
-			EventBNamedCommentedComponentElement component= (EventBNamedCommentedComponentElement) sourceElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+		public ArrayList<EObject> getGeneratedElements(final EventBNamedCommentedComponentElement component, String sourceExtensionID) {
 			EList<EObject> contents = component.getAllContained(CorePackage.eINSTANCE.getEventBElement(),false);
 			ArrayList<EObject> remove = new ArrayList<EObject>();
 			for(EObject eObject : contents){
 				if (eObject instanceof EventBElement){
 					Attribute generatedBy = ((EventBElement)eObject).getAttributes().get(GENERATOR_ID_KEY);
-					if (generatedBy!= null && generatorConfig.generatorID.equals(generatedBy.getValue()) ){
+					if (generatedBy!= null && sourceExtensionID.equals(generatedBy.getValue()) ){
 						remove.add(eObject);
 					}
 				}
@@ -187,7 +205,7 @@ public class Generator {
 /**
  * puts the generated elements into the model
  */
-	private void placeGenerated() {
+	private void placeGenerated(String generatedByID) {
 		prepare();
 		for (int pri=10; pri>=-10; pri--){
 			if (priorities.containsKey(pri))
@@ -197,11 +215,13 @@ public class Generator {
 					
 					// set the generated property
 					newChild.setLocalGenerated(true);
+					
 					// add an attribute with this generators ID
 					Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
-					genID.setValue(generatorConfig.generatorID);
+					genID.setValue(generatedByID);
 					genID.setType(AttributeType.STRING);
 					newChild.getAttributes().put(GENERATOR_ID_KEY,genID);
+					
 					if (generationDescriptor.parent != null){
 						Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
 						if (featureValue instanceof EObjectContainmentEList){
