@@ -17,4 +17,22 @@
             genModel="model/diagrams.genmodel"/>
    </extension>
 
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar">
+         <toolbar
+               id="ac.soton.eventb.emf.diagrams.toolbar">
+            <!--command
+                  commandId="ac.soton.eventb.statemachines.diagram.ValidateDiagramAction"
+                  icon="icons/Validate.png"
+                  style="push">
+            </command-->
+            <separator
+                  name="additions">
+            </separator>
+         </toolbar>
+      </menuContribution>
+   </extension>
 </plugin>
