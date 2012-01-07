@@ -1,6 +1,7 @@
 package ac.soton.eventb.emf.diagrams.generator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,17 @@ import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.EObjectResolvingEList;
 import org.eclipse.emf.edit.command.DeleteCommand;
+import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.Attribute;
@@ -25,7 +31,6 @@ import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.core.EventBObject;
 
 
 public class Generator {
@@ -79,7 +84,7 @@ public class Generator {
 	 * 
 	 */
 	private Map<Integer,List<GenerationDescriptor>> priorities = new HashMap<Integer,List<GenerationDescriptor>>();
-	private Map<EventBObject, EventBObject> trace = new HashMap<EventBObject, EventBObject>();	
+	//private Map<EventBObject, EventBObject> trace = new HashMap<EventBObject, EventBObject>();	
 	private List<GenerationDescriptor> generatedElements = new ArrayList<GenerationDescriptor>();
 	
 	
@@ -132,8 +137,9 @@ public class Generator {
  * @param editingDomain 
  * 
  */
-	public Map<EventBObject,EventBObject> generate (TransactionalEditingDomain editingDomain, final EventBElement sourceElement){
+	public List<Resource> generate (TransactionalEditingDomain editingDomain, final EventBElement sourceElement){
 		String sourceExtensionID;
+		List<Resource> modifiedResources = new ArrayList<Resource>();
 		try {
 			
 			//check we have a valid configuration for the generator
@@ -154,6 +160,11 @@ public class Generator {
 			
 			//do the generation
 			doGenerate(sourceElement);
+			
+			//create new EventB components
+			modifiedResources.addAll(
+					createNewComponents(editingDomain, sourceElement)
+					);
 			
 			//Remove previously generated elements	
 			List<EObject> previouslyGeneratedElements = getGeneratedElements(
@@ -177,11 +188,52 @@ public class Generator {
 		//place the newly generated elements in their correct parent features
 		//(this is done in a separate post-generation phase and only if the deletion of old generated elements succeeds. 
 		// This is so that we do not leave the model in an inconsistent state if the generation fails)
-		placeGenerated(sourceExtensionID);
+		try {
+			modifiedResources.addAll(
+					placeGenerated(editingDomain, sourceExtensionID)
+					);
+		} catch (Exception e) {
+			Activator.logError("Failed to place generated elements", e);
+			return null;
+		}
 		
-		return trace;
+		return modifiedResources;
 			
 	}
+	
+/**
+ * If any generated elements are a new EventB component (e.g. machine, context) this creates a new resource
+ * for them in the editing domains resource set and attaches the new element as the content of the resource.
+ * Note that we do not save the resource yet in case the generation process does not complete. 
+ * 
+ * N.B. CURRENTLY ALL RESOURCES ARE ASSUMED TO BE WITHIN THE SAME PROJECT AS THE SOURCE ELEMENT. 
+ * (I.E. CURRENTLY WE DO NOT USE generationDecriptor.parent WHICH CAN BE LEFT NULL AS LONG AS 
+ * generationDecriptor.feature IS SET TO CorePackage.Literals.PROJECT__COMPONENTS)
+ * 
+ * @param editingDomain
+ * @param sourceElement
+ * @return list of new Resources
+ */
+	private Collection<? extends Resource> createNewComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement) {
+		List<Resource> newResources = new ArrayList<Resource>();
+		String projectName = sourceElement.getURI().trimFragment().trimSegments(1).lastSegment();
+		URI projectUri = URI.createPlatformResourceURI(projectName, true);
+		for (GenerationDescriptor generationDescriptor : generatedElements){
+			if (generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+					generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
+					String fileName = ((EventBNamedCommentedComponentElement)generationDescriptor.value).getName();
+					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc");
+					//fileUri = projectUri.
+					String fileString = fileUri.toString();
+					Resource newResource = editingDomain.createResource(fileString); //projectUri.appendSegment(fileName).toFileString());
+					//editingDomain.getResourceSet().
+					newResource.getContents().add((EventBNamedCommentedComponentElement)generationDescriptor.value);
+					newResources.add(newResource);
+			}
+		}
+		return newResources;
+	}
+
 
 	/**
 	 * finds all elements that have been generated with this generators generatorID
@@ -189,27 +241,61 @@ public class Generator {
 	 */
 		public ArrayList<EObject> getGeneratedElements(final EventBNamedCommentedComponentElement component, String sourceExtensionID) {
 			EList<EObject> contents = component.getAllContained(CorePackage.eINSTANCE.getEventBElement(),false);
+			contents.remove(null);
+			contents.add(0,component);
 			ArrayList<EObject> remove = new ArrayList<EObject>();
 			for(EObject eObject : contents){
-				if (eObject instanceof EventBElement){
-					Attribute generatedBy = ((EventBElement)eObject).getAttributes().get(GENERATOR_ID_KEY);
-					if (generatedBy!= null && sourceExtensionID.equals(generatedBy.getValue()) ){
-						remove.add(eObject);
-					}
+				if (wasGeneratedBy(eObject,sourceExtensionID)){
+					remove.add(eObject);					
+				}else{
+					for (EReference referenceFeature : eObject.eClass().getEAllReferences()){
+						Object referenceValue = eObject.eGet(referenceFeature, true);
+						if (wasGeneratedBy(referenceValue,sourceExtensionID)){
+							//FIXME: this may not be right and should be deferred until deletion time
+							eObject.eSet(referenceFeature, null);
+						}else{
+							if (referenceValue instanceof EObjectResolvingEList){
+								@SuppressWarnings("unchecked")
+								EObjectResolvingEList<EObject> referenceList = (EObjectResolvingEList<EObject>)referenceValue;
+								List<EObject> toBeRemoved = new ArrayList<EObject>();
+								for (EObject ref : referenceList){
+									if (wasGeneratedBy(ref,sourceExtensionID)){
+										toBeRemoved.add(ref);
+										//if (!remove.contains(ref)) remove.add(ref); can't remove a root of Resource (e.g. ContextRoot)
+									}										
+								}
+								//FIXME: this should be deferred until deletion time
+								referenceList.removeAll(toBeRemoved);
+							}
+						}
+					}						
 				}
 			}
 			return remove;
 		}
 
+			private static boolean wasGeneratedBy(Object object, String id){
+				if (object instanceof EventBElement){
+					Attribute generatedBy = ((EventBElement)object).getAttributes().get(GENERATOR_ID_KEY);
+					if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
+						return true;
+					}
+				}
+				return false;
+			}
 		
 /**
  * puts the generated elements into the model
+ * @param editingDomain 
+ * @return 
  */
-	private void placeGenerated(String generatedByID) {
+	private Collection<? extends Resource> placeGenerated(EditingDomain editingDomain, String generatedByID) throws Exception {
 		prepare();
+		List<Resource> modifiedResources = new ArrayList<Resource>();
 		for (int pri=10; pri>=-10; pri--){
 			if (priorities.containsKey(pri))
 			for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
+				Resource resource = null;
 				if (generationDescriptor.value instanceof EventBElement){
 					EventBElement newChild = ((EventBElement)generationDescriptor.value);
 					
@@ -224,23 +310,30 @@ public class Generator {
 					
 					if (generationDescriptor.parent != null){
 						Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
-						if (featureValue instanceof EObjectContainmentEList){
-							try{
-								@SuppressWarnings("unchecked")
-								EObjectContainmentEList<EObject> list = (EObjectContainmentEList<EObject>) featureValue; 
-								list.add(newChild);
-							}catch (Exception e){
-								Activator.logError("Failed to add generated element to feature", e);
-							}
-						}else{
+						if (featureValue instanceof EObjectContainmentEList){	//containment collection
+							@SuppressWarnings("unchecked")
+							EObjectContainmentEList<EObject> list = (EObjectContainmentEList<EObject>) featureValue; 
+							list.add(newChild);
+						}else if (featureValue instanceof EObjectResolvingEList){	//list of references
+							@SuppressWarnings("unchecked")
+							EObjectResolvingEList<EObject> list = (EObjectResolvingEList<EObject>) featureValue; 
+							list.add(newChild);
+						}else {
 							generationDescriptor.parent.eSet(generationDescriptor.feature, newChild);
 						}
+						//add to list of modifiedResources if not already there
+						resource = generationDescriptor.parent.eResource();
+
 					}else{
 						//currently not supported
 					}
 				}
+				if (resource!= null && !modifiedResources.contains(resource)){
+					modifiedResources.add(resource);
+				}
 			}
 		}
+		return modifiedResources;
 	}
 
 	/**

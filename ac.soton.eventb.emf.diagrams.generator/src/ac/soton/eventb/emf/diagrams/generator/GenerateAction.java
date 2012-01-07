@@ -11,26 +11,23 @@ package ac.soton.eventb.emf.diagrams.generator;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
+import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.emf.common.util.URI;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.WrappedException;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
-import org.eclipse.gef.commands.Command;
 import org.eclipse.gmf.runtime.common.core.command.CommandResult;
-import org.eclipse.gmf.runtime.diagram.ui.commands.ICommandProxy;
 import org.eclipse.gmf.runtime.diagram.ui.editparts.DiagramEditPart;
 import org.eclipse.gmf.runtime.diagram.ui.parts.IDiagramWorkbenchPart;
 import org.eclipse.gmf.runtime.emf.commands.core.command.AbstractTransactionalCommand;
@@ -41,7 +38,9 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.EventBElement;
-import org.eventb.emf.core.machine.Machine;
+import org.eventb.emf.core.EventBNamed;
+import org.rodinp.core.RodinCore;
+import org.rodinp.core.RodinDBException;
 
 
 //import ac.soton.eventb.emf.components.diagram.part.ValidateAction;
@@ -63,10 +62,8 @@ public class GenerateAction extends AbstractHandler {
 		IEditorPart editor = HandlerUtil.getActiveEditorChecked(event);
 		
 		if (editor instanceof IDiagramWorkbenchPart) {
-			IDiagramWorkbenchPart diagramEditor = (IDiagramWorkbenchPart) editor;
-			//IDiagramEditDomain diagramEditingDomain = diagramEditor.getDiagramEditDomain(); // not needed
-			TransactionalEditingDomain modelEditingDomain = diagramEditor.getDiagramEditPart().getEditingDomain(); //this is the EMF.edit editing domain for the model
-
+			
+			final IDiagramWorkbenchPart diagramEditor = (IDiagramWorkbenchPart) editor;
 			
 			if (diagramEditor.getDiagram().getElement() instanceof EventBElement){
 				final EventBElement eventBElement = (EventBElement) diagramEditor.getDiagram().getElement();
@@ -78,17 +75,24 @@ public class GenerateAction extends AbstractHandler {
 				// first validate, then transform
 				if (IStatus.OK == validate(diagramEditor.getDiagramEditPart(), diagramEditor.getDiagram())) {
 
-					GenerateCommand generateCommand = new GenerateCommand(modelEditingDomain, eventBElement);
-					final Command command = new ICommandProxy(generateCommand);
-					if (command.canExecute()) {
-						
+					final GenerateCommand generateCommand = new GenerateCommand(
+							diagramEditor.getDiagramEditPart().getEditingDomain(), 
+							eventBElement);
+					
+				//	final Command command = new ICommandProxy(generateCommand);
+				//	if (command.canExecute()) {
+					if (generateCommand.canExecute()) {	
 						// run with progress
-						ProgressMonitorDialog dialog = new ProgressMonitorDialog(diagramEditor.getSite().getShell());    
+						ProgressMonitorDialog dialog = new ProgressMonitorDialog(diagramEditor.getSite().getShell());
 						try {
 							dialog.run(true, true, new IRunnableWithProgress(){
 							     public void run(IProgressMonitor monitor) {
 							         monitor.beginTask("Generating Event-B ...", IProgressMonitor.UNKNOWN);
-							         command.execute();
+							         try {
+										generateCommand.execute(monitor, diagramEditor);
+									} catch (ExecutionException e) {
+										Activator.logError("Generation failed", e);
+									}
 							         monitor.done();
 							     }
 							 });
@@ -149,6 +153,7 @@ public class GenerateAction extends AbstractHandler {
 		return IStatus.OK;
 	}
 
+	//////////////////////GENERATE COMMAND//////////////////////////
 	private static class GenerateCommand extends AbstractTransactionalCommand {
 
 		private EventBElement element;
@@ -160,12 +165,7 @@ public class GenerateAction extends AbstractHandler {
 		 */
 		public GenerateCommand(TransactionalEditingDomain editingDomain, EventBElement element) {
 			super(editingDomain, "Generate Command", null);
-			//editingDomain.getResourceSet().getResources()
-			//super(GMFEditingDomainFactory.INSTANCE.createEditingDomain(), "Generate Command", null);
-
 			setOptions(Collections.singletonMap(Transaction.OPTION_UNPROTECTED, Boolean.TRUE));
-//			Map<?, ?> options = this.getOptions();
-//			options.put(String Transaction.OPTION_UNPROTECTED,"");
 			this.element = element;
 		}
 		
@@ -186,33 +186,65 @@ public class GenerateAction extends AbstractHandler {
 		protected CommandResult doExecuteWithResult(IProgressMonitor monitor,
 				IAdaptable info) throws ExecutionException {
 			
-			// find topmost container
-			EObject root = element;
-			for (; false == root.eContainer() instanceof Machine; root = root.eContainer());
-			
-			EObject container = EcoreUtil.getRootContainer(element);
-			Machine machine = (Machine) container;
-			IFile file = WorkspaceSynchronizer.getFile(machine.eResource());
-			TransactionalEditingDomain editingDomain = getEditingDomain();
-			URI fileURI = URI.createPlatformResourceURI(file.getFullPath().toString(), true);
-			Resource resource = editingDomain.getResourceSet().getResource(fileURI, true);
-			try {		
-				// flush the command stack
-				editingDomain.getCommandStack().flush();
-				//try to create an appropriate generator
-				Generator generator = new Generator(element.eClass());
-				if (generator != null){
-			         monitor.subTask("Generating new Event-B elements");
-					generator.generate(editingDomain,element);
-				}	
-				resource.save(Collections.emptyMap());
+			try {
+				
+				RodinCore.run(new IWorkspaceRunnable() {
+					public void run(final IProgressMonitor monitor) throws CoreException{
+						TransactionalEditingDomain editingDomain = getEditingDomain();
+						final List<Resource> modifiedResources;
+						
+						String elementName = element instanceof EventBNamed ? ((EventBNamed)element).getName() : element.toString();
+						String elementType = element.eClass().getName();
+						monitor.beginTask("",10);		
+						monitor.setTaskName("Running Event-B Generator for "+	elementType+" : "+elementName);
+
+						// flush the command stack as this is unprotected and has no undo/redo
+						editingDomain.getCommandStack().flush();
+						
+				        monitor.subTask(" Configuring Generator");
+						//try to create an appropriate generator
+						Generator generator = new Generator(element.eClass());
+
+				        monitor.subTask(" Generating new Event-B elements");
+				        
+				        //try to run the generation
+						modifiedResources = generator.generate(editingDomain,element);
+
+						if (modifiedResources == null){
+							
+							//ErrorDialog errorDialog = new ErrorDialog(diagramEditor.getSite().getShell(), label, label, null, 0); 
+							//should display a message here 
+							//"Generation Failed - see error log for details"
+							
+						}else{
+						
+							//try to save all the modified resources
+					        monitor.subTask(" Saving modified resources");
+							for (Resource resource : modifiedResources){
+								try {
+									resource.save(Collections.emptyMap());
+								} catch (IOException e) {
+									Activator.logError("Save operation failed after transformation for: " + resource.toString(), e);
+									//throw this as a CoreException
+									throw new CoreException(
+											new Status(Status.ERROR, Activator.PLUGIN_ID, "Save operation failed after transformation for: " + resource.toString(), e));
+								}					
+							}
+							
+						}
+					monitor.done();
+					}
+				},monitor);
+				
 				return CommandResult.newOKCommandResult();
-			} catch (IOException e) {
-				Activator.logError("Save operation failed after transformation for: " + resource.getURI().toFileString(), e);
+
+			} catch (RodinDBException e) {
+				Activator.logError("Generation Exception", e);
 				return CommandResult.newErrorCommandResult(e);
 			} catch (WrappedException e) {
 				Activator.logError("Unable to load resource for transformation", e);
 				return CommandResult.newErrorCommandResult(e);
+
 			} finally {
 				monitor.done();
 			}
