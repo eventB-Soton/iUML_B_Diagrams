@@ -18,12 +18,12 @@ import org.eventb.emf.core.machine.MachinePackage;
  */
 public abstract class AbstractRule implements IRule {
 	
-	protected static EReference variables = MachinePackage.Literals.MACHINE__VARIABLES;
-	protected static EReference invariants = MachinePackage.Literals.MACHINE__INVARIANTS;
-	protected static EReference events = MachinePackage.Literals.MACHINE__EVENTS;
-	protected static EReference parameters = MachinePackage.Literals.EVENT__PARAMETERS;
-	protected static EReference guards = MachinePackage.Literals.EVENT__GUARDS;
-	protected static EReference actions = MachinePackage.Literals.EVENT__ACTIONS;
+	protected static final EReference variables = MachinePackage.Literals.MACHINE__VARIABLES;
+	protected static final EReference invariants = MachinePackage.Literals.MACHINE__INVARIANTS;
+	protected static final EReference events = MachinePackage.Literals.MACHINE__EVENTS;
+	protected static final EReference parameters = MachinePackage.Literals.EVENT__PARAMETERS;
+	protected static final EReference guards = MachinePackage.Literals.EVENT__GUARDS;
+	protected static final EReference actions = MachinePackage.Literals.EVENT__ACTIONS;
 	
 	@Override
 	public boolean enabled(EventBElement sourceElement) throws Exception  {
