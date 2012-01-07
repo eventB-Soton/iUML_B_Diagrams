@@ -5,6 +5,11 @@ import java.util.List;
 
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eventb.emf.core.EventBElement;
+import org.eventb.emf.core.context.Axiom;
+import org.eventb.emf.core.context.CarrierSet;
+import org.eventb.emf.core.context.Constant;
+import org.eventb.emf.core.context.Context;
+import org.eventb.emf.core.context.ContextFactory;
 import org.eventb.emf.core.machine.Action;
 import org.eventb.emf.core.machine.Convergence;
 import org.eventb.emf.core.machine.Event;
@@ -87,4 +92,37 @@ public class Make {
 	    return a;  
 	}
 
+	public static Object context(String name, String comment) {
+		Context ctx =  ContextFactory.eINSTANCE.createContext();
+	    ctx.setName(name);
+	    ctx.setLocalGenerated(true);
+	    ctx.setComment(comment);
+	    return ctx;
+	}
+
+	public static Object set(String name, String comment) {
+		CarrierSet set =  ContextFactory.eINSTANCE.createCarrierSet();
+	    set.setName(name);
+	    set.setLocalGenerated(true);
+	    set.setComment(comment);
+	    return set;
+	}
+
+	public static Object constant(String name, String comment) {
+		Constant constant =  ContextFactory.eINSTANCE.createConstant();
+	    constant.setName(name);
+	    constant.setLocalGenerated(true);
+	    constant.setComment(comment);
+	    return constant;
+	}
+	
+	public static Axiom axiom(String name, String predicate,String comment) {
+		Axiom axm =  ContextFactory.eINSTANCE.createAxiom();
+	    axm.setName(name);
+	    axm.setPredicate(predicate);
+	    axm.setLocalGenerated(true);
+	    axm.setComment(comment);
+	    return axm;  
+	}
+	
 }
