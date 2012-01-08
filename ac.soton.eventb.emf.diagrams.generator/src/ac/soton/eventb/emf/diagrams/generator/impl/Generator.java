@@ -1,4 +1,12 @@
-package ac.soton.eventb.emf.diagrams.generator;
+/**
+ * Copyright (c) 2012 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+
+package ac.soton.eventb.emf.diagrams.generator.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +40,20 @@ import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
+import ac.soton.eventb.emf.diagrams.generator.Activator;
+import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
+import ac.soton.eventb.emf.diagrams.generator.IRule;
 
+/**
+ * A generic Generator which is configured from rule classes which have been declared in an extension point.
+ * The rules are fired (if enabled) and return a collection of descriptors for adding elements to the model
+ * or adding references within the model.
+ * Rules may be deferred until later if they depend on other rules which have not yet fired.
+ * Descriptors may be prioritised to influence the order of elements in collections. 
+ * 
+ * @author cfs
+ *
+ */
 public class Generator {
 
 	private class GeneratorConfig{
@@ -52,31 +73,16 @@ public class Generator {
 		}
 	}
 	
-	// Key for the generator ID atttribute
-	private static final String GENERATOR_ID_KEY = "org.eventb.emf.persistence.generator_ID";
-
-	// ID's for the extension point defining generators
-	private static final String EXTPT_ID = "ac.soton.eventb.emf.diagrams.generator.rule";
-	
-	private static final String EXTPT_ROOTSOURCECLASS ="root_source_class";
-	private static final String EXTPT_GENERATORID = "generatorID";
-	private static final String EXTPT_SOURCEPACKAGE = "sourcePackage";
-	
-	private static final String EXTPT_RULE = "rule";
-	private static final String EXTPT_RULECLASS = "rule_class";
-	private static final String EXTPT_SOURCECLASS = "source_class";
-//	private static final String EXTPT_TARGETFEATURE = "target_feature";
-//	private static final String EXTPT_TARGETPRIORITY = "target_priority";
 
 	//cached store of generator configurations that have been loaded from extension points so far
 	private static Map<EClass,GeneratorConfig> generators = new HashMap<EClass, GeneratorConfig  >();
 	
-//	configuration data for this instance of a generator
+	//	configuration data for this instance of a generator
 	private GeneratorConfig generatorConfig;
 
 	
 	// VARIABLE DATA
-	/**
+	/*
 	 * These mappings are populated from the generation descriptors prior to updating the model
 	 * priorities maps from a range of priority numbers (10 down to -10) to a list of new child elements for each priority
 	 * parents maps each new element to the parent element that should own it
@@ -104,19 +110,19 @@ public class Generator {
 			generatorConfig = null;
 
 			// populate generator configuration data from registered extensions
-			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(EXTPT_ID).getExtensions()) {
+			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(Identifiers.EXTPT_ID).getExtensions()) {
 				for (final IConfigurationElement generatorExtensionElement : extension.getConfigurationElements()) {
-					EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(EXTPT_SOURCEPACKAGE));
+					EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(Identifiers.EXTPT_SOURCEPACKAGE));
 					if (sourcePackage!= null &&
-							rootSourceClass == sourcePackage.getEClassifier(generatorExtensionElement.getAttribute(EXTPT_ROOTSOURCECLASS))){
+							rootSourceClass == sourcePackage.getEClassifier(generatorExtensionElement.getAttribute(Identifiers.EXTPT_ROOTSOURCECLASS))){
 						generatorConfig = new GeneratorConfig();
 						generatorConfig.sourcePackage = sourcePackage;
 						generatorConfig.rootSourceClass = rootSourceClass;
-						generatorConfig.generatorID = generatorExtensionElement.getAttribute(EXTPT_GENERATORID);
-						for (final IConfigurationElement ruleExtensionElement : generatorExtensionElement.getChildren(EXTPT_RULE)) {
+						generatorConfig.generatorID = generatorExtensionElement.getAttribute(Identifiers.EXTPT_GENERATORID);
+						for (final IConfigurationElement ruleExtensionElement : generatorExtensionElement.getChildren(Identifiers.EXTPT_RULE)) {
 							try {
-								final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(EXTPT_RULECLASS);
-								EClassifier sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(EXTPT_SOURCECLASS));
+								final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(Identifiers.EXTPT_RULECLASS);
+								EClassifier sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
 								if (sourceClass != null) generatorConfig.addRule(sourceClass, rule);
 								
 							} catch (final CoreException e) {
@@ -135,7 +141,7 @@ public class Generator {
 /**
  * generate - this should be called from a command handler action, passing the selected element
  * @param editingDomain 
- * 
+ * @param sourceElement 
  */
 	public List<Resource> generate (TransactionalEditingDomain editingDomain, final EventBElement sourceElement){
 		String sourceExtensionID;
@@ -144,13 +150,13 @@ public class Generator {
 			
 			//check we have a valid configuration for the generator
 			if (generatorConfig==null) {
-				Activator.logError("no generator found for "+ sourceElement);
+				Activator.logError(Messages.GENERATOR_MSG_01(sourceElement));
 				return null;
 			}
 			
 			//check we have the correct generator configuration for the source element
 			if (sourceElement.eClass() != generatorConfig.rootSourceClass){
-				Activator.logError("Incorrect generator called for "+ sourceElement);
+				Activator.logError(Messages.GENERATOR_MSG_02(sourceElement));
 				return null;
 			}
 			
@@ -167,7 +173,7 @@ public class Generator {
 					);
 			
 			//Remove previously generated elements	
-			List<EObject> previouslyGeneratedElements = getGeneratedElements(
+			List<EObject> previouslyGeneratedElements = getPreviouslyGeneratedElements(
 					(EventBNamedCommentedComponentElement) sourceElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT),
 					sourceExtensionID);
 			if (previouslyGeneratedElements.size()>0){
@@ -175,7 +181,7 @@ public class Generator {
 				if (deleteCommand.canExecute()){
 					deleteCommand.execute();
 				}else{
-					Activator.logError("failed to delete previously generated elements");
+					Activator.logError(Messages.GENERATOR_MSG_03);
 					return null;
 				}
 			}
@@ -193,7 +199,7 @@ public class Generator {
 					placeGenerated(editingDomain, sourceExtensionID)
 					);
 		} catch (Exception e) {
-			Activator.logError("Failed to place generated elements", e);
+			Activator.logError(Messages.GENERATOR_MSG_04, e);
 			return null;
 		}
 		
@@ -201,7 +207,7 @@ public class Generator {
 			
 	}
 	
-/**
+/*
  * If any generated elements are a new EventB component (e.g. machine, context) this creates a new resource
  * for them in the editing domains resource set and attaches the new element as the content of the resource.
  * Note that we do not save the resource yet in case the generation process does not complete. 
@@ -222,11 +228,9 @@ public class Generator {
 			if (generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
 					generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
 					String fileName = ((EventBNamedCommentedComponentElement)generationDescriptor.value).getName();
-					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc");
-					//fileUri = projectUri.
+					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc"); //$NON-NLS-1$
 					String fileString = fileUri.toString();
-					Resource newResource = editingDomain.createResource(fileString); //projectUri.appendSegment(fileName).toFileString());
-					//editingDomain.getResourceSet().
+					Resource newResource = editingDomain.createResource(fileString);
 					newResource.getContents().add((EventBNamedCommentedComponentElement)generationDescriptor.value);
 					newResources.add(newResource);
 			}
@@ -235,11 +239,11 @@ public class Generator {
 	}
 
 
-	/**
-	 * finds all elements that have been generated with this generators generatorID
-	 * @return 
+	/*
+	 * finds all elements that have previously been generated with this generators generatorID
+	 * @return List of elements
 	 */
-		public ArrayList<EObject> getGeneratedElements(final EventBNamedCommentedComponentElement component, String sourceExtensionID) {
+		private ArrayList<EObject> getPreviouslyGeneratedElements(final EventBNamedCommentedComponentElement component, String sourceExtensionID) {
 			EList<EObject> contents = component.getAllContained(CorePackage.eINSTANCE.getEventBElement(),false);
 			contents.remove(null);
 			contents.add(0,component);
@@ -276,7 +280,7 @@ public class Generator {
 
 			private static boolean wasGeneratedBy(Object object, String id){
 				if (object instanceof EventBElement){
-					Attribute generatedBy = ((EventBElement)object).getAttributes().get(GENERATOR_ID_KEY);
+					Attribute generatedBy = ((EventBElement)object).getAttributes().get(Identifiers.GENERATOR_ID_KEY);
 					if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
 						return true;
 					}
@@ -284,13 +288,21 @@ public class Generator {
 				return false;
 			}
 		
-/**
+/*
  * puts the generated elements into the model
  * @param editingDomain 
- * @return 
+ * @return modified resources
  */
 	private Collection<? extends Resource> placeGenerated(EditingDomain editingDomain, String generatedByID) throws Exception {
-		prepare();
+		//arrange the generation descriptors into priority order
+		for (GenerationDescriptor generationDescriptor : generatedElements){
+			Integer pri = generationDescriptor.priority;
+			List<GenerationDescriptor> objects = priorities.get(pri);
+			if (objects ==null) objects = new ArrayList<GenerationDescriptor>();
+			objects.add(generationDescriptor); //newChild);
+			priorities.put(pri,objects);
+		}
+		//process the prioritised mappings of generation descriptors
 		List<Resource> modifiedResources = new ArrayList<Resource>();
 		for (int pri=10; pri>=-10; pri--){
 			if (priorities.containsKey(pri))
@@ -306,7 +318,7 @@ public class Generator {
 					Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
 					genID.setValue(generatedByID);
 					genID.setType(AttributeType.STRING);
-					newChild.getAttributes().put(GENERATOR_ID_KEY,genID);
+					newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
 					
 					if (generationDescriptor.parent != null){
 						Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
@@ -336,21 +348,9 @@ public class Generator {
 		return modifiedResources;
 	}
 
-	/**
-	 * prepares the generated elements.
-	 * This sets the local generated property and adds an attribute with this generators ID
-	 * The mapping's priority, parent and feature are populated
+	/*
+	 * a record of rules that have been deferred
 	 */
-	private void prepare() {
-		for (GenerationDescriptor generationDescriptor : generatedElements){
-				Integer pri = generationDescriptor.priority;
-				List<GenerationDescriptor> objects = priorities.get(pri);
-				if (objects ==null) objects = new ArrayList<GenerationDescriptor>();
-				objects.add(generationDescriptor); //newChild);
-				priorities.put(pri,objects);
-		}
-	}
-
 	private Map<EventBElement, List<IRule>> deferredRules = new HashMap<EventBElement,List<IRule>>();
 	private void defer(EventBElement sourceElement, IRule rule){
 		List<IRule> rules = deferredRules.get(sourceElement);
@@ -359,7 +359,7 @@ public class Generator {
 		deferredRules.put(sourceElement, rules);
 	}
 	
-	/**
+	/*
 	 * The generation is done in two stage:
 	 * 1) traverse the model firing any appropriate rules that are enabled. This may result in deferred
 	 *    rules that are enabled but cannot be fired due to dependencies on other rules.
@@ -397,14 +397,17 @@ public class Generator {
 				}
 			}
 			deferredRules.keySet().removeAll(empties);
-			if (progress == false) throw new Exception("Generator Rules contain circlar dependencies");
+			if (progress == false) throw new Exception(Messages.GENERATOR_MSG_00);
 		} 
 	}
-		
+	
+	/*
+	 * recursive routine to traverse model firing appropriate rules
+	 */
 	private void traverseModel(final EventBElement sourceElement) throws Exception {
 		
 		//this ensures that we do not generate from our own generated elements
-		if (generatorConfig.generatorID.equals(sourceElement.getAttributes().get(GENERATOR_ID_KEY))) return;
+		if (generatorConfig.generatorID.equals(sourceElement.getAttributes().get(Identifiers.GENERATOR_ID_KEY))) return;
 		
 		//try to fire all the rules listed for this kind of source element
 		List<IRule> rules = new ArrayList<IRule>();

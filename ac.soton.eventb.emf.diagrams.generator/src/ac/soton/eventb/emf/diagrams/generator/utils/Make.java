@@ -1,4 +1,12 @@
-package ac.soton.eventb.emf.diagrams.generator;
+/**
+ * Copyright (c) 2012 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+
+package ac.soton.eventb.emf.diagrams.generator.utils;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,19 +27,26 @@ import org.eventb.emf.core.machine.MachineFactory;
 import org.eventb.emf.core.machine.Parameter;
 import org.eventb.emf.core.machine.Variable;
 
-public class Make {
+import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 
+/**
+ * This is a collection of static convenience methods for making objects that are needed in generator Rules
+ * 
+ */
+
+public class Make {
+	
 	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority){
 		return new GenerationDescriptor(parent,feature,value,Integer.valueOf(priority));
 	}
 	
-	  public static Variable variable(String name, String comment) {
+	 public static Variable variable(String name, String comment) {
 		Variable v =  MachineFactory.eINSTANCE.createVariable();
 	    v.setName(name);
 	    v.setLocalGenerated(true);
 	    v.setComment(comment);
 	    return v;  
-	  }
+	 }
 	  
 	public static Invariant invariant(String name, String predicate,String comment) {
 		Invariant i =  MachineFactory.eINSTANCE.createInvariant();

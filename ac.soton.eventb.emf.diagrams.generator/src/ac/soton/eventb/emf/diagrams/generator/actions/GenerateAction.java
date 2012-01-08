@@ -1,12 +1,12 @@
 /**
- * Copyright (c) 2011
- * University of Southampton.
- * All rights reserved. This program and the accompanying materials  are made
- * available under the terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
- * 
+ * Copyright (c) 2012 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
  */
-package ac.soton.eventb.emf.diagrams.generator;
+
+package ac.soton.eventb.emf.diagrams.generator.actions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -38,9 +38,12 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.EventBElement;
-import org.eventb.emf.core.EventBNamed;
 import org.rodinp.core.RodinCore;
 import org.rodinp.core.RodinDBException;
+
+import ac.soton.eventb.emf.diagrams.generator.Activator;
+import ac.soton.eventb.emf.diagrams.generator.impl.Generator;
+import ac.soton.eventb.emf.diagrams.generator.impl.Messages;
 
 
 //import ac.soton.eventb.emf.components.diagram.part.ValidateAction;
@@ -87,20 +90,20 @@ public class GenerateAction extends AbstractHandler {
 						try {
 							dialog.run(true, true, new IRunnableWithProgress(){
 							     public void run(IProgressMonitor monitor) {
-							         monitor.beginTask("Generating Event-B ...", IProgressMonitor.UNKNOWN);
+							         monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
 							         try {
 										generateCommand.execute(monitor, diagramEditor);
 									} catch (ExecutionException e) {
-										Activator.logError("Generation failed", e);
+										Activator.logError(Messages.GENERATOR_MSG_06, e);
 									}
 							         monitor.done();
 							     }
 							 });
 						} catch (InvocationTargetException e) {
-							Activator.logError("Generation failed", e);
+							Activator.logError(Messages.GENERATOR_MSG_07, e);
 							return null;
 						} catch (InterruptedException e) {
-							Activator.logError("Generation interrupted", e);
+							Activator.logError(Messages.GENERATOR_MSG_08, e);
 							return null;
 						} 
 	
@@ -108,8 +111,8 @@ public class GenerateAction extends AbstractHandler {
 						if (false == generateCommand.getCommandResult().getStatus().isOK())
 							MessageDialog
 									.openError(editor.getSite().getShell(),
-											"Generation Information",
-											"Generation encountered problems.\n\nSee log for details.");
+											Messages.GENERATOR_MSG_09,
+											Messages.GENERATOR_MSG_10);
 					}
 				}
 			}
@@ -164,7 +167,7 @@ public class GenerateAction extends AbstractHandler {
 		 * @param affectedFiles
 		 */
 		public GenerateCommand(TransactionalEditingDomain editingDomain, EventBElement element) {
-			super(editingDomain, "Generate Command", null);
+			super(editingDomain, Messages.GENERATOR_MSG_11, null);
 			setOptions(Collections.singletonMap(Transaction.OPTION_UNPROTECTED, Boolean.TRUE));
 			this.element = element;
 		}
@@ -193,19 +196,17 @@ public class GenerateAction extends AbstractHandler {
 						TransactionalEditingDomain editingDomain = getEditingDomain();
 						final List<Resource> modifiedResources;
 						
-						String elementName = element instanceof EventBNamed ? ((EventBNamed)element).getName() : element.toString();
-						String elementType = element.eClass().getName();
-						monitor.beginTask("",10);		
-						monitor.setTaskName("Running Event-B Generator for "+	elementType+" : "+elementName);
+						monitor.beginTask(Messages.GENERATOR_MSG_12,10);		
+						monitor.setTaskName(Messages.GENERATOR_MSG_13(element)); 
 
 						// flush the command stack as this is unprotected and has no undo/redo
 						editingDomain.getCommandStack().flush();
 						
-				        monitor.subTask(" Configuring Generator");
+				        monitor.subTask(Messages.GENERATOR_MSG_14);
 						//try to create an appropriate generator
 						Generator generator = new Generator(element.eClass());
 
-				        monitor.subTask(" Generating new Event-B elements");
+				        monitor.subTask(Messages.GENERATOR_MSG_15);
 				        
 				        //try to run the generation
 						modifiedResources = generator.generate(editingDomain,element);
@@ -219,15 +220,14 @@ public class GenerateAction extends AbstractHandler {
 						}else{
 						
 							//try to save all the modified resources
-					        monitor.subTask(" Saving modified resources");
+					        monitor.subTask(Messages.GENERATOR_MSG_16);
 							for (Resource resource : modifiedResources){
 								try {
 									resource.save(Collections.emptyMap());
 								} catch (IOException e) {
-									Activator.logError("Save operation failed after transformation for: " + resource.toString(), e);
 									//throw this as a CoreException
 									throw new CoreException(
-											new Status(Status.ERROR, Activator.PLUGIN_ID, "Save operation failed after transformation for: " + resource.toString(), e));
+											new Status(Status.ERROR, Activator.PLUGIN_ID, Messages.GENERATOR_MSG_18(resource), e));
 								}					
 							}
 							
@@ -239,10 +239,10 @@ public class GenerateAction extends AbstractHandler {
 				return CommandResult.newOKCommandResult();
 
 			} catch (RodinDBException e) {
-				Activator.logError("Generation Exception", e);
+				Activator.logError(Messages.GENERATOR_MSG_19, e);
 				return CommandResult.newErrorCommandResult(e);
 			} catch (WrappedException e) {
-				Activator.logError("Unable to load resource for transformation", e);
+				Activator.logError(Messages.GENERATOR_MSG_20, e);
 				return CommandResult.newErrorCommandResult(e);
 
 			} finally {

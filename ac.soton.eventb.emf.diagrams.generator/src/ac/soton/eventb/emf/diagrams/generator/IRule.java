@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2012 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package ac.soton.eventb.emf.diagrams.generator;
 
 import java.util.List;
@@ -5,6 +13,12 @@ import java.util.List;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
+/**
+ * Clients should implement this interface to define Rules for their generator
+ * 
+ * @author cfs
+ *
+ */
 
 public interface IRule {
 	
@@ -35,6 +49,8 @@ public interface IRule {
 	/**
 	 * This returns the EventB component (i.e. a particular Machine or Context etc.) where the generated elements
 	 * should be added.
+	 * 
+	 * CURRENTLY NOT USED
 	 * 
 	 * @param sourceComponent
 	 * @param sourceElement

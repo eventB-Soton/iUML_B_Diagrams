@@ -13,4 +13,6 @@ Require-Bundle: org.eclipse.ui,
  org.eventb.emf.persistence;bundle-version="2.3.2"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
-Export-Package: ac.soton.eventb.emf.diagrams.generator
+Export-Package: ac.soton.eventb.emf.diagrams.generator,
+ ac.soton.eventb.emf.diagrams.generator.actions,
+ ac.soton.eventb.emf.diagrams.generator.utils

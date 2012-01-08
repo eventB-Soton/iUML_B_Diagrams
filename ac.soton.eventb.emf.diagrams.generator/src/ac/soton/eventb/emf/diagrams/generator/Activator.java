@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2012 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package ac.soton.eventb.emf.diagrams.generator;
 
 import org.eclipse.core.runtime.IStatus;
@@ -48,20 +56,6 @@ public class Activator extends AbstractUIPlugin {
 	public static Activator getDefault() {
 		return plugin;
 	}
-
-//	public void logError(String message, Exception e) {
-//		getLog().log(new Status(
-//				 IStatus.ERROR,
-//				 Activator.PLUGIN_ID,
-//				 IStatus.ERROR,
-//				 message,
-//				 e));
-//		
-//	}
-//	
-//	public void logError(String message) {
-//		logError(message,null);
-//	}
 
 	public static void logError(String message, Exception e) {
 		 Activator.getDefault().getLog().log(new Status(

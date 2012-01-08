@@ -1,3 +1,11 @@
+/**
+ * Copyright (c) 2012 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package ac.soton.eventb.emf.diagrams.generator;
 
 import java.util.Collections;
@@ -10,7 +18,7 @@ import org.eventb.emf.core.machine.MachinePackage;
 
 
 /**
- * a simple abstract version of a rule that is always enabled and adds generated elements to 
+ * a simple abstract version of a rule that is always enabled, dependencies are ok, and adds generated elements to 
  * the target Component. Clients may extend this rule to adopt this default behaviour.
  * 
  * @author cfs
