@@ -39,6 +39,7 @@ import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
+import org.eventb.emf.core.machine.impl.ActionImpl;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
@@ -59,7 +60,7 @@ public class Generator {
 	private class GeneratorConfig{
 		public String generatorID;
 		@SuppressWarnings("unused")
-		public EPackage sourcePackage;
+		public EPackage rootSourcePackage;
 		public EClass rootSourceClass;
 		public Map<EClassifier, List<IRule>> ruleMapping;
 		public GeneratorConfig(){
@@ -102,7 +103,7 @@ public class Generator {
  */
 	
 	public Generator(EClass rootSourceClass){ 
-		
+		generators.clear();
 		if (generators.containsKey(rootSourceClass)){
 			generatorConfig = generators.get(rootSourceClass);
 			
@@ -112,18 +113,38 @@ public class Generator {
 			// populate generator configuration data from registered extensions
 			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(Identifiers.EXTPT_ID).getExtensions()) {
 				for (final IConfigurationElement generatorExtensionElement : extension.getConfigurationElements()) {
-					EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(Identifiers.EXTPT_SOURCEPACKAGE));
-					if (sourcePackage!= null &&
-							rootSourceClass == sourcePackage.getEClassifier(generatorExtensionElement.getAttribute(Identifiers.EXTPT_ROOTSOURCECLASS))){
+					EPackage rootSourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(Identifiers.EXTPT_SOURCEPACKAGE));
+					if (rootSourcePackage!= null &&
+							rootSourceClass == rootSourcePackage.getEClassifier(generatorExtensionElement.getAttribute(Identifiers.EXTPT_ROOTSOURCECLASS))){
 						generatorConfig = new GeneratorConfig();
-						generatorConfig.sourcePackage = sourcePackage;
+						generatorConfig.rootSourcePackage = rootSourcePackage;
 						generatorConfig.rootSourceClass = rootSourceClass;
 						generatorConfig.generatorID = generatorExtensionElement.getAttribute(Identifiers.EXTPT_GENERATORID);
 						for (final IConfigurationElement ruleExtensionElement : generatorExtensionElement.getChildren(Identifiers.EXTPT_RULE)) {
 							try {
-								final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(Identifiers.EXTPT_RULECLASS);
-								EClassifier sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
-								if (sourceClass != null) generatorConfig.addRule(sourceClass, rule);
+								EClassifier sourceClass = null;
+								//see if a EPackage has been explicitly defined
+								EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCEPACKAGE));
+								if (sourcePackage != null) {
+									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
+								}else{
+									//no explicit EPackage so try the rootSourcePackage of the generator
+									sourcePackage = rootSourcePackage;
+									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
+									//if not in rootSourcePackage, try its subPackages
+									if(sourceClass == null){
+										for (EPackage subPackage  : sourcePackage.getESubpackages()){
+											sourceClass = subPackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
+											if (sourceClass != null) break;
+										}
+									}
+								}
+								
+								// if we found the class, add the rule
+								if (sourceClass != null) {
+									final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(Identifiers.EXTPT_RULECLASS);									
+									generatorConfig.addRule(sourceClass, rule);
+								}
 								
 							} catch (final CoreException e) {
 								Activator.logError(e.getMessage(),e);
@@ -325,6 +346,9 @@ public class Generator {
 						if (featureValue instanceof EObjectContainmentEList){	//containment collection
 							@SuppressWarnings("unchecked")
 							EObjectContainmentEList<EObject> list = (EObjectContainmentEList<EObject>) featureValue; 
+							if (newChild instanceof ActionImpl){
+								int i=0;
+							}
 							list.add(newChild);
 						}else if (featureValue instanceof EObjectResolvingEList){	//list of references
 							@SuppressWarnings("unchecked")
