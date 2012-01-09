@@ -16,7 +16,7 @@
             <meta.element />
          </appinfo>
          <documentation>
-            Defines generators that generate EventB EMF models from source EventB EMf models.
+            Defines generators that generate EMF models from source EMF models.
          </documentation>
       </annotation>
       <complexType>
@@ -63,7 +63,7 @@
          <attribute name="name" type="string">
             <annotation>
                <documentation>
-                  optional user friendly name for this part of the extension
+                  optional user friendly name for this generator
                </documentation>
             </annotation>
          </attribute>
@@ -77,9 +77,7 @@
          <attribute name="sourcePackage" type="string" use="required">
             <annotation>
                <documentation>
-                  Namespace URI of the emf package which the source elements are based on.
-The package will be retrieved from the package registry using
-EPackage.Registry.INSTANCE.getEPackage(nsURI)
+                  Namespace URI of the emf package which the root source element is from. The package will be retrieved from the package registry using EPackage.Registry.INSTANCE.getEPackage(nsURI)
                </documentation>
             </annotation>
          </attribute>
@@ -104,7 +102,15 @@ e.g. Statemachine
          <attribute name="name" type="string">
             <annotation>
                <documentation>
-                  
+                  optional user friendly name for this rule
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="sourcePackage" type="string">
+            <annotation>
+               <documentation>
+                  OPTIONAL Namespace URI of the emf package which the source element for this rule is from. The package will be retrieved from the package registry using EPackage.Registry.INSTANCE.getEPackage(nsURI)
+[if this attribute is left blank the source Element is assumed to be from the same package as the root source class of the generator (or one of its subpackages). This atttribute isw only needed when the source model may contain sub-models based on a different package which are not being fully dealt with by their own generator or require extra generation due to their context]
                </documentation>
             </annotation>
          </attribute>
