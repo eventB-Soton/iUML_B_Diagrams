@@ -39,7 +39,9 @@ import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.core.machine.impl.ActionImpl;
+import org.eventb.emf.core.machine.Action;
+import org.eventb.emf.core.machine.Event;
+import org.eventb.emf.core.machine.Guard;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
@@ -314,6 +316,7 @@ public class Generator {
  * @param editingDomain 
  * @return modified resources
  */
+	@SuppressWarnings("unchecked")
 	private Collection<? extends Resource> placeGenerated(EditingDomain editingDomain, String generatedByID) throws Exception {
 		//arrange the generation descriptors into priority order
 		for (GenerationDescriptor generationDescriptor : generatedElements){
@@ -328,41 +331,42 @@ public class Generator {
 		for (int pri=10; pri>=-10; pri--){
 			if (priorities.containsKey(pri))
 			for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
+				if (filter(generationDescriptor)) continue;								
 				Resource resource = null;
-				if (generationDescriptor.value instanceof EventBElement){
-					EventBElement newChild = ((EventBElement)generationDescriptor.value);
 					
-					// set the generated property
-					newChild.setLocalGenerated(true);
+				if (generationDescriptor.parent != null){
+					Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
 					
-					// add an attribute with this generators ID
-					Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
-					genID.setValue(generatedByID);
-					genID.setType(AttributeType.STRING);
-					newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
-					
-					if (generationDescriptor.parent != null){
-						Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
-						if (featureValue instanceof EObjectContainmentEList){	//containment collection
-							@SuppressWarnings("unchecked")
-							EObjectContainmentEList<EObject> list = (EObjectContainmentEList<EObject>) featureValue; 
-							if (newChild instanceof ActionImpl){
-								int i=0;
-							}
-							list.add(newChild);
-						}else if (featureValue instanceof EObjectResolvingEList){	//list of references
-							@SuppressWarnings("unchecked")
-							EObjectResolvingEList<EObject> list = (EObjectResolvingEList<EObject>) featureValue; 
-							list.add(newChild);
-						}else {
-							generationDescriptor.parent.eSet(generationDescriptor.feature, newChild);
+					if (featureValue instanceof EObjectContainmentEList){	//containment collection
+						if (generationDescriptor.value instanceof EventBElement){						
+							EventBElement newChild = ((EventBElement)generationDescriptor.value);					
+							// set the generated property
+							newChild.setLocalGenerated(true);				
+							// add an attribute with this generators ID
+							Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
+							genID.setValue(generatedByID);
+							genID.setType(AttributeType.STRING);
+							newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
 						}
-						//add to list of modifiedResources if not already there
-						resource = generationDescriptor.parent.eResource();
-
-					}else{
-						//currently not supported
+						if (generationDescriptor.value instanceof EObject){ 
+							((EObjectContainmentEList<EObject>) featureValue).add((EObject)generationDescriptor.value);
+						}
+						
+					}else if (featureValue instanceof EObjectResolvingEList){	//list of references
+						if (generationDescriptor.value instanceof EObject){ 
+							((EObjectResolvingEList<EObject>) featureValue).add((EObject)generationDescriptor.value);
+						}
+						
+					}else {
+						//FIXME: this should be analysed more
+						generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
 					}
+					
+					//add to list of modifiedResources if not already there
+					resource = generationDescriptor.parent.eResource();
+
+				}else{
+					//currently not supported
 				}
 				if (resource!= null && !modifiedResources.contains(resource)){
 					modifiedResources.add(resource);
@@ -371,6 +375,61 @@ public class Generator {
 		}
 		return modifiedResources;
 	}
+
+	/*
+	 * Filters out any generationDescriptors that should not be acted upon
+	 * This may be because a child is already visible via extension of the refined parent
+	 *
+	 */
+	private boolean filter(GenerationDescriptor generationDescriptor) {
+		if (generationDescriptor.parent==null) return false;
+		Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
+		if (featureValue instanceof EList){
+			EList<?> list = (EList<?>)featureValue;
+			for (Object el : list){
+				if (match(el,generationDescriptor.value)) return true;
+			}
+		}
+		if (generationDescriptor.parent instanceof Event){
+			Event event = (Event)generationDescriptor.parent;
+			if (event.isExtended()){
+				Event refinedEvent =event.getRefines().get(0);
+				Object refinedFeatureValue = refinedEvent.eGet(generationDescriptor.feature);
+				if (refinedFeatureValue instanceof EList){
+					EList<?> list = (EList<?>)refinedFeatureValue;
+					for (Object el : list){
+						if (match(el,generationDescriptor.value)) return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+
+
+	private boolean match(Object el1, Object el2) {
+		if (el1.getClass()!=el2.getClass()) return false;
+		if (el1 instanceof Guard && el2 instanceof Guard){
+			String s1 = ((Guard)el1).getPredicate();
+			String s2 = ((Guard)el2).getPredicate();
+			if (s1 != null && s1.equals(s2)) return true;
+		}
+		if (el1 instanceof Action && el2 instanceof Action){
+			String s1 = ((Action)el1).getAction();
+			String s2 = ((Action)el2).getAction();
+			if (s1 != null && s1.equals(s2)) return true;
+		}
+		if (el1 instanceof EventBNamedCommentedComponentElement && el2 instanceof EventBNamedCommentedComponentElement){
+			String s1 = ((EventBNamedCommentedComponentElement)el1).getName();
+			String s2 = ((EventBNamedCommentedComponentElement)el2).getName();
+			if (s1 != null && s1.equals(s2)) return true;
+		}		
+		return false;
+	}
+
+
 
 	/*
 	 * a record of rules that have been deferred
