@@ -2,6 +2,7 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension-point id="ac.soton.eventb.emf.diagrams.generator.rule" name="generator rule" schema="schema/ac.soton.eventb.emf.diagrams.generator.rule.exsd"/>
+   <extension-point id="ac.soton.eventb.emf.diagrams.validator" name="validator" schema="schema/ac.soton.eventb.emf.diagrams.validator.exsd"/>
 
 
 <extension
@@ -16,6 +17,12 @@
            label="generate"
            style="push">
      </command>
+     <command
+           commandId="ac.soton.eventb.emf.diagrams.generator.validate"
+           icon="icons/Validate.png"
+           label="validate"
+           style="push">
+     </command>
   </menuContribution>
 </extension>
 <extension
@@ -24,6 +31,11 @@
         description="command.description.generate"
         id="ac.soton.eventb.emf.diagrams.generator.generateEventB"
         name="command.name.generate">
+  </command>
+  <command
+        description="validate the diagram model"
+        id="ac.soton.eventb.emf.diagrams.generator.validate"
+        name="validate">
   </command>
 </extension>
 
