@@ -26,6 +26,7 @@ import org.eventb.emf.core.machine.Invariant;
 import org.eventb.emf.core.machine.MachineFactory;
 import org.eventb.emf.core.machine.Parameter;
 import org.eventb.emf.core.machine.Variable;
+import org.eventb.emf.core.machine.Witness;
 
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 
@@ -48,9 +49,14 @@ public class Make {
 	    return v;  
 	 }
 	  
-	public static Invariant invariant(String name, String predicate,String comment) {
+	public static Invariant invariant(String name, String predicate, String comment) {
+		return invariant(name, false, predicate, comment);
+	}
+		
+	public static Invariant invariant(String name, boolean theorem, String predicate,String comment) {
 		Invariant i =  MachineFactory.eINSTANCE.createInvariant();
 	    i.setName(name);
+	    i.setTheorem(theorem);
 	    i.setPredicate(predicate);
 	    i.setLocalGenerated(true);
 	    i.setComment(comment);
@@ -72,6 +78,10 @@ public class Make {
 	    return e;  
 	}
 
+	public static Object parameter(String name){
+		return parameter(name,"");
+	}
+	
 	public static Object parameter(String name, String comment) {
 		Parameter p =  MachineFactory.eINSTANCE.createParameter();
 	    p.setName(name);
@@ -84,11 +94,11 @@ public class Make {
 		return guard(name, false, predicate, "");
 	}
 	
-	public static Object guard(String name, boolean theorem, String invariant, String comment) {
+	public static Object guard(String name, boolean theorem, String predicate, String comment) {
 		Guard g =  MachineFactory.eINSTANCE.createGuard();
 	    g.setName(name);
 	    g.setTheorem(theorem);
-	    g.setPredicate(invariant);
+	    g.setPredicate(predicate);
 	    g.setLocalGenerated(true);
 	    g.setComment(comment);
 	    return g;  
@@ -130,14 +140,28 @@ public class Make {
 	    constant.setComment(comment);
 	    return constant;
 	}
-	
+
 	public static Axiom axiom(String name, String predicate,String comment) {
+		return axiom(name,false, predicate, comment);
+	}
+	
+	public static Axiom axiom(String name, boolean theorem, String predicate,String comment) {
 		Axiom axm =  ContextFactory.eINSTANCE.createAxiom();
 	    axm.setName(name);
+	    axm.setTheorem(theorem);
 	    axm.setPredicate(predicate);
 	    axm.setLocalGenerated(true);
 	    axm.setComment(comment);
 	    return axm;  
+	}
+
+	public static Object witness(String name, String predicate) {
+		Witness g =  MachineFactory.eINSTANCE.createWitness();
+	    g.setName(name);
+	    g.setPredicate(predicate);
+	    g.setLocalGenerated(true);
+	    g.setComment("");
+	    return g;
 	}
 	
 }
