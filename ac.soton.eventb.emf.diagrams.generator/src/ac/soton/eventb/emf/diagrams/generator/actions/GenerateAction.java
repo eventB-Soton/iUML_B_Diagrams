@@ -20,7 +20,6 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.WrappedException;
@@ -28,10 +27,8 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gmf.runtime.common.core.command.CommandResult;
-import org.eclipse.gmf.runtime.diagram.ui.editparts.DiagramEditPart;
-import org.eclipse.gmf.runtime.diagram.ui.parts.IDiagramWorkbenchPart;
+import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
 import org.eclipse.gmf.runtime.emf.commands.core.command.AbstractTransactionalCommand;
-import org.eclipse.gmf.runtime.notation.View;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -44,6 +41,7 @@ import org.rodinp.core.RodinDBException;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.impl.Generator;
 import ac.soton.eventb.emf.diagrams.generator.impl.Messages;
+import ac.soton.eventb.emf.diagrams.generator.impl.ValidatorRegistry;
 
 
 //import ac.soton.eventb.emf.components.diagram.part.ValidateAction;
@@ -63,36 +61,34 @@ public class GenerateAction extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		
 		IEditorPart editor = HandlerUtil.getActiveEditorChecked(event);
-		
-		if (editor instanceof IDiagramWorkbenchPart) {
+		if (editor instanceof DiagramDocumentEditor) {
+			final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
 			
-			final IDiagramWorkbenchPart diagramEditor = (IDiagramWorkbenchPart) editor;
+			//final IDiagramWorkbenchPart diagramEditor = (IDiagramWorkbenchPart) editor;
 			
-			if (diagramEditor.getDiagram().getElement() instanceof EventBElement){
-				final EventBElement eventBElement = (EventBElement) diagramEditor.getDiagram().getElement();
+			if (diagramDocumentEditor.getDiagram().getElement() instanceof EventBElement){
+				final EventBElement eventBElement = (EventBElement) diagramDocumentEditor.getDiagram().getElement();
 
 				// save before transformation
 				if (editor.isDirty())
 					editor.doSave(new NullProgressMonitor());
 
 				// first validate, then transform
-				if (IStatus.OK == validate(diagramEditor.getDiagramEditPart(), diagramEditor.getDiagram())) {
+				if (ValidatorRegistry.validate(diagramDocumentEditor)){
+						//IStatus.OK == ValidateAction.validate(diagramEditor.getDiagramEditPart(), diagramEditor.getDiagram())) {
 
 					final GenerateCommand generateCommand = new GenerateCommand(
-							diagramEditor.getDiagramEditPart().getEditingDomain(), 
+							diagramDocumentEditor.getDiagramEditPart().getEditingDomain(), 
 							eventBElement);
-					
-				//	final Command command = new ICommandProxy(generateCommand);
-				//	if (command.canExecute()) {
 					if (generateCommand.canExecute()) {	
 						// run with progress
-						ProgressMonitorDialog dialog = new ProgressMonitorDialog(diagramEditor.getSite().getShell());
+						ProgressMonitorDialog dialog = new ProgressMonitorDialog(diagramDocumentEditor.getSite().getShell());
 						try {
 							dialog.run(true, true, new IRunnableWithProgress(){
 							     public void run(IProgressMonitor monitor) {
 							         monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
 							         try {
-										generateCommand.execute(monitor, diagramEditor);
+										generateCommand.execute(monitor, diagramDocumentEditor);
 									} catch (ExecutionException e) {
 										Activator.logError(Messages.GENERATOR_MSG_06, e);
 									}
@@ -114,6 +110,14 @@ public class GenerateAction extends AbstractHandler {
 											Messages.GENERATOR_MSG_09,
 											Messages.GENERATOR_MSG_10);
 					}
+				}else{
+					//validation failed - get errors
+					String errors = ValidatorRegistry.getValidationErrors(diagramDocumentEditor);
+					if (errors.isEmpty()) {
+						MessageDialog.openError(null, "Generator interrupted", "Validation failed but no errors were reported");
+					} else {
+						MessageDialog.openError(null, "Generator interrupted", "Validation failed with the following errors:\n" + errors);
+					}
 				}
 			}
 		}
@@ -121,40 +125,6 @@ public class GenerateAction extends AbstractHandler {
 	}
 
 	
-	/**
-	 * Validates diagram and shows errors found;
-	 * return IStatus constant as validation result.
-	 * 
-	 * @return IStatus constant
-	 */
-	private int validate(DiagramEditPart diagramEditPart, View view) {
-		// first validate the diagram
-//		try {
-//			ValidateAction.runValidation(diagramEditPart, view);
-//		} catch (Exception e) {
-//			TransformationPlugin.getDefault().logError("Validation action failed for: " + diagramEditPart.toString(), e);
-//			return IStatus.ERROR;
-//		}
-//		
-//		IFile file = WorkspaceSynchronizer.getFile(view.eResource());
-//		if (file != null) {
-//			try {
-//				// get errors
-//				String errors = ValidateAction.getValidationErrors(file);
-//				
-//				if (errors.isEmpty()) {
-//					return IStatus.OK;
-//				} else {
-//					MessageDialog.openError(null, "Translation interrupted", "Validation has found problems in your model:\n" + errors);
-//				}
-//			} catch (CoreException e) {
-//				TransformationPlugin.getDefault().logError("Cannot read markers from file: " + file.getFullPath().toString(), e);
-//			}
-//		}
-//		
-//		return IStatus.ERROR;
-		return IStatus.OK;
-	}
 
 	//////////////////////GENERATE COMMAND//////////////////////////
 	private static class GenerateCommand extends AbstractTransactionalCommand {
