@@ -15,6 +15,8 @@ import java.util.Map;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -122,17 +124,23 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 		@Override
 		protected IStatus doExecute(IProgressMonitor monitor, IAdaptable info)
 				throws ExecutionException {
+			try {			
+				// get diagram filename
+				String filename = provider.getDiagramFileName(element);
+				
+				// dealing with files
+				if (element.eResource()==null) {
+					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+					if (element.eResource()==null)
+						throw new ExecutionException("Can't open diagram - try refreshing workspace", null);
+				}
+				
+				IFile domainFile = WorkspaceSynchronizer.getFile(element.eResource());
+				IProject project = domainFile.getProject();
+				IFile diagramFile = project.getFile(filename);
+				URI diagramURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toOSString(), true);
 			
-			// get diagram filename
-			String filename = provider.getDiagramFileName(element);
-			
-			// dealing with files
-			IFile domainFile = WorkspaceSynchronizer.getFile(element.eResource());
-			IProject project = domainFile.getProject();
-			IFile diagramFile = project.getFile(filename);
-			URI diagramURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toOSString(), true);
-			
-			try {
+
 				// create and initialise a file, if it doesn't exist
 				if (diagramFile.exists() == false) {
 					Resource resource = getEditingDomain().getResourceSet().createResource(diagramURI);
