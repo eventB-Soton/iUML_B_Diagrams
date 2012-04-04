@@ -27,6 +27,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
 import org.eclipse.emf.ecore.util.EObjectResolvingEList;
 import org.eclipse.emf.edit.command.DeleteCommand;
@@ -104,8 +105,7 @@ public class Generator {
  * @param rootSourceClass	- the EClass of the root element that this is a generator for
  */
 	
-	public Generator(EClass rootSourceClass){ 
-		generators.clear();
+	public Generator(EClass rootSourceClass){ 	
 		if (generators.containsKey(rootSourceClass)){
 			generatorConfig = generators.get(rootSourceClass);
 			
@@ -113,30 +113,30 @@ public class Generator {
 			generatorConfig = null;
 
 			// populate generator configuration data from registered extensions
-			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(Identifiers.EXTPT_ID).getExtensions()) {
+			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(Identifiers.EXTPT_RULE_ID).getExtensions()) {
 				for (final IConfigurationElement generatorExtensionElement : extension.getConfigurationElements()) {
-					EPackage rootSourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(Identifiers.EXTPT_SOURCEPACKAGE));
+					EPackage rootSourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCEPACKAGE));
 					if (rootSourcePackage!= null &&
-							rootSourceClass == rootSourcePackage.getEClassifier(generatorExtensionElement.getAttribute(Identifiers.EXTPT_ROOTSOURCECLASS))){
+							rootSourceClass == rootSourcePackage.getEClassifier(generatorExtensionElement.getAttribute(Identifiers.EXTPT_RULE_ROOTSOURCECLASS))){
 						generatorConfig = new GeneratorConfig();
 						generatorConfig.rootSourcePackage = rootSourcePackage;
 						generatorConfig.rootSourceClass = rootSourceClass;
-						generatorConfig.generatorID = generatorExtensionElement.getAttribute(Identifiers.EXTPT_GENERATORID);
-						for (final IConfigurationElement ruleExtensionElement : generatorExtensionElement.getChildren(Identifiers.EXTPT_RULE)) {
+						generatorConfig.generatorID = generatorExtensionElement.getAttribute(Identifiers.EXTPT_RULE_GENERATORID);
+						for (final IConfigurationElement ruleExtensionElement : generatorExtensionElement.getChildren(Identifiers.EXTPT_RULE_RULE)) {
 							try {
 								EClassifier sourceClass = null;
 								//see if a EPackage has been explicitly defined
-								EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCEPACKAGE));
+								EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCEPACKAGE));
 								if (sourcePackage != null) {
-									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
+									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCECLASS));
 								}else{
 									//no explicit EPackage so try the rootSourcePackage of the generator
 									sourcePackage = rootSourcePackage;
-									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
+									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCECLASS));
 									//if not in rootSourcePackage, try its subPackages
 									if(sourceClass == null){
 										for (EPackage subPackage  : sourcePackage.getESubpackages()){
-											sourceClass = subPackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_SOURCECLASS));
+											sourceClass = subPackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCECLASS));
 											if (sourceClass != null) break;
 										}
 									}
@@ -144,7 +144,7 @@ public class Generator {
 								
 								// if we found the class, add the rule
 								if (sourceClass != null) {
-									final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(Identifiers.EXTPT_RULECLASS);									
+									final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(Identifiers.EXTPT_RULE_RULECLASS);									
 									generatorConfig.addRule(sourceClass, rule);
 								}
 								
@@ -356,7 +356,8 @@ public class Generator {
 						if (generationDescriptor.value instanceof EObject){ 
 							((EObjectResolvingEList<EObject>) featureValue).add((EObject)generationDescriptor.value);
 						}
-						
+					}else if (featureValue instanceof EDataTypeEList){		//List of data attributes(e.g. strings)
+							((EDataTypeEList)featureValue).add(generationDescriptor.value);							
 					}else {
 						//FIXME: this should be analysed more
 						generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
@@ -480,7 +481,9 @@ public class Generator {
 				}
 			}
 			deferredRules.keySet().removeAll(empties);
-			if (progress == false) throw new Exception(Messages.GENERATOR_MSG_00);
+			if (progress == false) {
+				throw new Exception(Messages.GENERATOR_MSG_00);
+			}
 		} 
 	}
 	
