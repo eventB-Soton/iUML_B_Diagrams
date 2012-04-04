@@ -128,7 +128,7 @@ e.g. Invariant
                   The fully qualified name of a class that implements IRule
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":ac.soton.eventb.emf.diagrams.generator.IRule"/>
+                  <meta.attribute kind="java" basedOn="ac.soton.eventb.emf.diagrams.generator.AbstractRule:ac.soton.eventb.emf.diagrams.generator.IRule"/>
                </appinfo>
             </annotation>
          </attribute>
