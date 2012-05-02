@@ -26,6 +26,7 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
@@ -40,6 +41,7 @@ import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
+import org.eventb.emf.core.EventBNamedCommentedElement;
 import org.eventb.emf.core.machine.Action;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Guard;
@@ -383,6 +385,8 @@ public class Generator {
 	 *
 	 */
 	private boolean filter(GenerationDescriptor generationDescriptor) {
+		
+		//filter any new elements that are already there 	
 		if (generationDescriptor.parent==null) return false;
 		Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
 		if (featureValue instanceof EList){
@@ -391,17 +395,11 @@ public class Generator {
 				if (match(el,generationDescriptor.value)) return true;
 			}
 		}
+		
+		// filter any new values which are already present by event extension
 		if (generationDescriptor.parent instanceof Event){
-			Event event = (Event)generationDescriptor.parent;
-			if (event.isExtended()){
-				Event refinedEvent =event.getRefines().get(0);
-				Object refinedFeatureValue = refinedEvent.eGet(generationDescriptor.feature);
-				if (refinedFeatureValue instanceof EList){
-					EList<?> list = (EList<?>)refinedFeatureValue;
-					for (Object el : list){
-						if (match(el,generationDescriptor.value)) return true;
-					}
-				}
+			for (Object el : getExtendedValues((Event)generationDescriptor.parent,generationDescriptor.feature)){
+				if (match(el,generationDescriptor.value)) return true;
 			}
 		}
 
@@ -409,7 +407,28 @@ public class Generator {
 	}
 
 
+	/*
+	 * transitively get all the elements which are present by event extension
+	 */
+	@SuppressWarnings("unchecked")
+	private List<Object> getExtendedValues(Event event, EStructuralFeature feature) {
+		if (!(event.isExtended()) || event.getRefines().isEmpty()){
+			return new ArrayList<Object>();
+		}else{
+			Event refinedEvent = event.getRefines().get(0);
+			List<Object> extended = getExtendedValues(refinedEvent,feature);
 
+			Object refinedFeatureValue = refinedEvent.eGet(feature);
+			if (refinedFeatureValue instanceof List){
+				extended.addAll((List<Object>)refinedEvent.eGet(feature));
+			}
+			return extended;
+		}
+	}
+
+	/*
+	 * test whether two elements should be considered to be the same in event B terms
+	 */
 	private boolean match(Object el1, Object el2) {
 		if (el1.getClass()!=el2.getClass()) return false;
 		if (el1 instanceof Guard && el2 instanceof Guard){
@@ -422,9 +441,9 @@ public class Generator {
 			String s2 = ((Action)el2).getAction();
 			if (s1 != null && s1.equals(s2)) return true;
 		}
-		if (el1 instanceof EventBNamedCommentedComponentElement && el2 instanceof EventBNamedCommentedComponentElement){
-			String s1 = ((EventBNamedCommentedComponentElement)el1).getName();
-			String s2 = ((EventBNamedCommentedComponentElement)el2).getName();
+		if (el1 instanceof EventBNamedCommentedElement && el2 instanceof EventBNamedCommentedElement){
+			String s1 = ((EventBNamedCommentedElement)el1).getName();
+			String s2 = ((EventBNamedCommentedElement)el2).getName();
 			if (s1 != null && s1.equals(s2)) return true;
 		}		
 		return false;
