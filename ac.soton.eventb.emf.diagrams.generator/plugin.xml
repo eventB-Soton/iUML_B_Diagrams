@@ -38,6 +38,52 @@
         name="validate">
   </command>
 </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAction"
+            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB">
+         <enabledWhen>
+            <and>
+               <with
+                     variable="activeEditor">
+                  <instanceof
+                        value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
+                  </instanceof>
+               </with>
+            </and>
+         </enabledWhen>
+      </handler>
+   </extension>
+   
+   <!--extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAction"
+            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB">
+         <enabledWhen>
+            <and>
+               <with
+                     variable="selection">
+                  <or>
+                     <adapt
+                           type="ac.soton.eventb.emf.core.extension.persistence.SerialisedExtension">
+                     </adapt>
+                     <instanceof
+                           value="ac.soton.eventb.emf.core.extension.persistence.SerialisedExtension">
+                     </instanceof>
+                     <systemTest
+                           property="ac.soton.eventb.emf.diagrams.generator.systemTest1"
+                           value="ac.soton.eventb.emf.diagrams.generator.systemTest1">
+                     </systemTest>
+                     <test
+                           property="ac.soton.eventb.emf.diagrams.generator.test1">
+                     </test></or>
+               </with>
+            </and>
+         </enabledWhen>
+      </handler>
+   </extension-->
 
 
 </plugin>

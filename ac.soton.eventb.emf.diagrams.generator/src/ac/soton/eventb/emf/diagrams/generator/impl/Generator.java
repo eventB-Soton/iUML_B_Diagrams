@@ -14,17 +14,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -61,27 +55,6 @@ import ac.soton.eventb.emf.diagrams.generator.IRule;
  *
  */
 public class Generator {
-
-	private class GeneratorConfig{
-		public String generatorID;
-		@SuppressWarnings("unused")
-		public EPackage rootSourcePackage;
-		public EClass rootSourceClass;
-		public Map<EClassifier, List<IRule>> ruleMapping;
-		public GeneratorConfig(){
-			ruleMapping = new HashMap<EClassifier, List<IRule>>();
-		}
-		public void addRule(EClassifier sourceClass,IRule rule){
-			List<IRule> ruleList = ruleMapping.get(sourceClass);
-			if (ruleList == null) ruleList = new ArrayList<IRule>();
-			ruleList.add(rule);
-			ruleMapping.put(sourceClass, ruleList);
-		}
-	}
-	
-
-	//cached store of generator configurations that have been loaded from extension points so far
-	private static Map<EClass,GeneratorConfig> generators = new HashMap<EClass, GeneratorConfig  >();
 	
 	//	configuration data for this instance of a generator
 	private GeneratorConfig generatorConfig;
@@ -101,65 +74,13 @@ public class Generator {
 	
 	
 /**
- * Construct a generator.
- * This should be called from a command handler action.
+ * Construct a generator. This should only be called from the GeneratorFactory.
  * 	
- * @param rootSourceClass	- the EClass of the root element that this is a generator for
+ * @param generatorConfig	- the configuration for the generator
  */
 	
-	public Generator(EClass rootSourceClass){ 	
-		if (generators.containsKey(rootSourceClass)){
-			generatorConfig = generators.get(rootSourceClass);
-			
-		}else{
-			generatorConfig = null;
-
-			// populate generator configuration data from registered extensions
-			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(Identifiers.EXTPT_RULE_ID).getExtensions()) {
-				for (final IConfigurationElement generatorExtensionElement : extension.getConfigurationElements()) {
-					EPackage rootSourcePackage = EPackage.Registry.INSTANCE.getEPackage(generatorExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCEPACKAGE));
-					if (rootSourcePackage!= null &&
-							rootSourceClass == rootSourcePackage.getEClassifier(generatorExtensionElement.getAttribute(Identifiers.EXTPT_RULE_ROOTSOURCECLASS))){
-						generatorConfig = new GeneratorConfig();
-						generatorConfig.rootSourcePackage = rootSourcePackage;
-						generatorConfig.rootSourceClass = rootSourceClass;
-						generatorConfig.generatorID = generatorExtensionElement.getAttribute(Identifiers.EXTPT_RULE_GENERATORID);
-						for (final IConfigurationElement ruleExtensionElement : generatorExtensionElement.getChildren(Identifiers.EXTPT_RULE_RULE)) {
-							try {
-								EClassifier sourceClass = null;
-								//see if a EPackage has been explicitly defined
-								EPackage sourcePackage = EPackage.Registry.INSTANCE.getEPackage(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCEPACKAGE));
-								if (sourcePackage != null) {
-									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCECLASS));
-								}else{
-									//no explicit EPackage so try the rootSourcePackage of the generator
-									sourcePackage = rootSourcePackage;
-									sourceClass = sourcePackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCECLASS));
-									//if not in rootSourcePackage, try its subPackages
-									if(sourceClass == null){
-										for (EPackage subPackage  : sourcePackage.getESubpackages()){
-											sourceClass = subPackage.getEClassifier(ruleExtensionElement.getAttribute(Identifiers.EXTPT_RULE_SOURCECLASS));
-											if (sourceClass != null) break;
-										}
-									}
-								}
-								
-								// if we found the class, add the rule
-								if (sourceClass != null) {
-									final IRule rule = (IRule) ruleExtensionElement.createExecutableExtension(Identifiers.EXTPT_RULE_RULECLASS);									
-									generatorConfig.addRule(sourceClass, rule);
-								}
-								
-							} catch (final CoreException e) {
-								Activator.logError(e.getMessage(),e);
-							}
-						}
-					}
-				}
-			}
-			//save config data in case another generator instance is needed for this EClass
-			if (generatorConfig != null) generators.put(rootSourceClass,generatorConfig);
-		}
+	public Generator(GeneratorConfig generatorConfig){ 	
+			this.generatorConfig = generatorConfig;
 	}
 
 	
@@ -318,7 +239,7 @@ public class Generator {
  * @param editingDomain 
  * @return modified resources
  */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Collection<? extends Resource> placeGenerated(EditingDomain editingDomain, String generatedByID) throws Exception {
 		//arrange the generation descriptors into priority order
 		for (GenerationDescriptor generationDescriptor : generatedElements){

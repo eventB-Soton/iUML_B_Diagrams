@@ -9,6 +9,7 @@
 package ac.soton.eventb.emf.diagrams.generator.actions;
 
 import java.io.IOException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.List;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -32,6 +34,8 @@ import org.eclipse.gmf.runtime.emf.commands.core.command.AbstractTransactionalCo
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.EventBElement;
@@ -40,11 +44,9 @@ import org.rodinp.core.RodinDBException;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.impl.Generator;
+import ac.soton.eventb.emf.diagrams.generator.impl.GeneratorFactory;
 import ac.soton.eventb.emf.diagrams.generator.impl.Messages;
 import ac.soton.eventb.emf.diagrams.generator.impl.ValidatorRegistry;
-
-
-//import ac.soton.eventb.emf.components.diagram.part.ValidateAction;
 
 /**
  * Generate action handler.
@@ -53,6 +55,32 @@ import ac.soton.eventb.emf.diagrams.generator.impl.ValidatorRegistry;
  *
  */
 public class GenerateAction extends AbstractHandler {
+	
+	private boolean enabled = false;
+	@Override
+	public boolean isEnabled(){
+		return enabled && super.isEnabled();
+	}
+
+	@Override
+	public void setEnabled(Object evaluationContext) {		
+		super.setEnabled(evaluationContext);
+		enabled = false;
+		if (evaluationContext instanceof EvaluationContext){
+			EvaluationContext ec = (EvaluationContext)evaluationContext;
+			
+			Object editor = ec.getVariable("activeEditor");
+			//Object editorID = ec.getVariable("activeEditorId");
+			if (editor instanceof DiagramDocumentEditor) {
+				final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
+				if (diagramDocumentEditor.getDiagram().getElement() instanceof EventBElement){
+					enabled =  GeneratorFactory.getFactory().canGenerate(diagramDocumentEditor.getDiagram().getElement().eClass());
+				}
+			}
+		}	
+	}
+	
+	
 
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
@@ -174,7 +202,7 @@ public class GenerateAction extends AbstractHandler {
 						
 				        monitor.subTask(Messages.GENERATOR_MSG_14);
 						//try to create an appropriate generator
-						Generator generator = new Generator(element.eClass());
+						Generator generator = GeneratorFactory.getFactory().createGenerator(element.eClass());
 
 				        monitor.subTask(Messages.GENERATOR_MSG_15);
 				        
