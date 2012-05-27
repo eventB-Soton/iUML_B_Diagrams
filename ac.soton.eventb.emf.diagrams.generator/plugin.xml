@@ -54,6 +54,20 @@
             </and>
          </enabledWhen>
       </handler>
+      <handler
+            class="ac.soton.eventb.emf.diagrams.generator.actions.ValidateAction"
+            commandId="ac.soton.eventb.emf.diagrams.generator.validate">
+         <enabledWhen>
+            <and>
+               <with
+                     variable="activeEditor">
+                  <instanceof
+                        value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
+                  </instanceof>
+               </with>
+            </and>
+         </enabledWhen>
+      </handler>
    </extension>
    
    <!--extension
