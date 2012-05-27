@@ -9,7 +9,6 @@
 package ac.soton.eventb.emf.diagrams.generator.actions;
 
 import java.io.IOException;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.List;
@@ -34,8 +33,6 @@ import org.eclipse.gmf.runtime.emf.commands.core.command.AbstractTransactionalCo
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.EventBElement;
