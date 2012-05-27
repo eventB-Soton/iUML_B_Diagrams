@@ -10,6 +10,7 @@ package ac.soton.eventb.emf.diagrams.generator.actions;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.expressions.EvaluationContext;
 import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.IEditorPart;
@@ -23,6 +24,30 @@ import ac.soton.eventb.emf.diagrams.generator.impl.ValidatorRegistry;
  */
 public class ValidateAction extends AbstractHandler {
 
+	private boolean enabled = false;
+	@Override
+	public boolean isEnabled(){
+		return enabled && super.isEnabled();
+	}
+
+	@Override
+	public void setEnabled(Object evaluationContext) {		
+		super.setEnabled(evaluationContext);
+		enabled = false;
+		if (evaluationContext instanceof EvaluationContext){
+			EvaluationContext ec = (EvaluationContext)evaluationContext;
+			
+			Object editor = ec.getVariable("activeEditor");
+			//Object editorID = ec.getVariable("activeEditorId");
+			if (editor instanceof DiagramDocumentEditor) {
+				final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
+				if (ValidatorRegistry.hasValidator(diagramDocumentEditor)){
+					enabled = true;
+				}
+			}
+		}	
+	}
+	
 	/**
 	 * 
 	 */
