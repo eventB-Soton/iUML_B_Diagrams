@@ -23,7 +23,7 @@ public class ValidatorRegistry {
 	private static Map<Class<DiagramDocumentEditor>,IValidator> validators = null;
 
 	@SuppressWarnings("unchecked")
-	public static IValidator getValidator(DiagramDocumentEditor editor){
+	private static IValidator getValidator(DiagramDocumentEditor editor){
 		Class<DiagramDocumentEditor> editorClass = (Class<DiagramDocumentEditor>) editor.getClass();
 		if (validators == null){
 			validators = new HashMap<Class<DiagramDocumentEditor>, IValidator>();
@@ -59,6 +59,14 @@ public class ValidatorRegistry {
 	 * These methods can be called by passing the appropriate DiagramDocumentEditor editor.
 	 * 
 	 */
+	
+/**
+ * 
+ */
+	public static boolean hasValidator(DiagramDocumentEditor diagramDocumentEditor){
+		return getValidator(diagramDocumentEditor) != null;
+	}
+	
 /**
  * 	
  * @param editor
