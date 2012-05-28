@@ -24,6 +24,15 @@
             locationURI="toolbar:org.eclipse.ui.main.toolbar">
          <toolbar
                id="ac.soton.eventb.emf.diagrams.toolbar">
+            <separator
+                  name="validations">
+            </separator>
+            <separator
+                  name="transformations">
+            </separator>
+            <separator
+                  name="animations">
+            </separator>
             <!--command
                   commandId="ac.soton.eventb.statemachines.diagram.ValidateDiagramAction"
                   icon="icons/Validate.png"
