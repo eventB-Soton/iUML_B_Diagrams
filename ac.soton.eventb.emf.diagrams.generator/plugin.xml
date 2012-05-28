@@ -10,13 +10,17 @@
       point="org.eclipse.ui.menus">
   <menuContribution
         allPopups="true"
-        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar">
+        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=transformations">
      <command
            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB"
            icon="icons/UtoB.png"
            label="generate"
            style="push">
      </command>
+  </menuContribution>
+  <menuContribution
+        allPopups="true"
+        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=validations">
      <command
            commandId="ac.soton.eventb.emf.diagrams.generator.validate"
            icon="icons/Validate.png"
@@ -41,20 +45,6 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAction"
-            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB">
-         <enabledWhen>
-            <and>
-               <with
-                     variable="activeEditor">
-                  <instanceof
-                        value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-                  </instanceof>
-               </with>
-            </and>
-         </enabledWhen>
-      </handler>
-      <handler
             class="ac.soton.eventb.emf.diagrams.generator.actions.ValidateAction"
             commandId="ac.soton.eventb.emf.diagrams.generator.validate">
          <enabledWhen>
@@ -67,6 +57,20 @@
                </with>
             </and>
          </enabledWhen>
+      </handler>
+      <handler
+            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAction"
+            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB">
+         <activeWhen>
+            <and>
+               <with
+                     variable="activeEditor">
+                  <instanceof
+                        value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
+                  </instanceof>
+               </with>
+            </and>
+         </activeWhen>
       </handler>
    </extension>
    
