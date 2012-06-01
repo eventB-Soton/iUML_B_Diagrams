@@ -88,9 +88,7 @@ public class GenerateAction extends AbstractHandler {
 		IEditorPart editor = HandlerUtil.getActiveEditorChecked(event);
 		if (editor instanceof DiagramDocumentEditor) {
 			final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
-			
-			//final IDiagramWorkbenchPart diagramEditor = (IDiagramWorkbenchPart) editor;
-			
+						
 			if (diagramDocumentEditor.getDiagram().getElement() instanceof EventBElement){
 				final EventBElement eventBElement = (EventBElement) diagramDocumentEditor.getDiagram().getElement();
 
@@ -100,7 +98,6 @@ public class GenerateAction extends AbstractHandler {
 
 				// first validate, then transform
 				if (ValidatorRegistry.validate(diagramDocumentEditor)){
-						//IStatus.OK == ValidateAction.validate(diagramEditor.getDiagramEditPart(), diagramEditor.getDiagram())) {
 
 					final GenerateCommand generateCommand = new GenerateCommand(
 							diagramDocumentEditor.getDiagramEditPart().getEditingDomain(), 
@@ -110,13 +107,13 @@ public class GenerateAction extends AbstractHandler {
 						ProgressMonitorDialog dialog = new ProgressMonitorDialog(diagramDocumentEditor.getSite().getShell());
 						try {
 							dialog.run(true, true, new IRunnableWithProgress(){
-							     public void run(IProgressMonitor monitor) {
-							         monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
+							     public void run(IProgressMonitor monitor) { 
+							    	 monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
 							         try {
-										generateCommand.execute(monitor, diagramDocumentEditor);
-									} catch (ExecutionException e) {
+							        	 generateCommand.execute(monitor, diagramDocumentEditor);
+							         } catch (ExecutionException e) {
 										Activator.logError(Messages.GENERATOR_MSG_06, e);
-									}
+							         }
 							         monitor.done();
 							     }
 							 });
