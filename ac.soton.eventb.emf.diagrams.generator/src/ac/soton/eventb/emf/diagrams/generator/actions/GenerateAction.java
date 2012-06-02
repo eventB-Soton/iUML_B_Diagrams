@@ -193,16 +193,16 @@ public class GenerateAction extends AbstractHandler {
 
 						// flush the command stack as this is unprotected and has no undo/redo
 						editingDomain.getCommandStack().flush();
-						
+						monitor.worked(1);
 				        monitor.subTask(Messages.GENERATOR_MSG_14);
 						//try to create an appropriate generator
 						Generator generator = GeneratorFactory.getFactory().createGenerator(element.eClass());
-
+						monitor.worked(2);
 				        monitor.subTask(Messages.GENERATOR_MSG_15);
 				        
 				        //try to run the generation
 						modifiedResources = generator.generate(editingDomain,element);
-
+						monitor.worked(4);
 						if (modifiedResources == null){
 							
 							//ErrorDialog errorDialog = new ErrorDialog(diagramEditor.getSite().getShell(), label, label, null, 0); 
@@ -216,6 +216,7 @@ public class GenerateAction extends AbstractHandler {
 							for (Resource resource : modifiedResources){
 								try {
 									resource.save(Collections.emptyMap());
+									monitor.worked(1);
 								} catch (IOException e) {
 									//throw this as a CoreException
 									throw new CoreException(
