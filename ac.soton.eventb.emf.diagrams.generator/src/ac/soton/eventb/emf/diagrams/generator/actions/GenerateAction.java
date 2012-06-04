@@ -43,7 +43,6 @@ import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.impl.Generator;
 import ac.soton.eventb.emf.diagrams.generator.impl.GeneratorFactory;
 import ac.soton.eventb.emf.diagrams.generator.impl.Messages;
-import ac.soton.eventb.emf.diagrams.generator.impl.ValidatorRegistry;
 
 /**
  * Generate action handler.
@@ -97,7 +96,7 @@ public class GenerateAction extends AbstractHandler {
 					editor.doSave(new NullProgressMonitor());
 
 				// first validate, then transform
-				if (ValidatorRegistry.validate(diagramDocumentEditor)){
+				if (ValidateAction.validate(diagramDocumentEditor)){
 
 					final GenerateCommand generateCommand = new GenerateCommand(
 							diagramDocumentEditor.getDiagramEditPart().getEditingDomain(), 
@@ -131,14 +130,6 @@ public class GenerateAction extends AbstractHandler {
 									.openError(editor.getSite().getShell(),
 											Messages.GENERATOR_MSG_09,
 											Messages.GENERATOR_MSG_10);
-					}
-				}else{
-					//validation failed - get errors
-					String errors = ValidatorRegistry.getValidationErrors(diagramDocumentEditor);
-					if (errors.isEmpty()) {
-						MessageDialog.openError(null, "Generator interrupted", "Validation failed but no errors were reported");
-					} else {
-						MessageDialog.openError(null, "Generator interrupted", "Validation failed with the following errors:\n" + errors);
 					}
 				}
 			}
