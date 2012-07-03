@@ -30,5 +30,17 @@
          </includes>
       </viewerActionBinding>
    </extension>
+   <extension
+         point="org.rodinp.core.refinements">
+      <Participant
+            class="ac.soton.eventb.emf.diagrams.navigator.refiner.DiagramCopier"
+            id="diagramCopierMachine"
+            refinement-id="org.eventb.core.machineRefinement">
+      </Participant>
+      <Order
+            first-participant-id="org.eventb.core.machineRefiner"
+            second-participant-id="ac.soton.eventb.emf.diagrams.navigator.diagramCopierMachine">
+      </Order>
+   </extension>
 
 </plugin>
