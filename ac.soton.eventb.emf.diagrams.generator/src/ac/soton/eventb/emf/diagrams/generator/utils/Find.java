@@ -43,16 +43,18 @@ public class Find {
 	
 /**
  * Find, by name or label and matching parent and feature, a generation descriptor from the given collection
+ * (parent and/or feature may be null if not required to be matched)
  * 
  * @param generatedElements
- * @param parent
- * @param feature
+ * @param parent (or null)
+ * @param feature (or null)
  * @param identifier
  * @return
  */
 	public static Object generatedElement(List<GenerationDescriptor> generatedElements, EventBElement parent, EStructuralFeature feature, String identifier) {
 		for (GenerationDescriptor generatedElement : generatedElements){
-			if (generatedElement.parent == parent && generatedElement.feature== feature){
+			if ((parent == null || generatedElement.parent == parent) && 
+				(feature == null || generatedElement.feature== feature)){
 				if ((generatedElement.value instanceof EventBNamed && ((EventBNamed)generatedElement.value).getName().equals(identifier))
 				|| (generatedElement.value instanceof EventBLabeled && ((EventBLabeled)generatedElement.value).getLabel().equals(identifier))) 
 					return generatedElement.value;
