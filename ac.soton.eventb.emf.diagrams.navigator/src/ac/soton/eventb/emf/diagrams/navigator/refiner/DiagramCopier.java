@@ -76,21 +76,19 @@ public class DiagramCopier implements IRefinementParticipant {
 				Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();
 				String type = ext.eClass().getName();
 				IDiagramProvider provider = registry.get(type);
-				// get diagram filename
-				String sourceDiagramFilename = provider ==null? null : provider.getDiagramFileName(ext);
-				String projectFullPath = sourceRoot.getResource().getProject().getFullPath().toString();
-				String sourceMachineName = fileNameProcess(sourceRoot.getResource().getName());//It is the machine name, not the machine file name.
-				String targetMachineName = fileNameProcess(targetRoot.getResource().getName());
-				String targetDiagramFilename = sourceDiagramFilename.replaceFirst( sourceMachineName, targetMachineName);
-				
-				if (sourceDiagramFilename!= null){
+				if (provider!= null){
+					// get diagram filename
+					String sourceDiagramFilename = provider.getDiagramFileName(ext);
+					String projectFullPath = sourceRoot.getResource().getProject().getFullPath().toString();
+					String sourceMachineName = fileNameProcess(sourceRoot.getResource().getName());//It is the machine name, not the machine file name.
+					String targetMachineName = fileNameProcess(targetRoot.getResource().getName());
+					String targetDiagramFilename = sourceDiagramFilename.replaceFirst( sourceMachineName, targetMachineName);
 					try {
 						copyDiagram(projectFullPath, sourceDiagramFilename, targetDiagramFilename, monitor);
 					} catch (CoreException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					
 				}
 			}	
 		}		
