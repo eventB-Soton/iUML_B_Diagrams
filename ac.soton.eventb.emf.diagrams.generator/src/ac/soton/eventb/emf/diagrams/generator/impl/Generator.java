@@ -43,6 +43,7 @@ import org.eventb.emf.core.machine.Guard;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 import ac.soton.eventb.emf.diagrams.generator.IRule;
+import ac.soton.eventb.emf.diagrams.generator.utils.Is;
 
 /**
  * A generic Generator which is configured from rule classes which have been declared in an extension point.
@@ -195,12 +196,12 @@ public class Generator {
 			contents.add(0,component);
 			ArrayList<EObject> remove = new ArrayList<EObject>();
 			for(EObject eObject : contents){
-				if (wasGeneratedBy(eObject,sourceExtensionID)){
+				if (Is.generatedBy(eObject,sourceExtensionID)){
 					remove.add(eObject);					
 				}else{
 					for (EReference referenceFeature : eObject.eClass().getEAllReferences()){
 						Object referenceValue = eObject.eGet(referenceFeature, true);
-						if (wasGeneratedBy(referenceValue,sourceExtensionID)){
+						if (Is.generatedBy(referenceValue,sourceExtensionID)){
 							//FIXME: this may not be right and should be deferred until deletion time
 							eObject.eSet(referenceFeature, null);
 						}else{
@@ -209,7 +210,7 @@ public class Generator {
 								EObjectResolvingEList<EObject> referenceList = (EObjectResolvingEList<EObject>)referenceValue;
 								List<EObject> toBeRemoved = new ArrayList<EObject>();
 								for (EObject ref : referenceList){
-									if (wasGeneratedBy(ref,sourceExtensionID)){
+									if (Is.generatedBy(ref,sourceExtensionID)){
 										toBeRemoved.add(ref);
 										//if (!remove.contains(ref)) remove.add(ref); can't remove a root of Resource (e.g. ContextRoot)
 									}										
@@ -223,16 +224,6 @@ public class Generator {
 			}
 			return remove;
 		}
-
-			private static boolean wasGeneratedBy(Object object, String id){
-				if (object instanceof EventBElement){
-					Attribute generatedBy = ((EventBElement)object).getAttributes().get(Identifiers.GENERATOR_ID_KEY);
-					if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
-						return true;
-					}
-				}
-				return false;
-			}
 		
 /*
  * puts the generated elements into the model

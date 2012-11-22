@@ -11,9 +11,13 @@ package ac.soton.eventb.emf.diagrams.generator.utils;
 import java.util.List;
 
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eventb.emf.core.AbstractExtension;
+import org.eventb.emf.core.Attribute;
+import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
-
+import org.eventb.emf.core.EventBObject;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
+import ac.soton.eventb.emf.diagrams.generator.impl.Identifiers;
 
 /**
  * Convenience methods for testing things in Generator Rules
@@ -35,5 +39,26 @@ public class Is {
 	 */
 	public static boolean generated(List<GenerationDescriptor> generatedElements, EventBElement parent, EStructuralFeature feature, String identifier){
 		return Find.generatedElement(generatedElements, parent, feature, identifier) != null;
+	}
+	
+
+	public static boolean generatedBy(Object object, Object sourceElement){
+		if (sourceElement instanceof EventBObject){
+			AbstractExtension ae = (AbstractExtension) ((EventBObject) sourceElement).getContaining(CorePackage.Literals.ABSTRACT_EXTENSION);
+			if (ae instanceof AbstractExtension){
+				return generatedBy(object, ((AbstractExtension)ae).getExtensionId());
+			}
+		}
+		return false;
+	}
+	
+	public static boolean generatedBy(Object object, String id){
+		if (object instanceof EventBElement){
+			Attribute generatedBy = ((EventBElement)object).getAttributes().get(Identifiers.GENERATOR_ID_KEY);
+			if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
+				return true;
+			}
+		}
+		return false;
 	}
 }
