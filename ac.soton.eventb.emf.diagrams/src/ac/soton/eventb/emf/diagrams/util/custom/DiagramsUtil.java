@@ -1,0 +1,35 @@
+package ac.soton.eventb.emf.diagrams.util.custom;
+
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef.EditPart;
+import org.eclipse.gmf.runtime.notation.View;
+
+public class DiagramsUtil {
+
+	/**
+	 * Unwraps eobject from passed diagram object.
+	 * 
+	 * @param object
+	 * @return
+	 */
+	public static EObject unwrap(Object object) {
+
+		if (object instanceof EditPart) {
+			Object model = ((EditPart) object).getModel();
+			return model instanceof View ? ((View) model).getElement() : null;
+		}
+		if (object instanceof View) {
+			return ((View) object).getElement();
+		}
+		if (object instanceof IAdaptable) {
+			View view = (View) ((IAdaptable) object).getAdapter(View.class);
+			if (view != null) {
+				return view.getElement();
+			}
+		}
+		if (object instanceof EObject)
+			return (EObject) object;
+		return null;
+	}
+}
