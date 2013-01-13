@@ -43,4 +43,68 @@
       </Order>
    </extension>
 
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:fr.systerel.explorer.navigator.view">
+         <!--command
+               commandId="ac.soton.eventb.statemachines.navigator.commands.addStatemachine"
+               icon="icons/NewStatemachine.gif"
+               label="Add Statemachine"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <instanceof
+                           value="org.eventb.core.IMachineRoot">
+                     </instanceof>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command-->
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
+               label="Delete"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <and>
+                        <adapt
+                              type="org.eclipse.emf.ecore.EObject">
+                           <instanceof
+                                 value="ac.soton.eventb.emf.diagrams.Diagram">
+                           </instanceof>
+                        </adapt>
+                        <test
+                              property="ac.soton.eventb.emf.core.extension.navigator.eventBRootChild"
+                              value="true">
+                        </test>
+                     </and>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <!--command
+            defaultHandler="ac.soton.eventb.statemachines.navigator.actions.AddStatemachineHandler"
+            id="ac.soton.eventb.statemachines.navigator.commands.addStatemachine"
+            name="Add Statemachine">
+      </command-->
+      <command
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.DeleteDiagramElementHandler"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
+            name="Delete">
+      </command>
+   </extension>
+   
 </plugin>
