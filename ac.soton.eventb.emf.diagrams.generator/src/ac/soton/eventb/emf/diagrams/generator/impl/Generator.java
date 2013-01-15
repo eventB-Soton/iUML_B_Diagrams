@@ -251,7 +251,7 @@ public class Generator {
 				if (generationDescriptor.parent != null){
 					Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
 					
-					if (featureValue instanceof EObjectContainmentEList){	//containment collection
+					if (featureValue instanceof EList){	
 						if (generationDescriptor.value instanceof EventBElement){						
 							EventBElement newChild = ((EventBElement)generationDescriptor.value);					
 							// set the generated property
@@ -262,16 +262,13 @@ public class Generator {
 							genID.setType(AttributeType.STRING);
 							newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
 						}
-						if (generationDescriptor.value instanceof EObject){ 
-							((EObjectContainmentEList<EObject>) featureValue).add((EObject)generationDescriptor.value);
+						if (pri >0 ){
+							((EList)featureValue).add(0, generationDescriptor.value);							
+						}else{
+							((EList)featureValue).add(generationDescriptor.value);
 						}
 						
-					}else if (featureValue instanceof EObjectResolvingEList){	//list of references
-						if (generationDescriptor.value instanceof EObject){ 
-							((EObjectResolvingEList<EObject>) featureValue).add((EObject)generationDescriptor.value);
-						}
-					}else if (featureValue instanceof EDataTypeEList){		//List of data attributes(e.g. strings)
-							((EDataTypeEList)featureValue).add(generationDescriptor.value);							
+							
 					}else {
 						//FIXME: this should be analysed more
 						generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
