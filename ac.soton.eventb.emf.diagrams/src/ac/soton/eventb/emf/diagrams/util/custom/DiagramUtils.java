@@ -34,12 +34,30 @@ public class DiagramUtils {
 		return null;
 	}
 	
+	/**
+	 * Convenience util method to get the value of the named feature from the model element represented by an edit part.
+	 * This can be used in customised gmf code where a model value needs to be examined
+	 * e.g. when called from an editpart, DiagramUtils.getModelFeatureValue(this, "elaborates");
+	 * 
+	 * @param editpart
+	 * @param featureName
+	 * @return
+	 */
 	public static Object getModelFeatureValue(EditPart editpart, String featureName){
 		EObject element =  DiagramUtils.unwrap(editpart.getModel());
 		EStructuralFeature feature = element.eClass().getEStructuralFeature(featureName);
 		return getModelFeatureValue(editpart,feature);
 	}
-	
+
+	/**
+	 * Convenience util method to get the value of the given feature from the model element represented by an edit part.
+	 * This can be used in customised gmf code where a model value needs to be examined
+	 * e.g. when called from an editpart, DiagramUtils.getModelFeatureValue(this, "elaborates");
+	 * 
+	 * @param editpart
+	 * @param featureName
+	 * @return
+	 */
 	public static Object getModelFeatureValue(EditPart editpart, EStructuralFeature feature){
 		EObject element =  DiagramUtils.unwrap(editpart.getModel());
 		return element==null? null : element.eGet(feature);
