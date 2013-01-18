@@ -32,6 +32,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import ac.soton.eventb.emf.diagrams.generator.Activator;
+import ac.soton.eventb.emf.diagrams.generator.command.DeleteGeneratedCommand;
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
@@ -63,12 +65,20 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 						// execute as command
 						Command cmd = new RecordingCommand(editingDomain, "Delete Diagram Command") {
 							protected void doExecute() {
+								deleteGeneratedElements(eobject);
 								EcoreUtil.delete(eobject, true);
 							}
 						};
 		
 						try {
 							if (cmd.canExecute()){
+								DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, eobject);
+								if (deleteGeneratedCommand.canExecute()){
+									deleteGeneratedCommand.execute(null, null);
+								}else{
+									Activator.logError("Failed to delete generated elements - aborted delete of : "+eobject);
+									return null;
+								}
 								deleteDiagramFile(resource, provider, eobject);
 								editingDomain.getCommandStack().execute(cmd);
 								resource.save(Collections.emptyMap());
@@ -81,6 +91,11 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 			}
 		}
 		return null;
+	}
+
+	protected void deleteGeneratedElements(EObject eobject) {
+		
+		
 	}
 
 	private void deleteDiagramFile(Resource resource, IDiagramProvider provider, EObject element) {
