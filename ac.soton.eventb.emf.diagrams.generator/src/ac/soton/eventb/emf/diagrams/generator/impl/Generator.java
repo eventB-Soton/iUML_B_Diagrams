@@ -14,18 +14,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.util.EDataTypeEList;
-import org.eclipse.emf.ecore.util.EObjectContainmentEList;
-import org.eclipse.emf.ecore.util.EObjectResolvingEList;
-import org.eclipse.emf.edit.command.DeleteCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eventb.emf.core.AbstractExtension;
@@ -43,7 +37,7 @@ import org.eventb.emf.core.machine.Guard;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 import ac.soton.eventb.emf.diagrams.generator.IRule;
-import ac.soton.eventb.emf.diagrams.generator.utils.Is;
+import ac.soton.eventb.emf.diagrams.generator.command.DeleteGeneratedCommand;
 
 /**
  * A generic Generator which is configured from rule classes which have been declared in an extension point.
@@ -119,18 +113,12 @@ public class Generator {
 					createNewComponents(editingDomain, sourceElement)
 					);
 			
-			//Remove previously generated elements	
-			List<EObject> previouslyGeneratedElements = getPreviouslyGeneratedElements(
-					(EventBNamedCommentedComponentElement) sourceElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT),
-					sourceExtensionID);
-			if (previouslyGeneratedElements.size()>0){
-				Command deleteCommand = DeleteCommand.create(editingDomain, previouslyGeneratedElements);
-				if (deleteCommand.canExecute()){
-					deleteCommand.execute();
-				}else{
-					Activator.logError(Messages.GENERATOR_MSG_03);
-					return null;
-				}
+			DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, sourceElement);
+			if (deleteGeneratedCommand.canExecute()){
+				deleteGeneratedCommand.execute(null, null);
+			}else{
+				Activator.logError(Messages.GENERATOR_MSG_03);
+				return null;
 			}
 			
 		} catch (Exception e) {
@@ -185,45 +173,6 @@ public class Generator {
 		return newResources;
 	}
 
-
-	/*
-	 * finds all elements that have previously been generated with this generators generatorID
-	 * @return List of elements
-	 */
-		private ArrayList<EObject> getPreviouslyGeneratedElements(final EventBNamedCommentedComponentElement component, String sourceExtensionID) {
-			EList<EObject> contents = component.getAllContained(CorePackage.eINSTANCE.getEventBElement(),false);
-			contents.remove(null);
-			contents.add(0,component);
-			ArrayList<EObject> remove = new ArrayList<EObject>();
-			for(EObject eObject : contents){
-				if (Is.generatedBy(eObject,sourceExtensionID)){
-					remove.add(eObject);					
-				}else{
-					for (EReference referenceFeature : eObject.eClass().getEAllReferences()){
-						Object referenceValue = eObject.eGet(referenceFeature, true);
-						if (Is.generatedBy(referenceValue,sourceExtensionID)){
-							//FIXME: this may not be right and should be deferred until deletion time
-							eObject.eSet(referenceFeature, null);
-						}else{
-							if (referenceValue instanceof EObjectResolvingEList){
-								@SuppressWarnings("unchecked")
-								EObjectResolvingEList<EObject> referenceList = (EObjectResolvingEList<EObject>)referenceValue;
-								List<EObject> toBeRemoved = new ArrayList<EObject>();
-								for (EObject ref : referenceList){
-									if (Is.generatedBy(ref,sourceExtensionID)){
-										toBeRemoved.add(ref);
-										//if (!remove.contains(ref)) remove.add(ref); can't remove a root of Resource (e.g. ContextRoot)
-									}										
-								}
-								//FIXME: this should be deferred until deletion time
-								referenceList.removeAll(toBeRemoved);
-							}
-						}
-					}						
-				}
-			}
-			return remove;
-		}
 		
 /*
  * puts the generated elements into the model
