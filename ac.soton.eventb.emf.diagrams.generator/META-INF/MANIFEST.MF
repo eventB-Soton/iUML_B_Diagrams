@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: ac.soton.eventb.emf.diagrams.generator;singleton:=true
-Bundle-Version: 3.0.0
+Bundle-Version: 3.1.0
 Bundle-Activator: ac.soton.eventb.emf.diagrams.generator.Activator
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.ui;bundle-version="[3.7.0,4.0.0)",
@@ -18,4 +18,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: ac.soton.eventb.emf.diagrams.generator,
  ac.soton.eventb.emf.diagrams.generator.actions,
+ ac.soton.eventb.emf.diagrams.generator.command,
  ac.soton.eventb.emf.diagrams.generator.utils
