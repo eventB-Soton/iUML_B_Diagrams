@@ -46,4 +46,11 @@ public interface IDiagramProvider {
 	 * @return id
 	 */
 	public String getEditorId();
+	
+	/**
+	 * Returns the diagram file extension
+	 * 
+	 * @return fileExtension
+	 */
+	public String getFileExtension();
 }
