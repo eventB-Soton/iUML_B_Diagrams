@@ -10,12 +10,16 @@ package ac.soton.eventb.emf.diagrams.navigator;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.rodinp.core.IElementChangedListener;
+import org.rodinp.core.RodinCore;
 
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
@@ -34,7 +38,9 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	private static final String DIAGRAM_PROVIDERS_EXTENSION_ID = "ac.soton.eventb.emf.diagrams.navigator.diagramProviders";
 	
 	// diagram provider registry
-	private Map<String, IDiagramProvider> diagramProviderRegistry = new HashMap<String, IDiagramProvider>();
+	private static final Map<String, IDiagramProvider> diagramProviderRegistry = new HashMap<String, IDiagramProvider>();
+	
+	private static final IElementChangedListener componentChangedListener = new ComponentChangedListener();
 	
 	/**
 	 * The constructor
@@ -50,6 +56,8 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		super.start(context);
 		plugin = this;
 		registerDiagramProviders();
+		//this listener will update diagrams when components in Rodin database are renamed or deleted
+		RodinCore.addElementChangedListener(componentChangedListener);
 	}
 
 	/**
@@ -75,6 +83,7 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+		RodinCore.removeElementChangedListener(componentChangedListener);
 		diagramProviderRegistry.clear();
 		plugin = null;
 		super.stop(context);
