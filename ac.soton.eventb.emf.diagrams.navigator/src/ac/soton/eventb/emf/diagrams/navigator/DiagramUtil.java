@@ -20,16 +20,21 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EObjectEList;
 import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.core.IEventBRoot;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.rodinp.core.IInternalElement;
+import org.rodinp.core.RodinDBException;
 
+import ac.soton.eventb.emf.core.extension.persistence.SerialisedExtensionSynchroniser;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 public class DiagramUtil {
@@ -38,6 +43,7 @@ public class DiagramUtil {
 	private static final Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();
 	private static final ResourceSet resourceSet =  new ResourceSetImpl();
 	private static List<String> diagramFileExtensions = null;
+	private static final SerialisedExtensionSynchroniser serialisedExtensionSynchroniser = new SerialisedExtensionSynchroniser();
 	
 	/**
 	 * loads an Event-B component (root) into EMF
@@ -56,7 +62,7 @@ public class DiagramUtil {
 			try {
 				resource.load(Collections.emptyMap());
 			} catch (IOException e) {
-				e.printStackTrace();
+				return null;
 			}
 			resource.eSetDeliver(true);
 		}
@@ -156,10 +162,49 @@ public class DiagramUtil {
 			String componentFileExtension = eventBRoot.getResource().getFileExtension();
 			for (AbstractExtension absExt : eventBElement.getExtensions()){
 				renameDiagramFile(absExt, oldComponentName, newComponentName, componentFileExtension);
+				updateModelReferences(absExt, oldComponentName, newComponentName,componentFileExtension);
+				//save the model updates via a synchroniser 
+				// n.b. the resource cannot be saved because the resource tree may be locked
+				try {
+					serialisedExtensionSynchroniser.save(absExt, eventBRoot,new NullProgressMonitor());
+				} catch (RodinDBException e) {
+					DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
+				}
 			}
 		}
 	}
 
+	private static void updateModelReferences(EObject element, String oldComponentName, String newComponentName, String componentFileExtension) {
+		for (EReference reference : element.eClass().getEAllReferences()){
+			if (!reference.isContainment()){
+				Object referenceValue = element.eGet(reference, false);
+				if (referenceValue instanceof EObject){
+					updateElementsReferences(referenceValue,oldComponentName, newComponentName, componentFileExtension);
+				}else if (referenceValue instanceof EObjectEList){
+					for (Object referenceObject : (EObjectEList<?>)referenceValue){
+						updateElementsReferences(referenceObject, oldComponentName, newComponentName, componentFileExtension);
+					}
+				}
+			}
+			for (EObject child : element.eContents()){
+				updateModelReferences(child, oldComponentName, newComponentName,componentFileExtension);
+			}
+		}
+		
+	}
+
+	private static void updateElementsReferences(Object referenceValue, String oldComponentName, String newComponentName, String componentFileExtension){
+		if (referenceValue instanceof EObject && ((EObject) referenceValue).eIsProxy()){
+			URI uri = ((InternalEObject)referenceValue).eProxyURI();
+			String lastseg = uri.segment(uri.segmentCount()-1);
+			if (lastseg.equals(oldComponentName+"."+componentFileExtension)){
+				lastseg = newComponentName+"."+componentFileExtension;
+				uri=uri.trimSegments(1).appendSegment(lastseg);
+				((InternalEObject)referenceValue).eSetProxyURI(uri);
+			}
+		}
+	}
+	
 	/**
 	 * Renames the diagram file associated with the given element from the old Event-B component name to the new one
 	 * 
