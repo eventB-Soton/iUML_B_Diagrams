@@ -5,14 +5,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -32,9 +29,10 @@ import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.rodinp.core.IInternalElement;
+import org.rodinp.core.IRodinFile;
+import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
 
-import ac.soton.eventb.emf.core.extension.persistence.SerialisedExtensionSynchroniser;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 public class DiagramUtil {
@@ -42,8 +40,7 @@ public class DiagramUtil {
 	
 	private static final Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();
 	private static final ResourceSet resourceSet =  new ResourceSetImpl();
-	private static List<String> diagramFileExtensions = null;
-	private static final SerialisedExtensionSynchroniser serialisedExtensionSynchroniser = new SerialisedExtensionSynchroniser();
+	private static final IProgressMonitor nullProgressMonitor = new NullProgressMonitor();
 	
 	/**
 	 * loads an Event-B component (root) into EMF
@@ -74,57 +71,41 @@ public class DiagramUtil {
 
 	}
 	
-	/**
-	 * returns a list of all the possible diagram file extensions
-	 * 
-	 * @return
-	 */
-	public static List<String> getDiagramExtensions(){
-		if (diagramFileExtensions == null){
-			diagramFileExtensions = new ArrayList<String>();
-			for(IDiagramProvider provider : registry.values()){
-				diagramFileExtensions.add(provider.getFileExtension());
-			}
-		}
-		return diagramFileExtensions;
-	}
-	
 	
 	/**
-	 * THIS DOES NOT WORK BECAUSE WE DON'T GET NOTIFIED UNTIL TOO LATE
-	 * STILL DOES NOT WORK BECAUSE RESOURCE TREE IS LOCKED!!!!!! WHY????
 	 * Finds all the extensions elements in the root and loads them into EMF to call deleteDiagramFile
 	 * @param eventBRoot
 	 * 
 	 */
 
-	public static void deleteDiagramFiles(IProject project, String eventBComponentName) {
-		try {
-			List<IFile> filesToDelete = new ArrayList<IFile>();
-			for (IResource resource : project.members()){
-				if (resource.exists() &&
-					resource.getType() == IResource.FILE &&
-					getDiagramExtensions().contains(((IFile) resource).getFileExtension()) &&
-					((IFile) resource).getName().startsWith(eventBComponentName+".")
-					){
-					filesToDelete.add((IFile)resource);
-				}
+	public static void deleteDiagramFiles(IEventBRoot eventBRoot) {
+		EventBElement eventBElement = DiagramUtil.loadIntoEMF(eventBRoot);
+		if (eventBElement instanceof EventBNamed){
+			for (AbstractExtension absExt : eventBElement.getExtensions()){
+				deleteDiagramFile(absExt);
 			}
-			for (IFile file : filesToDelete){
-				//FIXME: Why is the resource tree locked?
-			//	file.delete(false,false,new NullProgressMonitor());
-			}
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+		eventBElement.eResource().unload();
 	}
-		
-//		EventBElement eventBElement = DiagramUtil.loadIntoEMF(eventBRoot);
-//		if (eventBElement instanceof EventBNamed){
-//			for (AbstractExtension absExt : eventBElement.getExtensions()){
-//				deleteDiagramFile(absExt, ((EventBNamed)eventBElement).getName());
+
+//	THIS WAS AN ALTERNATIVE HACK TO TRY TO GET DELETE TO WORK FOR POST CHANGE NOTIFICATION BUT IT DIDN"T WORK
+//		try {
+//			IProject project = rodinProject.getProject();
+//			List<IFile> filesToDelete = new ArrayList<IFile>();
+//			for (IResource resource : project.members()){
+//				if (resource.exists() &&
+//					resource.getType() == IResource.FILE &&
+//					getDiagramExtensions().contains(((IFile) resource).getFileExtension()) &&
+//					((IFile) resource).getName().startsWith(eventBComponentName+".")
+//					){
+//					filesToDelete.add((IFile)resource);
+//				}
 //			}
+//			for (IFile file : filesToDelete){
+//				file.delete(false,false,new NullProgressMonitor());
+//			}
+//		} catch (CoreException e) {
+//			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed deleting diagram files", e));
 //		}
 //	}
 	
@@ -142,7 +123,7 @@ public class DiagramUtil {
 		IFile diagramFile = project.getFile(provider.getDiagramFileName(element));
 		if (diagramFile.exists()) {
 			try {
-				diagramFile.delete(false,false,new NullProgressMonitor());
+				diagramFile.delete(false,false,nullProgressMonitor);
 			} catch (CoreException e) {
 				DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed deleting diagram File", e));
 			}
@@ -151,62 +132,69 @@ public class DiagramUtil {
 	
 	/**
 	 * Renames all the diagram files associated with elements in the given (new) Event-B root from the old Event-B component name
+	 * AND updates any references within the diagram model
 	 * 
 	 * @param eventBRoot
 	 * @param oldComponentName
 	 */
-	public static void renameDiagramFiles(IEventBRoot eventBRoot, String oldComponentName) {
-		EventBElement eventBElement = DiagramUtil.loadIntoEMF(eventBRoot);
-		if (eventBElement instanceof EventBNamed){
+	public static void updateDiagramsForNewComponentName(IEventBRoot eventBRoot, String oldComponentName) {
+		try {
+			EventBElement eventBElement = loadIntoEMF(eventBRoot);
+			if (eventBElement==null) return;
+			boolean dirty = false;
 			String newComponentName = ((EventBNamed)eventBElement).getName();
 			String componentFileExtension = eventBRoot.getResource().getFileExtension();
-			for (AbstractExtension absExt : eventBElement.getExtensions()){
-				renameDiagramFile(absExt, oldComponentName, newComponentName, componentFileExtension);
-				updateModelReferences(absExt, oldComponentName, newComponentName,componentFileExtension);
-				//save the model updates via a synchroniser 
-				// n.b. the resource cannot be saved because the resource tree may be locked
-				try {
-					serialisedExtensionSynchroniser.save(absExt, eventBRoot,new NullProgressMonitor());
-				} catch (RodinDBException e) {
-					DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
-				}
+			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
+				renameDiagramFile(abstractExtension, oldComponentName, newComponentName, componentFileExtension);
+				dirty = updateModelReferencesForNewComponentName(abstractExtension, oldComponentName, newComponentName,componentFileExtension) || dirty;
 			}
+			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
+			eventBElement.eResource().unload();
+		} catch (IOException e) {
+			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
 		}
 	}
 
-	private static void updateModelReferences(EObject element, String oldComponentName, String newComponentName, String componentFileExtension) {
+	private static boolean updateModelReferencesForNewComponentName(EObject element, String oldComponentName, String newComponentName, String componentFileExtension) {
+		boolean dirty = false;
 		for (EReference reference : element.eClass().getEAllReferences()){
 			if (!reference.isContainment()){
 				Object referenceValue = element.eGet(reference, false);
 				if (referenceValue instanceof EObject){
-					updateElementsReferences(referenceValue,oldComponentName, newComponentName, componentFileExtension);
+					dirty = updateComponentNameInReference(referenceValue,oldComponentName, newComponentName, componentFileExtension) || dirty;
 				}else if (referenceValue instanceof EObjectEList){
 					for (Object referenceObject : (EObjectEList<?>)referenceValue){
-						updateElementsReferences(referenceObject, oldComponentName, newComponentName, componentFileExtension);
+						dirty = updateComponentNameInReference(referenceObject,oldComponentName, newComponentName, componentFileExtension) || dirty;
 					}
 				}
 			}
-			for (EObject child : element.eContents()){
-				updateModelReferences(child, oldComponentName, newComponentName,componentFileExtension);
-			}
 		}
-		
+		for (EObject child : element.eContents()){
+			dirty = updateModelReferencesForNewComponentName(child,oldComponentName, newComponentName, componentFileExtension) || dirty;
+		}
+		return dirty;
 	}
 
-	private static void updateElementsReferences(Object referenceValue, String oldComponentName, String newComponentName, String componentFileExtension){
+	private static boolean updateComponentNameInReference(Object referenceValue, String oldComponentName, String newComponentName, String componentFileExtension){
 		if (referenceValue instanceof EObject && ((EObject) referenceValue).eIsProxy()){
 			URI uri = ((InternalEObject)referenceValue).eProxyURI();
-			String lastseg = uri.segment(uri.segmentCount()-1);
-			if (lastseg.equals(oldComponentName+"."+componentFileExtension)){
-				lastseg = newComponentName+"."+componentFileExtension;
-				uri=uri.trimSegments(1).appendSegment(lastseg);
+			String[] segments = uri.segments();			
+			if (segments.length > 2 && 
+				"resource".equals(segments[0]) && 
+				(oldComponentName+"."+componentFileExtension).equals(segments[2])){
+				segments[2] = newComponentName+"."+componentFileExtension;
+				uri = uri.trimSegments(uri.segmentCount());
+				uri =uri.appendSegments(segments);
 				((InternalEObject)referenceValue).eSetProxyURI(uri);
+				return !oldComponentName.equals(newComponentName);
 			}
 		}
+		return false;
 	}
 	
 	/**
 	 * Renames the diagram file associated with the given element from the old Event-B component name to the new one
+	 * 
 	 * 
 	 * @param element
 	 * @param oldMachineName
@@ -226,7 +214,7 @@ public class DiagramUtil {
 				//the copier also replaces references to the component inside the diagram file
 				copyDiagramForNewRoot(project, oldFileName, oldMachineName, newMachineName, componentFileExtension, null);
 				//delete the old diagram
-				diagramFile.delete(false,false,new NullProgressMonitor());
+				diagramFile.delete(false,false,nullProgressMonitor);
 			} catch (CoreException e) {
 				DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed renaming diagram File", e));
 			}
@@ -277,6 +265,81 @@ public class DiagramUtil {
 		}
 		sourceBuf.close();
 		return new ByteArrayInputStream(contents.toString().getBytes());
+	}
+
+	/////////////////////////////////// project rename ////////////////////////////////
+	/**
+	 * Project renaming
+	 * @param project
+	 * @param oldProjectName
+	 */
+	public static void projectRenamed(IRodinProject project, String oldProjectName) {
+		try {
+			for (IRodinFile rodinFile : project.getRodinFiles()){
+				updateDiagramsForNewProjectName((IEventBRoot) rodinFile.getRoot(), project.getElementName(), oldProjectName);
+			}
+		} catch (RodinDBException e) {
+			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed getting files from renamed project", e));
+		}
+		
+	}
+	
+	/**
+	 * Updates all the references within abstract extensions in the given Event-B root from the old Event-B project name to the new one
+	 * 
+	 * @param eventBRoot
+	 * @param oldComponentName
+	 */
+	public static void updateDiagramsForNewProjectName(IEventBRoot eventBRoot, String newProjectName, String oldProjectName) {
+		try { 
+			EventBElement eventBElement = loadIntoEMF(eventBRoot);
+			if (eventBElement==null) return;
+			boolean dirty = false;
+			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
+				dirty = updateModelReferencesForNewProjectName(abstractExtension, oldProjectName, newProjectName) || dirty;
+			}
+			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
+			eventBElement.eResource().unload();
+		} catch (IOException e) {
+			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
+		}
+	}
+
+	private static boolean updateModelReferencesForNewProjectName(EObject element, String oldProjectName, String newProjectName) {
+		boolean dirty = false;
+		for (EReference reference : element.eClass().getEAllReferences()){
+			if (!reference.isContainment()){
+				Object referenceValue = element.eGet(reference, false);
+				if (referenceValue instanceof EObject){
+					dirty = updateProjectNameInReference(referenceValue,oldProjectName, newProjectName) || dirty;
+				}else if (referenceValue instanceof EObjectEList){
+					for (Object referenceObject : (EObjectEList<?>)referenceValue){
+						dirty = updateProjectNameInReference(referenceObject, oldProjectName, newProjectName) || dirty;
+					}
+				}
+			}
+		}
+		for (EObject child : element.eContents()){
+			dirty = updateModelReferencesForNewProjectName(child, oldProjectName, newProjectName) || dirty;
+		}
+		return dirty;
+	}
+
+	private static boolean updateProjectNameInReference(Object referenceValue, String oldProjectName, String newProjectName){
+		if (referenceValue instanceof EObject && ((EObject) referenceValue).eIsProxy()){
+			URI uri = ((InternalEObject)referenceValue).eProxyURI();
+			String[] segments = uri.segments();			
+			if (segments.length > 1 && 
+				"resource".equals(segments[0]) && 
+				oldProjectName.equals(segments[1])){
+				segments[1] = newProjectName;
+				uri = uri.trimSegments(uri.segmentCount());
+				uri =uri.appendSegments(segments);
+				((InternalEObject)referenceValue).eSetProxyURI(uri);
+				return !oldProjectName.equals(newProjectName);
+			}
+		}
+		return false;
 	}
 	
 }
