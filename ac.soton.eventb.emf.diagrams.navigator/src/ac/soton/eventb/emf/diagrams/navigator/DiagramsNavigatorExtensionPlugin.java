@@ -38,7 +38,7 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	// diagram provider registry
 	private static final Map<String, IDiagramProvider> diagramProviderRegistry = new HashMap<String, IDiagramProvider>();
 	
-	private static final IElementChangedListener componentChangedListener = new ComponentChangedListener();
+	private static final IElementChangedListener diagramUpdater = new DiagramUpdaterListener();
 	
 	/**
 	 * The constructor
@@ -55,7 +55,7 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		plugin = this;
 		registerDiagramProviders();
 		//this listener will update diagrams when components in Rodin database are renamed or deleted
-		RodinCore.addElementChangedListener(componentChangedListener);
+		RodinCore.addElementChangedListener(diagramUpdater);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
-		RodinCore.removeElementChangedListener(componentChangedListener);
+		RodinCore.removeElementChangedListener(diagramUpdater);
 		diagramProviderRegistry.clear();
 		plugin = null;
 		super.stop(context);
