@@ -24,8 +24,7 @@ public class DiagramJobs {
 		        return Status.OK_STATUS;
 		      }
 		   };
-		//FIXME: the following rule should be made more specific (to the project) but the Rodin runnnable locks the whole root  
-		diagramUpdaterJob.setRule(project.getProject().getWorkspace().getRoot());	// the job will need to lock the project
+		diagramUpdaterJob.setRule(project.getProject()); // the job will need to lock the project
 		diagramUpdaterJob.setPriority(Job.LONG);  // low priority
 		diagramUpdaterJob.setProperty(RODIN_COMPONENT, component);
 		diagramUpdaterJob.setProperty(OLD_COMPONENT_NAME, oldComponentName);				
@@ -55,8 +54,7 @@ public class DiagramJobs {
 		         return Status.OK_STATUS;
 		      }
 		   };
-		//FIXME: the following rule should be made more specific (to the project) but the Rodin runnnable locks the whole root
-		diagramUpdaterJob.setRule(renamedProject.getProject().getWorkspace().getRoot()); // the job will need to lock the project
+		diagramUpdaterJob.setRule(renamedProject.getProject()); // the job will need to lock the project
 		diagramUpdaterJob.setPriority(Job.LONG);  // low priority
 		diagramUpdaterJob.setProperty(RODIN_PROJECT, renamedProject);
 		diagramUpdaterJob.setProperty(OLD_PROJECT_NAME, oldProjectName);				
