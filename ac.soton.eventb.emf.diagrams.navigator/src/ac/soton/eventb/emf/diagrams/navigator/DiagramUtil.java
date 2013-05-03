@@ -271,7 +271,7 @@ public class DiagramUtil {
 	/**
 	 * Project renaming
 	 * @param project
-	 * @param oldProjectName
+	 * @param oldProjectName (or null to match any project name)
 	 */
 	public static void projectRenamed(IRodinProject project, String oldProjectName) {
 		try {
@@ -331,12 +331,12 @@ public class DiagramUtil {
 			String[] segments = uri.segments();			
 			if (segments.length > 1 && 
 				"resource".equals(segments[0]) && 
-				oldProjectName.equals(segments[1])){
+				(oldProjectName==null || oldProjectName.equals(segments[1]))){
 				segments[1] = newProjectName;
 				uri = uri.trimSegments(uri.segmentCount());
 				uri =uri.appendSegments(segments);
 				((InternalEObject)referenceValue).eSetProxyURI(uri);
-				return !oldProjectName.equals(newProjectName);
+				return !newProjectName.equals(oldProjectName);
 			}
 		}
 		return false;
