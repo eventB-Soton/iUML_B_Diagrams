@@ -43,7 +43,9 @@ public class DiagramUpdaterListener implements IElementChangedListener {
 			}else if (affectedProject.getKind() == IRodinElementDelta.REMOVED){
 				//Do nothing
 			}else if (affectedProject.getKind() == IRodinElementDelta.ADDED){
-				//Do nothing
+				// this notification may result from a copy-paste of the project. 
+				// Since we do not know the pre-name, we set oldName to null which will match all project name references
+				DiagramJobs.ScheduleDiagramUpdateForProjectRename((IRodinProject)affectedProject.getElement(), null);
 			}
     	}
 	}
