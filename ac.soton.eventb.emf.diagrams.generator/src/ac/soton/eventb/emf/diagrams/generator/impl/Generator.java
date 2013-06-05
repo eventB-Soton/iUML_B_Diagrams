@@ -108,6 +108,15 @@ public class Generator {
 			//do the generation
 			doGenerate(sourceElement);
 			
+			//verifyDescriptors;
+			for (GenerationDescriptor generationDescriptor : generatedElements){
+				if (generationDescriptor.feature!=null &&
+						!generationDescriptor.feature.getEType().isInstance(generationDescriptor.value)){
+					Activator.logError(Messages.GENERATOR_MSG_21(generationDescriptor.value,generationDescriptor.feature));
+					return null;
+				}
+			}
+			
 			//create new EventB components
 			modifiedResources.addAll(
 					createNewComponents(editingDomain, sourceElement)

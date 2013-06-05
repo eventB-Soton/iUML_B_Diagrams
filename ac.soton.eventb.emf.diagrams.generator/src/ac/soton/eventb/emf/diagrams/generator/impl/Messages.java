@@ -8,6 +8,7 @@
 
 package ac.soton.eventb.emf.diagrams.generator.impl;
 
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.osgi.util.NLS;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
@@ -50,7 +51,13 @@ public class Messages extends NLS {
 	}
 	public static String GENERATOR_MSG_19;
 	public static String GENERATOR_MSG_20;
-
+	public static String GENERATOR_MSG_21;
+	public static String GENERATOR_MSG_21(Object object, EStructuralFeature feature){
+		return bind(GENERATOR_MSG_12,
+				object,
+				feature.getName()
+				);
+	}
 	
 	static {
 		// initialize resource bundle
