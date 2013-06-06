@@ -46,7 +46,7 @@ public class DiagramUtils {
 	public static Object getModelFeatureValue(EditPart editpart, String featureName){
 		EObject element =  DiagramUtils.unwrap(editpart.getModel());
 		EStructuralFeature feature = element.eClass().getEStructuralFeature(featureName);
-		return getModelFeatureValue(editpart,feature);
+		return feature==null? null : getModelFeatureValue(editpart,feature);
 	}
 
 	/**
