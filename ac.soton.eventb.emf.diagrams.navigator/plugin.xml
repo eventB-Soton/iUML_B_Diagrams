@@ -106,5 +106,11 @@
             name="Delete">
       </command>
    </extension>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="ac.soton.eventb.emf.diagrams.navigator.DiagramUpdaterListener">
+      </startup>
+   </extension>
    
 </plugin>

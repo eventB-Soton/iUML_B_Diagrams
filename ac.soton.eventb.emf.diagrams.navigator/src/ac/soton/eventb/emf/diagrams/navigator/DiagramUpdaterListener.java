@@ -7,9 +7,15 @@ import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinElementDelta;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
+import org.eclipse.ui.IStartup;
 
-public class DiagramUpdaterListener implements IElementChangedListener {
+public class DiagramUpdaterListener implements IElementChangedListener, IStartup {
 
+	@Override
+	public void earlyStartup() {
+		// nothing to do - the listener is added by the plugin start so that it can remove it if the plug-in is stopped
+	}
+	
 		   
 	/**
 	 * Listens for changes to the Rodin database so that diagram files and diagram models can be kept in step with changes to machines, contexts, etc.
@@ -26,7 +32,10 @@ public class DiagramUpdaterListener implements IElementChangedListener {
     				IRodinFile rodinFile = (IRodinFile)component;
     				if (rodinFile.getRoot() instanceof IEventBRoot){
     					if ((affectedComponent.getFlags() & IRodinElementDelta.F_MOVED_FROM) != 0){	
-    						DiagramJobs.ScheduleDiagramUpdateForComponentRename((IRodinProject)affectedProject.getElement(),(IEventBRoot)rodinFile.getRoot(),((IRodinFile) affectedComponent.getMovedFromElement()).getBareName());
+    						//FIXME: The following 'if' is a workaround as the Rodin builder copies files and is stopped if we schedule a job
+    						if (!((IRodinFile) affectedComponent.getMovedFromElement()).getElementName().endsWith("_tmp")){ //clean causes many renames from temp files which we must ignore
+    							DiagramJobs.ScheduleDiagramUpdateForComponentRename((IRodinProject)affectedProject.getElement(),(IEventBRoot)rodinFile.getRoot(),((IRodinFile) affectedComponent.getMovedFromElement()).getBareName());
+    						}
     					}else if (affectedComponent.getKind() == IRodinElementDelta.REMOVED){
     						//FIXME: Since we only get POST notifications, it is not possible to determine the content of the removed component to see whether any diagrams need to be deleted.
     						//FIXME:	Tried several workarounds but nothing is very satisfactory or safe (there is a danger of deleting the wrong diagrams) - therefore leave it to the user.

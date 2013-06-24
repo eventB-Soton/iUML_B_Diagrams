@@ -15,7 +15,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="[3.7.0,4.0.0)",
  org.rodinp.core;bundle-version="[1.6.0,2.0.0)",
  ac.soton.eventb.emf.core.extension.persistence;bundle-version="[1.2.0,2.0.0)",
  ac.soton.eventb.emf.diagrams.generator;bundle-version="[3.1.0,4.0.0)"
-Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: %Bundle-Vendor
 Export-Package: ac.soton.eventb.emf.diagrams.navigator.provider
+Bundle-ActivationPolicy: lazy
