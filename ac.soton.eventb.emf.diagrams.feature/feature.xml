@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="%featureName"
-      version="3.2.2.rc1"
+      version="4.0.0.rc1"
       provider-name="%featureName">
 
    <description>
@@ -37,19 +37,12 @@
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.5.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.4.0" match="compatible"/>
       <import plugin="org.eclipse.core.expressions" version="3.4.300" match="compatible"/>
-      <import feature="org.eventb.emf.feature" version="3.7.2" match="compatible"/>
-      <import feature="ac.soton.eventb.emf.core.extension.feature" version="2.1.0" match="compatible"/>
+      <import feature="org.eventb.emf.feature" version="4.0.0" match="compatible"/>
+      <import feature="ac.soton.eventb.emf.core.extension.feature" version="3.0.0" match="compatible"/>
    </requires>
 
    <plugin
          id="ac.soton.eventb.emf.diagrams"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"
-         unpack="false"/>
-
-   <plugin
-         id="ac.soton.eventb.emf.diagrams.edit"
          download-size="0"
          install-size="0"
          version="0.0.0"
