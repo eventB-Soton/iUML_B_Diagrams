@@ -17,7 +17,7 @@ public class DiagramJobs {
 	private static final QualifiedName OLD_COMPONENT_NAME = new QualifiedName(QUALIFIER, "OLD_COMPONENT_NAME");
 		   
 	public static void ScheduleDiagramUpdateForComponentRename (IRodinProject project, IEventBRoot component, String oldComponentName) {
-		Job diagramUpdaterJob = new Job("Updating diagram references for new project name") {
+		Job diagramUpdaterJob = new Job("Updating diagram references for new component name") {
 		      public IStatus run(IProgressMonitor monitor) {
 		        //System.out.println("Updating diagram references for new project name");
 		     	DiagramUtil.updateDiagramsForNewComponentName((IEventBRoot)getProperty(RODIN_COMPONENT), (String)getProperty(OLD_COMPONENT_NAME));

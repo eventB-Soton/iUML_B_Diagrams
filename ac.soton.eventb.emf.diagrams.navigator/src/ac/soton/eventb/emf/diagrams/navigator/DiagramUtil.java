@@ -185,6 +185,9 @@ public class DiagramUtil {
 				segments[2] = newComponentName+"."+componentFileExtension;
 				uri = uri.trimSegments(uri.segmentCount());
 				uri =uri.appendSegments(segments);
+				String fragment = uri.fragment();
+				fragment = fragment.replaceAll("::"+oldComponentName+"\\.", "::"+newComponentName+".");
+				uri = uri.trimFragment().appendFragment(fragment);
 				((InternalEObject)referenceValue).eSetProxyURI(uri);
 				return !oldComponentName.equals(newComponentName);
 			}
@@ -261,7 +264,9 @@ public class DiagramUtil {
 		String line;
 		String contents = "";
 		while((line = sourceBuf.readLine()) != null){
-			contents = contents + line.replaceAll("\\b"+oldRootName+"\\."+fileExtension, newRootName+"."+fileExtension) + "\n";
+			line = line.replaceAll("\\b"+oldRootName+"\\."+fileExtension, newRootName+"."+fileExtension);	//resource name
+			line = line.replaceAll("::"+oldRootName+"\\.", "::"+newRootName+".");							//component name in ID
+			contents = contents + line + "\n";
 		}
 		sourceBuf.close();
 		return new ByteArrayInputStream(contents.toString().getBytes());
@@ -335,6 +340,9 @@ public class DiagramUtil {
 				segments[1] = newProjectName;
 				uri = uri.trimSegments(uri.segmentCount());
 				uri =uri.appendSegments(segments);
+//				String fragment = uri.fragment();					//not required as ID does not include project name
+//				fragment = fragment.replaceAll("::"+oldProjectName+"\\.", "::"+newProjectName+".");
+//				uri = uri.trimFragment().appendFragment(fragment);
 				((InternalEObject)referenceValue).eSetProxyURI(uri);
 				return !newProjectName.equals(oldProjectName);
 			}
