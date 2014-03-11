@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
+import org.eventb.emf.persistence.EMFRodinDB;
 import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRefinementParticipant;
 import org.rodinp.core.RodinDBException;
@@ -38,7 +39,7 @@ public class DiagramCopier implements IRefinementParticipant {
 		String newRootName = targetRoot.getElementName();
 		String fileExtension = sourceRoot.getResource().getFileExtension();		
 
-		EventBElement eventBElement = DiagramUtil.loadIntoEMF(sourceRoot);
+		EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(sourceRoot);
 		if (eventBElement != null){
 			//get the diagram provider registry
 			Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();

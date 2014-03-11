@@ -19,16 +19,13 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EObjectEList;
 import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.core.IEventBRoot;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
-import org.rodinp.core.IInternalElement;
+import org.eventb.emf.persistence.EMFRodinDB;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
@@ -37,40 +34,8 @@ import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 public class DiagramUtil {
 	
-	
 	private static final Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();
-	private static final ResourceSet resourceSet =  new ResourceSetImpl();
 	private static final IProgressMonitor nullProgressMonitor = new NullProgressMonitor();
-	
-	/**
-	 * loads an Event-B component (root) into EMF
-	 * @param root
-	 * @return
-	 */
-	public static EventBElement loadIntoEMF(IInternalElement root){
-		if (root == null || !root.exists()) return null;
-		URI fileURI = URI.createPlatformResourceURI(root.getResource().getFullPath().toString(), true);
-		Resource resource = resourceSet.getResource(fileURI, false); //n.b. do not load until notifications disabled
-		if (resource == null){
-			resource = resourceSet.createResource(fileURI);
-		}
-		if (!resource.isLoaded()){
-			resource.eSetDeliver(false);	// turn off notifications to Transactional Change Recorder while loading
-			try {
-				resource.load(Collections.emptyMap());
-			} catch (IOException e) {
-				return null;
-			}
-			resource.eSetDeliver(true);
-		}
-		if (resource.isLoaded() && !resource.getContents().isEmpty() && resource.getContents().get(0) instanceof EventBElement) {
-			return (EventBElement) resource.getContents().get(0);
-		}else{
-			return null;
-		}
-
-	}
-	
 	
 	/**
 	 * Finds all the extensions elements in the root and loads them into EMF to call deleteDiagramFile
@@ -79,7 +44,7 @@ public class DiagramUtil {
 	 */
 
 	public static void deleteDiagramFiles(IEventBRoot eventBRoot) {
-		EventBElement eventBElement = DiagramUtil.loadIntoEMF(eventBRoot);
+		EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
 		if (eventBElement instanceof EventBNamed){
 			for (AbstractExtension absExt : eventBElement.getExtensions()){
 				deleteDiagramFile(absExt);
@@ -139,7 +104,7 @@ public class DiagramUtil {
 	 */
 	public static void updateDiagramsForNewComponentName(IEventBRoot eventBRoot, String oldComponentName) {
 		try {
-			EventBElement eventBElement = loadIntoEMF(eventBRoot);
+			EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
 			if (eventBElement==null) return;
 			boolean dirty = false;
 			String newComponentName = ((EventBNamed)eventBElement).getName();
@@ -297,7 +262,7 @@ public class DiagramUtil {
 	 */
 	public static void updateDiagramsForNewProjectName(IEventBRoot eventBRoot, String newProjectName, String oldProjectName) {
 		try { 
-			EventBElement eventBElement = loadIntoEMF(eventBRoot);
+			EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
 			if (eventBElement==null) return;
 			boolean dirty = false;
 			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
