@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.ui.URIEditorInput;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
@@ -45,6 +46,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.navigator.ICommonActionExtensionSite;
+import org.eventb.emf.persistence.EMFRodinDB;
 
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
@@ -131,6 +133,9 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 				// dealing with files
 				if (element.eResource()==null) {
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
+					if (element.eIsProxy()){
+						element = EMFRodinDB.INSTANCE.loadElement(((InternalEObject)element).eProxyURI());
+					}
 					if (element.eResource()==null)
 						throw new ExecutionException("Can't open diagram - try refreshing workspace", null);
 				}
