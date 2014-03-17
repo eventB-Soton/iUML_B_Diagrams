@@ -114,7 +114,7 @@ public class DiagramUtil {
 				dirty = updateModelReferencesForNewComponentName(abstractExtension, oldComponentName, newComponentName,componentFileExtension) || dirty;
 			}
 			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
-			eventBElement.eResource().unload();
+			//eventBElement.eResource().unload();
 		} catch (IOException e) {
 			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
 		}
