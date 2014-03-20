@@ -26,6 +26,7 @@ import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.persistence.EMFRodinDB;
+import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
@@ -97,25 +98,33 @@ public class DiagramUtil {
 	
 	/**
 	 * Renames all the diagram files associated with elements in the given (new) Event-B root from the old Event-B component name
-	 * AND updates any references within the diagram model
+	 * AND updates any references within all the models in the project
 	 * 
 	 * @param eventBRoot
 	 * @param oldComponentName
 	 */
 	public static void updateDiagramsForNewComponentName(IEventBRoot eventBRoot, String oldComponentName) {
+		String newComponentName = eventBRoot.getElementName();
+		String componentFileExtension = eventBRoot.getResource().getFileExtension();
 		try {
 			EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
 			if (eventBElement==null) return;
-			boolean dirty = false;
-			String newComponentName = ((EventBNamed)eventBElement).getName();
-			String componentFileExtension = eventBRoot.getResource().getFileExtension();
+			//for the changed root, update the corresponding diagram files
 			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
 				renameDiagramFile(abstractExtension, oldComponentName, newComponentName, componentFileExtension);
-				dirty = updateModelReferencesForNewComponentName(abstractExtension, oldComponentName, newComponentName,componentFileExtension) || dirty;
 			}
-			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
-			//eventBElement.eResource().unload();
-		} catch (IOException e) {
+
+			IRodinFile[] rodinFiles = eventBRoot.getRodinProject().getRodinFiles();
+			for (IRodinFile rodinFile : rodinFiles){
+				IInternalElement root = rodinFile.getRoot();
+				eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(root);
+				if (eventBElement!=null) {
+					//for all roots update any references				
+					boolean dirty = updateModelReferencesForNewComponentName(eventBElement, oldComponentName, newComponentName,componentFileExtension);	
+					if (dirty == true) eventBElement.eResource().save(Collections.emptyMap());
+				}
+			}
+		} catch (Exception e) {
 			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
 		}
 	}
