@@ -62,5 +62,10 @@ public abstract class AbstractRule implements IRule {
 	public EventBNamedCommentedComponentElement getTargetEventBComponent(EventBNamedCommentedComponentElement sourceComponent, EventBElement sourceElement) throws Exception  {
 		return sourceComponent;
 	}
+	
+	@Override
+	public boolean fireLate() {
+		return false;
+	}
 
 }

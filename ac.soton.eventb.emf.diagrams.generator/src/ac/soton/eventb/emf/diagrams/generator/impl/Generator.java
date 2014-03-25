@@ -340,7 +340,7 @@ public class Generator {
 	 * @throws Exception - for any exception, abort
 	 */
 	private void doGenerate(final EventBElement rootSourceElement) throws Exception {
-		
+		boolean late = false;
 		// stage 1 - traverse the model firing appropriate enabled rules
 		traverseModel(rootSourceElement);
 		
@@ -352,7 +352,7 @@ public class Generator {
 				List<IRule> firedRules = new ArrayList<IRule>();
 				for (IRule rule : deferredRules.get(sourceElement)){
 					if (rule != null && rule.enabled(sourceElement)) {
-						if (rule.dependenciesOK(sourceElement, generatedElements)){
+						if (late==rule.fireLate() && rule.dependenciesOK(sourceElement, generatedElements)){
 							generatedElements.addAll(rule.fire(sourceElement, generatedElements));
 							firedRules.add(rule);
 						}
@@ -368,7 +368,10 @@ public class Generator {
 			}
 			deferredRules.keySet().removeAll(empties);
 			if (progress == false) {
-				throw new Exception(Messages.GENERATOR_MSG_00);
+				if (late){ //o-oh, no progress when already doing the late rules 
+					throw new Exception(Messages.GENERATOR_MSG_00);
+				}
+				late = true; //enable the late rules
 			}
 		} 
 	}
@@ -392,7 +395,7 @@ public class Generator {
 		}
 		for (final IRule rule : rules){
 			if (rule != null && rule.enabled(sourceElement)) {
-				if (rule.dependenciesOK(sourceElement, generatedElements)){
+				if (!rule.fireLate() && rule.dependenciesOK(sourceElement, generatedElements)){
 					generatedElements.addAll(rule.fire(sourceElement, generatedElements));
 				}else{
 					defer(sourceElement,rule);

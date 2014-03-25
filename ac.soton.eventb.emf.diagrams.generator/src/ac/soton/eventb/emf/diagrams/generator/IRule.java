@@ -61,6 +61,8 @@ public interface IRule {
 	/**
 	 * This should return a boolean to indicate whether dependencies needed by this source Element/Rule combination
 	 * have already been generated. If not the rule will be tried again later.
+	 * N.b. Do not include conditions here, only implement ordering dependencies which will at some point be true.
+	 * If the dependency does not become true during the generation, the generation has failed and is not saved. 
 	 * 
 	 * @param sourceElement
 	 * @param generatedElements
@@ -69,5 +71,13 @@ public interface IRule {
 	 */
 	boolean dependenciesOK(EventBElement sourceElement,List<GenerationDescriptor> generatedElements) throws Exception;
 
+	/**
+	 * This should return a boolean to indicate whether the rule should be fired late.
+	 * Late rules will not be fired until no progress is being made firing non-late rules.
+	 * Late rules are usually used when some generation of elements is conditional on whether other rules have generated elements.
+	 * (This is different from dependencies which is un-conditional but requires order)
+	 * 
+	 */
+	boolean fireLate();
 	
 }
