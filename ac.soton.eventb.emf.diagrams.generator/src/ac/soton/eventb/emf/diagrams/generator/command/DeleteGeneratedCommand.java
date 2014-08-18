@@ -21,6 +21,8 @@ import org.eclipse.emf.workspace.AbstractEMFOperation;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
+import org.eventb.emf.core.context.Context;
+import org.eventb.emf.core.machine.Machine;
 import org.rodinp.core.RodinCore;
 import org.rodinp.core.RodinDBException;
 
@@ -67,7 +69,7 @@ public class DeleteGeneratedCommand extends AbstractEMFOperation {
 		try {
 			RodinCore.run(new IWorkspaceRunnable() {
 				public void run(final IProgressMonitor monitor) throws CoreException{
-					monitor.setTaskName("Deleting generated elements for "+ sourceExtensionID);				
+					monitor.setTaskName("Deleting generated elements for "+ sourceExtensionID);	
 					//Remove previously generated elements	
 					List<EObject> previouslyGeneratedElements = getPreviouslyGeneratedElements(
 							(EventBNamedCommentedComponentElement) abstractExtension.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT),
@@ -102,9 +104,22 @@ public class DeleteGeneratedCommand extends AbstractEMFOperation {
 		contents.add(0,component);
 		ArrayList<EObject> remove = new ArrayList<EObject>();
 		for(EObject eObject : contents){
+			if(eObject instanceof Machine){
+				for(Context ctx : ((Machine)eObject).getSees()){
+					for(EObject ieObject : ctx.eContents()){
+						if(Is.generatedBy(ieObject, sourceExtensionID))
+							remove.add(ieObject);
+					}
+				}
+				
+				
+				
+			}
 			if (Is.generatedBy(eObject,sourceExtensionID)){
 				remove.add(eObject);						
 			}
+			
+			
 		}
 		return remove;
 	}

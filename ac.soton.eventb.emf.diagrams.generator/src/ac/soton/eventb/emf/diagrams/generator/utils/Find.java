@@ -56,7 +56,8 @@ public class Find {
 			if ((parent == null || generatedElement.parent == parent) && 
 				(feature == null || generatedElement.feature== feature)){
 				if ((generatedElement.value instanceof EventBNamed && ((EventBNamed)generatedElement.value).getName().equals(identifier))
-				|| (generatedElement.value instanceof EventBLabeled && ((EventBLabeled)generatedElement.value).getLabel().equals(identifier))) 
+				|| (generatedElement.value instanceof EventBLabeled && ((EventBLabeled)generatedElement.value).getLabel().equals(identifier))
+				|| (generatedElement.value instanceof String && ((String)generatedElement.value).equals(identifier)) ) 
 					return generatedElement.value;
 			}
 		}

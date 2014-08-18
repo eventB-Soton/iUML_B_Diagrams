@@ -73,12 +73,16 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 					monitor.worked(1);
 			        monitor.subTask(Messages.GENERATOR_MSG_14);
 					//try to create an appropriate generator
+			        
 					Generator generator = GeneratorFactory.getFactory().createGenerator(element.eClass());
 					monitor.worked(2);
 			        monitor.subTask(Messages.GENERATOR_MSG_15);
 			        
 			        //try to run the generation
 					modifiedResources = generator.generate(editingDomain,element);
+					
+
+					
 					monitor.worked(4);
 					if (modifiedResources == null){
 						
@@ -87,7 +91,7 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 						//"Generation Failed - see error log for details"
 						
 					}else{
-					
+						modifiedResources.add(element.eResource());
 						//try to save all the modified resources
 				        monitor.subTask(Messages.GENERATOR_MSG_16);
 						for (Resource resource : modifiedResources){
@@ -101,6 +105,7 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 							}					
 						}
 						
+
 					}
 				monitor.done();
 				}

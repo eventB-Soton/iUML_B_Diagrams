@@ -30,14 +30,25 @@ public class GenerationDescriptor{
 	public EStructuralFeature feature;
 	public Object value;
 	public Integer priority;
+	public Boolean remove;
 	
 	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Integer priority){
-		this.parent = parent; this.feature = feature; this.value = value; this.priority = priority;
+		this.parent = parent; this.feature = feature; this.value = value; this.priority = priority; this.remove = false;
 	}
 	
 	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value){
-		this.parent = parent; this.feature = feature; this.value = value; this.priority = 0;
+		this.parent = parent; this.feature = feature; this.value = value; this.priority = 0; this.remove = false;
 	}
 
+	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Integer priority, Boolean remove){
+		this(parent, feature, value, priority);
+		this.remove = remove;  
+	}
+	
+	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Boolean remove){
+		this(parent, feature, value);
+		this.remove = remove;
+		
+	}
 	
 }

@@ -8,8 +8,10 @@
 
 package ac.soton.eventb.emf.diagrams.generator.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,6 @@ import org.eventb.emf.core.machine.Guard;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 import ac.soton.eventb.emf.diagrams.generator.IRule;
-import ac.soton.eventb.emf.diagrams.generator.command.DeleteGeneratedCommand;
 
 /**
  * A generic Generator which is configured from rule classes which have been declared in an extension point.
@@ -116,19 +117,21 @@ public class Generator {
 					return null;
 				}
 			}
-			
+
 			//create new EventB components
 			modifiedResources.addAll(
 					createNewComponents(editingDomain, sourceElement)
 					);
-			
-			DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, sourceElement);
-			if (deleteGeneratedCommand.canExecute()){
-				deleteGeneratedCommand.execute(null, null);
-			}else{
-				Activator.logError(Messages.GENERATOR_MSG_03);
-				return null;
-			}
+
+//			DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, sourceElement);
+//			if (deleteGeneratedCommand.canExecute()){
+//				deleteGeneratedCommand.execute(null, null);
+//			}else{
+//				Activator.logError(Messages.GENERATOR_MSG_03);
+//				return null;
+//			}
+			GeneratedRemover genRemover = new GeneratedRemover(editingDomain, sourceElement);
+			modifiedResources.addAll(genRemover.removeGenerated());
 			
 		} catch (Exception e) {
 			Activator.logError(e.getMessage(),e);
@@ -142,14 +145,53 @@ public class Generator {
 			modifiedResources.addAll(
 					placeGenerated(editingDomain, sourceExtensionID)
 					);
+			removeComponents(editingDomain, sourceElement);
 		} catch (Exception e) {
 			Activator.logError(Messages.GENERATOR_MSG_04, e);
 			return null;
 		}
 		
+		
+		
+		modifiedResources.add(sourceElement.eContainer().eResource());
+		
 		return modifiedResources;
 			
 	}
+	/**
+	 * Removes Event-B components according to the descriptors
+	 * 
+	 * 
+	 * @param editingDomain
+	 * @param sourceElement
+	 * @throws IOException 
+	 */
+	private void removeComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement) throws IOException{
+		String projectName = sourceElement.getURI().trimFragment().trimSegments(1).lastSegment();
+		URI projectUri = URI.createPlatformResourceURI(projectName, true);
+		for (GenerationDescriptor generationDescriptor : generatedElements){
+			if (generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+					generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
+				String fileName = ((EventBNamedCommentedComponentElement)generationDescriptor.value).getName();
+				URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc"); //$NON-NLS-1$
+				if(generationDescriptor.remove == true){	
+					Resource oldResource = editingDomain.getResourceSet().getResource(fileUri, false);
+					if(oldResource != null) {
+						oldResource.delete(Collections.EMPTY_MAP);
+						
+					}
+						
+				}
+
+			}
+		}
+
+
+
+
+	}
+
+	
 	
 /*
  * If any generated elements are a new EventB component (e.g. machine, context) this creates a new resource
@@ -164,7 +206,7 @@ public class Generator {
  * @param sourceElement
  * @return list of new Resources
  */
-	private Collection<? extends Resource> createNewComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement) {
+	private Collection<? extends Resource> createNewComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement) throws IOException {
 		List<Resource> newResources = new ArrayList<Resource>();
 		String projectName = sourceElement.getURI().trimFragment().trimSegments(1).lastSegment();
 		URI projectUri = URI.createPlatformResourceURI(projectName, true);
@@ -174,9 +216,13 @@ public class Generator {
 					String fileName = ((EventBNamedCommentedComponentElement)generationDescriptor.value).getName();
 					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc"); //$NON-NLS-1$
 					String fileString = fileUri.toString();
-					Resource newResource = editingDomain.createResource(fileString);
-					newResource.getContents().add((EventBNamedCommentedComponentElement)generationDescriptor.value);
-					newResources.add(newResource);
+					
+					if(generationDescriptor.remove == false){
+						Resource newResource = editingDomain.createResource(fileString);
+						newResource.getContents().add((EventBNamedCommentedComponentElement)generationDescriptor.value);
+						newResources.add(newResource);
+					}
+						
 			}
 		}
 		return newResources;
@@ -203,33 +249,53 @@ public class Generator {
 		for (int pri=10; pri>=-10; pri--){
 			if (priorities.containsKey(pri))
 			for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
-				if (filter(generationDescriptor)) continue;								
+				if (generationDescriptor.remove == false && filter(generationDescriptor)) continue;								
 				Resource resource = null;
 					
 				if (generationDescriptor.parent != null){
 					Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
-					
+
 					if (featureValue instanceof EList){	
-						if (generationDescriptor.value instanceof EventBElement){						
-							EventBElement newChild = ((EventBElement)generationDescriptor.value);					
-							// set the generated property
-							newChild.setLocalGenerated(true);				
-							// add an attribute with this generators ID
-							Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
-							genID.setValue(generatedByID);
-							genID.setType(AttributeType.STRING);
-							newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
+						if(generationDescriptor.remove == false){
+							if (generationDescriptor.value instanceof EventBElement){						
+								EventBElement newChild = ((EventBElement)generationDescriptor.value);					
+								// set the generated property
+								newChild.setLocalGenerated(true);				
+								// add an attribute with this generators ID
+								Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
+								genID.setValue(generatedByID);
+								genID.setType(AttributeType.STRING);
+								newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
+							}
+							if (pri >0 ){
+								((EList)featureValue).add(0, generationDescriptor.value);							
+							}else{
+								((EList)featureValue).add(generationDescriptor.value);
+							}
 						}
-						if (pri >0 ){
-							((EList)featureValue).add(0, generationDescriptor.value);							
-						}else{
-							((EList)featureValue).add(generationDescriptor.value);
+						else{
+							ArrayList<Object> toRemove = new ArrayList<Object>();
+							for(Object obj : (EList)featureValue){
+								if(match(obj, generationDescriptor.value))
+									toRemove.add(obj);
+									
+								
+							}
+							((EList)featureValue).removeAll(toRemove);
+							
+							
 						}
-						
 							
 					}else {
-						//FIXME: this should be analysed more
-						generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
+						if(generationDescriptor.remove == false){
+							//FIXME: this should be analysed more
+							generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
+						}
+						else
+							if  (generationDescriptor.feature.isUnsettable())
+								generationDescriptor.parent.eUnset(generationDescriptor.feature);
+							else
+								generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.feature.getDefaultValue());
 					}
 					
 					//add to list of modifiedResources if not already there
@@ -312,7 +378,9 @@ public class Generator {
 			String s1 = ((EventBNamedCommentedElement)el1).getName();
 			String s2 = ((EventBNamedCommentedElement)el2).getName();
 			if (s1 != null && s1.equals(s2)) return true;
-		}		
+		}
+		if(el1 instanceof String && el2 instanceof String)
+			if(el1 != null && el1.equals(el2)) return true;
 		return false;
 	}
 
@@ -366,6 +434,7 @@ public class Generator {
 					empties.add(sourceElement);
 				}
 			}
+			
 			deferredRules.keySet().removeAll(empties);
 			if (progress == false) {
 				if (late){ //o-oh, no progress when already doing the late rules 

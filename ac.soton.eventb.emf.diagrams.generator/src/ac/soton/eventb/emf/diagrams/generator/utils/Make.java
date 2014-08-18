@@ -41,6 +41,11 @@ public class Make {
 		return new GenerationDescriptor(parent,feature,value,Integer.valueOf(priority));
 	}
 	
+	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value , int priority, Boolean remove) {
+		return new GenerationDescriptor(parent, feature,value,Integer.valueOf(priority), remove);
+	}
+	
+	
 	 public static Variable variable(String name, String comment) {
 		Variable v =  MachineFactory.eINSTANCE.createVariable();
 	    v.setName(name);
@@ -163,5 +168,7 @@ public class Make {
 	    g.setComment("");
 	    return g;
 	}
+
+
 	
 }

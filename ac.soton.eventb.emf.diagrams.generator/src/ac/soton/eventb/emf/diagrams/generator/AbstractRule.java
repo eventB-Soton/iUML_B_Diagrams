@@ -11,6 +11,7 @@ package ac.soton.eventb.emf.diagrams.generator;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EReference;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
@@ -29,6 +30,9 @@ import org.eventb.emf.core.machine.MachinePackage;
 public abstract class AbstractRule implements IRule {
 
 	protected static final EReference components = CorePackage.Literals.PROJECT__COMPONENTS;
+	protected static final EReference sees = MachinePackage.Literals.MACHINE__SEES;
+	protected static final EAttribute seesNames = MachinePackage.Literals.MACHINE__SEES_NAMES;
+	protected static final EAttribute refinesNames = MachinePackage.Literals.EVENT__REFINES_NAMES;
 	protected static final EReference variables = MachinePackage.Literals.MACHINE__VARIABLES;
 	protected static final EReference invariants = MachinePackage.Literals.MACHINE__INVARIANTS;
 	protected static final EReference events = MachinePackage.Literals.MACHINE__EVENTS;
@@ -39,7 +43,8 @@ public abstract class AbstractRule implements IRule {
 	protected static final EReference sets = ContextPackage.Literals.CONTEXT__SETS;
 	protected static final EReference constants = ContextPackage.Literals.CONTEXT__CONSTANTS;
 	protected static final EReference axioms = ContextPackage.Literals.CONTEXT__AXIOMS;
-
+	protected static final EReference _extends = ContextPackage.Literals.CONTEXT__EXTENDS;
+	protected static final EAttribute extendsNames = ContextPackage.Literals.CONTEXT__EXTENDS_NAMES;
 	
 	@Override
 	public boolean enabled(EventBElement sourceElement) throws Exception  {
