@@ -66,8 +66,8 @@ public class GeneratedRemover {
 		for(EObject eObject : contents){
 			if(eObject instanceof Machine){
 				for(Context ctx : ((Machine)eObject).getSees()){
-					if(!ctx.getName().equals(((Machine)eObject).getName() + "_implicitContext"))	
-						continue;
+//					if(!ctx.getName().equals(((Machine)eObject).getName() + "_implicitContext"))	
+//						continue;
 					for(EObject ieObject : ctx.eContents()){
 						if(Is.generatedBy(ieObject, sourceExtensionID)){
 							remove.add(ieObject);
