@@ -33,11 +33,6 @@
             <separator
                   name="animations">
             </separator>
-            <!--command
-                  commandId="ac.soton.eventb.statemachines.diagram.ValidateDiagramAction"
-                  icon="icons/Validate.png"
-                  style="push">
-            </command-->
             <separator
                   name="additions">
             </separator>
