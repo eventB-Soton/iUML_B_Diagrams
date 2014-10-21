@@ -160,7 +160,12 @@ public class Make {
 	    return axm;  
 	}
 
+	@Deprecated
 	public static Object witness(String name, String predicate) {
+		return witness(name,predicate,"");
+	}
+	
+	public static Object witness(String name, String predicate, String comment) {
 		Witness g =  MachineFactory.eINSTANCE.createWitness();
 	    g.setName(name);
 	    g.setPredicate(predicate);
