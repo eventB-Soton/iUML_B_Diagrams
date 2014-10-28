@@ -49,7 +49,6 @@ import org.eventb.emf.persistence.PersistencePlugin;
 
 import ac.soton.eventb.emf.core.extension.coreextension.DataKind;
 
-
 /**
  * New data creation dialog.
  * 
