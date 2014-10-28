@@ -10,13 +10,12 @@ package ac.soton.eventb.emf.diagrams.sheet;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.edit.command.AbstractOverrideableCommand;
 import org.eclipse.emf.edit.command.AddCommand;
 import org.eclipse.emf.edit.command.SetCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
@@ -58,7 +57,7 @@ public abstract class AbstractTablePropertySection
 	/**
 	 * the title columns for the section.
 	 */
-	protected List columns;
+	protected List<TableColumn> columns;
 
 	/**
 	 * the add button for the section.
@@ -81,21 +80,17 @@ public abstract class AbstractTablePropertySection
 			.createFlatFormComposite(parent);
 		FormData data;
 		int labelWidth = getPropertyLabelWidth(composite);
-
 		table = getWidgetFactory().createTable(composite,
 			SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
-
-		List labels = getColumnLabelText();
-		columns = new ArrayList();
-
-		for (Iterator i = labels.iterator(); i.hasNext();) {
+		List<String> labels = getColumnLabelText();
+		columns = new ArrayList<TableColumn>();
+		for (String label : labels) {
 			TableColumn column = new TableColumn(table, SWT.NONE);
-			column.setText((String) i.next());
+			column.setText(label);
 			columns.add(column);
 		}
-
 		Shell shell = new Shell();
 		GC gc = new GC(shell);
 		gc.setFont(shell.getFont());
@@ -105,57 +100,31 @@ public abstract class AbstractTablePropertySection
 		shell.dispose();
 
 		addButton = getWidgetFactory().createButton(composite,
-			MessageFormat.format("Add {0}",//$NON-NLS-1$
-				new String[] {getButtonLabelText()}), SWT.PUSH);
+		MessageFormat.format("Add {0}",//$NON-NLS-1$
+				new Object[] {getButtonLabelText()}), SWT.PUSH);
 		data = new FormData();
 		data.left = new FormAttachment(0, labelWidth);
 		data.bottom = new FormAttachment(100, 0);
 		data.top = new FormAttachment(100, -buttonHeight);
 		addButton.setLayoutData(data);
 		addButton.addSelectionListener(new SelectionAdapter() {
-
 			public void widgetSelected(SelectionEvent event) {
-				Object newChild = getNewChild();
-				if (newChild == null)
-					return;
-				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-				AddCommand addCommand;
-				if (newChild instanceof Collection)
-					addCommand = (AddCommand) AddCommand.create(
-							editingDomain, eObject, getFeature(), (Collection) newChild);
-				else
-					addCommand = (AddCommand) AddCommand.create(
-						editingDomain, eObject, getFeature(), newChild);
-				editingDomain.getCommandStack().execute(addCommand);
+				addObject(getNewChild());
 				refresh();
 			}
 		});
 
 		removeButton = getWidgetFactory().createButton(composite,
-			MessageFormat.format("Delete {0}",//$NON-NLS-1$
-				new String[] {getButtonLabelText()}), SWT.PUSH);
+		MessageFormat.format("Delete {0}",//$NON-NLS-1$
+				new Object[] {getButtonLabelText()}), SWT.PUSH);
 		data = new FormData();
 		data.left = new FormAttachment(addButton, 0);
 		data.bottom = new FormAttachment(100, 0);
 		data.top = new FormAttachment(100, -buttonHeight);
 		removeButton.setLayoutData(data);
 		removeButton.addSelectionListener(new SelectionAdapter() {
-
 			public void widgetSelected(SelectionEvent event) {
-				EditingDomain editingDomain = ((DiagramEditor) getPart())
-					.getEditingDomain();
-				Object object = table.getSelection()[0].getData();
-				EList<EObject> newValues = new BasicEList<EObject>();
-				Iterator<EObject> it = ((EList) eObject.eGet(getFeature())).iterator();
-				for (; it.hasNext(); ) {
-					EObject value = it.next();
-					if (!value.equals(object))
-						newValues.add(value);
-				}
-				editingDomain.getCommandStack().execute(
-						SetCommand.create(editingDomain, eObject, getFeature(), newValues));
-				//FIXME: RemoveCommand is preferred, but it causes non-containment references to be removed along with !originals!
-//					RemoveCommand.create(editingDomain, eObject, getFeature(), object));
+				removeObject(table.getSelection()[0].getData());
 				refresh();
 			}
 		});
@@ -167,7 +136,6 @@ public abstract class AbstractTablePropertySection
 		data.bottom = new FormAttachment(addButton, 0);
 		data.width = 400;
 		table.setLayoutData(data);
-
 		table.addSelectionListener(new SelectionAdapter() {
 
 			public void widgetSelected(SelectionEvent event) {
@@ -175,7 +143,6 @@ public abstract class AbstractTablePropertySection
 			}
 		});
 		table.addMouseListener(new MouseAdapter() {
-
 			public void mouseDoubleClick(MouseEvent e) {
 				if (table.getSelection().length > 0) {
 					Object object = table.getSelection()[0].getData();
@@ -187,7 +154,6 @@ public abstract class AbstractTablePropertySection
 				}
 			}
 		});
-		
 		CLabel nameLabel = getWidgetFactory().createCLabel(composite, getLabelText());
 		data = new FormData();
 		data.left = new FormAttachment(0, 0);
@@ -196,6 +162,54 @@ public abstract class AbstractTablePropertySection
 		nameLabel.setLayoutData(data);
 	}
 
+	/**
+	 * update the feature with the given new value
+	 * This can be overridden to add additional behaviour
+	 **/
+	protected void addObject(Object objectToBeAdded){
+		if (objectToBeAdded == null) return;
+		EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
+		AbstractOverrideableCommand command;
+		EStructuralFeature feature = getFeature();
+		if (feature.isMany())
+			command = (AddCommand) AddCommand.create(
+					editingDomain, eObject, feature, objectToBeAdded);
+		else
+			command = (SetCommand) SetCommand.create(
+					editingDomain, eObject, feature, objectToBeAdded);
+		editingDomain.getCommandStack().execute(command);
+	}
+	
+	/**
+	 * remove object from the elements feature
+	 * the action performed when the remove button is used
+	 * This can be overridden to add additional behaviour
+	 * @param objectToBeRemoved
+	 */
+	protected void removeObject(Object objectToBeRemoved){
+		if (objectToBeRemoved == null) return;
+		EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
+		//remove the element from the feature
+
+		if (getFeature().isMany()){
+			Object values = eObject.eGet(getFeature());
+			EList<Object> newValues = new BasicEList<Object>();
+			for (Object value : (EList<?>)values) {
+				if (!value.equals(objectToBeRemoved)) newValues.add(value);
+			}
+			editingDomain.getCommandStack().execute(
+					SetCommand.create(editingDomain, eObject, getFeature(), newValues));
+			//FIXME: RemoveCommand is preferred, but it causes non-containment references to be removed along with !originals!
+//					RemoveCommand.create(editingDomain, eObject, getFeature(), object));
+		}else{
+			editingDomain.getCommandStack().execute(
+					SetCommand.create(editingDomain, eObject, getFeature(), SetCommand.UNSET_VALUE));
+
+		}
+			
+	}
+	
+	
 	protected void rowSelected(){
 		removeButton.setEnabled(true);
 	}
@@ -213,23 +227,19 @@ public abstract class AbstractTablePropertySection
 	public void refresh() {
 		table.removeAll();
 		removeButton.setEnabled(false);
-
-		for (Iterator i = getOwnedRows().iterator(); i.hasNext();) {
-			Object next = i.next();
-
+		for (Object row : getOwnedRows()) {
 			// create the table item
 			TableItem item = new TableItem(table, SWT.NONE);
 			String[] values = new String[columns.size()];
-			List valuesForRow = getValuesForRow(next);
+			List<String> valuesForRow = getValuesForRow(row);
 			for (int j = 0; j < columns.size(); j++) {
 				values[j] = (String) valuesForRow.get(j);
 			}
 			item.setText(values);
-			item.setData(next);
+			item.setData(row);
 		}
-
-		for (Iterator i = columns.iterator(); i.hasNext();) {
-			((TableColumn) i.next()).pack();
+		for (TableColumn tc : columns) {
+			tc.pack();
 		}
 	}
 
@@ -246,7 +256,7 @@ public abstract class AbstractTablePropertySection
 	 * 
 	 * @return the list of the row objects.
 	 */
-	protected abstract List getOwnedRows();
+	protected abstract EList<?> getOwnedRows();
 
 	/**
 	 * Get the values for the row in the table.
@@ -255,14 +265,14 @@ public abstract class AbstractTablePropertySection
 	 *            an object in the row of the table.
 	 * @return the list of string values for the row.
 	 */
-	protected abstract List getValuesForRow(Object object);
+	protected abstract List<String> getValuesForRow(Object object);
 
 	/**
 	 * Get the labels for the columns for the table.
 	 * 
 	 * @return the labels for the columns.
 	 */
-	protected abstract List getColumnLabelText();
+	protected abstract List<String> getColumnLabelText();
 
 	/**
 	 * Get a new child instance for the result of clicking the add button.

@@ -84,7 +84,7 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 	}
 
 	@Override
-	protected List getOwnedRows() {
+	protected EList<Event> getOwnedRows() {
 		return ((EventBEventGroup) eObject).getElaborates();
 	}
 
@@ -94,16 +94,16 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 	}
 
 	@Override
-	protected List<Object> getValuesForRow(Object object) {
-		ArrayList<Object> values = new ArrayList<Object>();
+	protected List<String> getValuesForRow(Object object) {
+		List<String> values = new ArrayList<String>();
 		values.add(((Event) object).getName());
 		values.add(((Event) object).getRefinesNames().toString().substring(1).replace("]",""));		
 		return values;
 	}
 
 	@Override
-	protected List<Object> getColumnLabelText() {
-		ArrayList<Object> values = new ArrayList<Object>();
+	protected List<String> getColumnLabelText() {
+		List<String> values = new ArrayList<String>();
 		values.add("Event");
 		values.add("Refines");		
 		return values;
@@ -293,7 +293,9 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 		
 	}
 
-
+/*
+ * Select event to be refined
+ */
 	private Event selectEvent(List<Event> eventList, String title, String instruction) {
 		PopupDialog eventsDialog = new PopupDialog(getPart().getSite().getShell(), eventList, eventLabelProvider);
 		eventsDialog.setTitle(title);
