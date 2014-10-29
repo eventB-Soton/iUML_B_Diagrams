@@ -53,8 +53,15 @@ public class Messages extends NLS {
 	public static String GENERATOR_MSG_20;
 	public static String GENERATOR_MSG_21;
 	public static String GENERATOR_MSG_21(Object object, EStructuralFeature feature){
-		return bind(GENERATOR_MSG_12,
+		return bind(GENERATOR_MSG_21,
 				object,
+				feature.getName()
+				);
+	}
+	public static String GENERATOR_MSG_22;
+	public static String GENERATOR_MSG_22(Object parent, EStructuralFeature feature){
+		return bind(GENERATOR_MSG_22,
+				parent instanceof EventBNamed ? ((EventBNamed)parent).getName() : parent.toString(),
 				feature.getName()
 				);
 	}

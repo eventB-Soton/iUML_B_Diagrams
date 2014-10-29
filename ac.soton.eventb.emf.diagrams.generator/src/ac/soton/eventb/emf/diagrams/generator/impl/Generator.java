@@ -116,6 +116,11 @@ public class Generator {
 					Activator.logError(Messages.GENERATOR_MSG_21(generationDescriptor.value,generationDescriptor.feature));
 					return null;
 				}
+				if (generationDescriptor.parent!=null &&
+					!generationDescriptor.parent.eClass().getEAllStructuralFeatures().contains(generationDescriptor.feature)){
+					Activator.logError(Messages.GENERATOR_MSG_22(generationDescriptor.parent, generationDescriptor.feature));
+					return null;
+				}
 			}
 
 			//create new EventB components
@@ -251,8 +256,11 @@ public class Generator {
 			for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
 				if (generationDescriptor.remove == false && filter(generationDescriptor)) continue;								
 				Resource resource = null;
+				Object value = generationDescriptor.value;
+				if (generationDescriptor.parent != null && 
+					generationDescriptor.parent.eClass().getEAllStructuralFeatures().contains(generationDescriptor.feature) &&
+					generationDescriptor.feature.getEType().isInstance(value)){
 					
-				if (generationDescriptor.parent != null){
 					Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
 
 					if (featureValue instanceof EList){	
@@ -302,7 +310,8 @@ public class Generator {
 					resource = generationDescriptor.parent.eResource();
 
 				}else{
-					//currently not supported
+					//Error messages are generated elsewhere - should not get here.
+
 				}
 				if (resource!= null && !modifiedResources.contains(resource)){
 					modifiedResources.add(resource);
