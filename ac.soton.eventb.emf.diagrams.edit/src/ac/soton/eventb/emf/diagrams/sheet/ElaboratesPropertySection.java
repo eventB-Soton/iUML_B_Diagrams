@@ -8,11 +8,9 @@
 package ac.soton.eventb.emf.diagrams.sheet;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.emf.common.command.CompoundCommand;
-import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -115,14 +113,11 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 		Machine machine = (Machine) container;
 		PopupDialog eventsDialog = new PopupDialog(getPart().getSite().getShell(), machine.getEvents(), eventLabelProvider);
 		eventsDialog.setTitle(machine.getName() + " Events");
-		eventsDialog.setMessage("Please select events to elaborate");
+		eventsDialog.setMessage("Please select event to elaborate");
 		if (Dialog.OK == eventsDialog.open()) {
 			Object[] result = eventsDialog.getResult();
 			if (result.length > 0) {
-				List<Event> events = new ArrayList<Event>();
-				for (Object obj : result)
-					events.add((Event) obj);
-				return events;
+				return result[0];
 			}
 		}
 		return null;
@@ -166,20 +161,14 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 				Machine machine = (Machine) container;
 				NewEventDialog dialog = new NewEventDialog(getPart().getSite().getShell(), machine, null);
 				if (Dialog.OK == dialog.open()) {
-					EObject newChild = dialog.getEvent();
-					if (newChild == null)
-						return;
-					EditingDomain editingDomain = ((DiagramEditor) getPart())
-						.getEditingDomain();
+					EObject objectToBeAdded = dialog.getEvent();
+					if (objectToBeAdded == null) return;
+					EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
 					CompoundCommand cc = new CompoundCommand("Add new event for elaborates");
-					// new event
-					cc.append(AddCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS, newChild));
-					// elaborate
-					cc.append(AddCommand.create(editingDomain, eObject, getFeature(), newChild));
+					cc.append(AddCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS, objectToBeAdded));
 					editingDomain.getCommandStack().execute(cc);
-					
+					addObject(objectToBeAdded);
 					refresh();
-					
 					// restore selection
 					table.select(idx);
 					table.notifyListeners(SWT.Selection, new org.eclipse.swt.widgets.Event());
@@ -198,26 +187,15 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 
 			public void widgetSelected(SelectionEvent event) {
 				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-				Object object = table.getSelection()[0].getData();
-				EList<EObject> newValues = new BasicEList<EObject>();
-				Iterator<EObject> it = ((EList) eObject.eGet(getFeature())).iterator();
-				for (; it.hasNext(); ) {
-					EObject value = it.next();
-					if (!value.equals(object))
-						newValues.add(value);
-				}
-				editingDomain.getCommandStack().execute(
-						SetCommand.create(editingDomain, eObject, getFeature(), newValues));
-				//FIXME: RemoveCommand is preferred, but it causes non-containment references to be removed along with !originals!
-//					RemoveCommand.create(editingDomain, eObject, getFeature(), object));
+				Object objectToBeRemoved = table.getSelection()[0].getData();
+				removeObject(objectToBeRemoved);
 				refresh();
-
 				//delete the event from the machine
 				EObject container = EcoreUtil.getRootContainer(eObject);
 				Machine machine = (Machine) container;
-				if (object instanceof Event && machine instanceof Machine){
+				if (objectToBeRemoved instanceof Event && machine instanceof Machine){
 					editingDomain.getCommandStack().execute(
-						RemoveCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS , object));
+						RemoveCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS , objectToBeRemoved));
 					refresh();
 				}
 			}

@@ -190,7 +190,6 @@ public abstract class AbstractTablePropertySection
 		if (objectToBeRemoved == null) return;
 		EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
 		//remove the element from the feature
-
 		if (getFeature().isMany()){
 			Object values = eObject.eGet(getFeature());
 			EList<Object> newValues = new BasicEList<Object>();
