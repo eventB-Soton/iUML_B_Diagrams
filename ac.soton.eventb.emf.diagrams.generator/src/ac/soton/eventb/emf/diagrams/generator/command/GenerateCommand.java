@@ -69,7 +69,8 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 					monitor.setTaskName(Messages.GENERATOR_MSG_13(element)); 
 
 					// flush the command stack as this is unprotected and has no undo/redo
-					editingDomain.getCommandStack().flush();
+					//editingDomain.getCommandStack().flush();		//Was causing an exception in Rodin editor - seems ok without this!
+					
 					monitor.worked(1);
 			        monitor.subTask(Messages.GENERATOR_MSG_14);
 					//try to create an appropriate generator
