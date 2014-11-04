@@ -10,15 +10,10 @@ package ac.soton.eventb.emf.diagrams.sheet;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.gmf.runtime.diagram.ui.properties.sections.AbstractModelerPropertySection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.eventb.emf.core.EventBElement;
 
 import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;

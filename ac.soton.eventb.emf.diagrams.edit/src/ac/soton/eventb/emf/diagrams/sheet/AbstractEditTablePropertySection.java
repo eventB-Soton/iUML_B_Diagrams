@@ -719,7 +719,7 @@ protected class SetTextInListCommand extends ChangeCommand {
 		if (((EDataType)feature).getName().equals("EString")){
 			((EList<String>)owner.eGet(feature)).set(index, newText);
 		}else if (((EDataType)feature).getName().equals("EInt")){
-			Object val = owner.eGet(feature);
+			//Object val = owner.eGet(feature);
 			//((EList<Int>)owner.eGet(feature)).set(index, newText);
 		}
 	}

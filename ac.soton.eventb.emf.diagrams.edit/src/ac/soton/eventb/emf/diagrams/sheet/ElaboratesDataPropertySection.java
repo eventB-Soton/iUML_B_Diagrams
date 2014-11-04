@@ -47,7 +47,6 @@ import org.eventb.emf.core.context.CarrierSet;
 import org.eventb.emf.core.context.Constant;
 import org.eventb.emf.core.context.Context;
 import org.eventb.emf.core.machine.Machine;
-import org.eventb.emf.core.machine.MachinePackage;
 import org.eventb.emf.core.machine.Variable;
 
 import ac.soton.eventb.emf.core.extension.coreextension.CoreextensionPackage;
