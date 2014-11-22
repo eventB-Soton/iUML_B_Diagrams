@@ -251,6 +251,7 @@ public class Generator {
 		}
 		//process the prioritised mappings of generation descriptors
 		List<Resource> modifiedResources = new ArrayList<Resource>();
+		Map<EList,Integer> positions = new HashMap<EList,Integer>();
 		for (int pri=10; pri>=-10; pri--){
 			if (priorities.containsKey(pri))
 			for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
@@ -276,7 +277,12 @@ public class Generator {
 								newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
 							}
 							if (pri >0 ){
-								((EList)featureValue).add(0, generationDescriptor.value);							
+								int pos = 0;
+								if (positions.containsKey((EList)featureValue)){
+									pos = positions.get(featureValue);
+								}
+								((EList)featureValue).add(0, generationDescriptor.value);
+								positions.put((EList)featureValue,new Integer(pos+1));
 							}else{
 								((EList)featureValue).add(generationDescriptor.value);
 							}
@@ -286,14 +292,9 @@ public class Generator {
 							for(Object obj : (EList)featureValue){
 								if(match(obj, generationDescriptor.value))
 									toRemove.add(obj);
-									
-								
 							}
 							((EList)featureValue).removeAll(toRemove);
-							
-							
 						}
-							
 					}else {
 						if(generationDescriptor.remove == false){
 							//FIXME: this should be analysed more
@@ -308,10 +309,8 @@ public class Generator {
 					
 					//add to list of modifiedResources if not already there
 					resource = generationDescriptor.parent.eResource();
-
 				}else{
 					//Error messages are generated elsewhere - should not get here.
-
 				}
 				if (resource!= null && !modifiedResources.contains(resource)){
 					modifiedResources.add(resource);
