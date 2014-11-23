@@ -81,6 +81,9 @@ public abstract class AbstractEnumerationPropertySection
 		if (!equals) {
 				Object value = getFeatureValue(combo.getItem(index));
 			/* apply the property change to single selected object */
+			if (getFeature().isUnsettable() && value==null){
+				value = org.eclipse.emf.edit.command.SetCommand.UNSET_VALUE;				
+			}
 			editingDomain.getCommandStack().execute(
 				SetCommand.create(editingDomain, eObject, getFeature(),
 					getFeatureByValue(value)));
