@@ -92,7 +92,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 	protected Composite parent;
 	protected boolean singular;
 	protected boolean createControlsCompleted;
-
+	final int TEXT_MARGIN = 3;
 
 	protected abstract EStructuralFeature getFeature();
 
@@ -526,6 +526,43 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		  createColumns();
 		  table.addListener(SWT.MouseUp, tableMouseListener);
 		  table.addDisposeListener(disposeListener);
+		  
+			/*
+			 * NOTE: MeasureItem, PaintItem and EraseItem are called repeatedly.
+			 * Therefore, it is critical for performance that these methods be
+			 * as efficient as possible.
+			 */
+			table.addListener(SWT.MeasureItem, new Listener() {
+				@Override
+				public void handleEvent(Event event) {
+					TableItem item = (TableItem)event.item;
+					String text = item.getText(event.index);
+					Point size = event.gc.textExtent(text);
+					event.width = size.x + 2 * TEXT_MARGIN;
+					event.height = Math.max(event.height, size.y + TEXT_MARGIN);
+				}
+			});
+			table.addListener(SWT.EraseItem, new Listener() {
+				@Override
+				public void handleEvent(Event event) {
+					event.detail &= ~SWT.FOREGROUND;
+				}
+			});
+			table.addListener(SWT.PaintItem, new Listener() {
+				@Override
+				public void handleEvent(Event event) {
+					TableItem item = (TableItem)event.item;
+					String text = item.getText(event.index);
+					/* center column 1 vertically */
+					int yOffset = 0;
+//					if (event.index == 1) {
+//						Point size = event.gc.textExtent(text);
+//						yOffset = Math.max(0, (event.height - size.y) / 2);
+//					}
+					event.gc.drawText(text, event.x + TEXT_MARGIN, event.y + yOffset, true);
+				}
+			});
+
 	}
 
 	private void createColumns(){
@@ -623,9 +660,16 @@ private final Listener tableMouseListener = new Listener() {
 
 		tableItem.setFont(font);
 		if (getPossibleValues(column)==null) {	//if the list of names of possible values is null must be a text field
-			text = new Text(table, SWT.NONE);
-			//eventBListener
-			if (isRodinKeyboard(column)) text.addModifyListener(rodinKbdListener);
+			int style;
+			if (isMulti(column)) {
+				style= SWT.MULTI;
+			}else{
+				style= SWT.NONE;
+			}
+			text = new Text(table, style);
+			if (isRodinKeyboard(column)) {
+				text.addModifyListener(rodinKbdListener);
+			}
 			text.setFont(font);
 			textChangeListener.startListeningTo(text);
 			textChangeListener.startListeningForEnter(text);
@@ -732,5 +776,13 @@ private final DisposeListener disposeListener = new DisposeListener() {
 	}
 };
 
+/** override to return true for the columns that should support multiple lines
+ * the default is for all columns to be single line of text only
+ * @param column2
+ * @return
+ */
+protected boolean isMulti(int column) {
+	return false;
+}
 
 }

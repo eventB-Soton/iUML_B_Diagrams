@@ -12,8 +12,6 @@ import java.util.List;
 
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.jface.viewers.IFilter;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
 import ac.soton.eventb.emf.core.extension.coreextension.CoreextensionPackage;
 import ac.soton.eventb.emf.core.extension.coreextension.DataKind;
@@ -36,16 +34,6 @@ public class DataKindPropertySection extends AbstractEnumerationPropertySection 
 		public boolean select(Object toTest) {
 			return DiagramUtils.unwrap(toTest) instanceof EventBDataElaboration;
 		}
-	}
-	
-	public void createControls(Composite parent,
-			TabbedPropertySheetPage aTabbedPropertySheetPage) {
-		super.createControls(parent, aTabbedPropertySheetPage);
-	}
-
-	@Override
-	protected boolean isEqual(String selection) {
-		return ((EventBDataElaboration) eObject).getDataKind().getLiteral().equals(selection);
 	}
 
 	@Override
@@ -100,6 +88,11 @@ public class DataKindPropertySection extends AbstractEnumerationPropertySection 
 	protected Object getFeatureByValue(Object value) {
 		Integer ftValue = (Integer)value; 
 		return DataKind.get(ftValue);
+	}
+
+	@Override
+	protected List<DataKind> getAvailableDataElements() {
+		return DataKind.VALUES;
 	}
 
 }

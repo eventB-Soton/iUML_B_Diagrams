@@ -48,6 +48,16 @@ public class WitnessesPropertySection extends AbstractEditTableWithDefaultNaming
 	protected boolean isRodinKeyboard(final int col) {
 		return col==1 ? true : false;
 	}
+
+	@Override
+	protected boolean isMulti(final int col){
+		switch (col) {
+		case 0 : return false;	//name
+		case 1 : return true;	//predicate field
+		case 2 : return true;	//comment field
+		default : return false;	//unknown
+		}
+	}
 	
 	@Override
 	protected int columnWidth(final int col){

@@ -8,6 +8,8 @@
 
 package ac.soton.eventb.emf.diagrams.sheet;
 
+import java.util.List;
+
 import org.eclipse.emf.edit.command.SetCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
@@ -90,8 +92,6 @@ public abstract class AbstractEnumerationPropertySection
 		}
 	}
 
-	protected abstract Object getFeatureByValue(Object value);
-
 	/**
 	 * @see org.eclipse.ui.views.properties.tabbed.ISection#refresh()
 	 */
@@ -109,10 +109,39 @@ public abstract class AbstractEnumerationPropertySection
 	 * @return <code>true</code> if the new index value is equal to the
 	 *         current property setting.
 	 */
-	protected abstract boolean isEqual(String selection);
-
+	protected boolean isEqual(String selection) {
+		return getFeatureAsText().equals(selection);
+	}
+	
 	/**
-	 * Get the enumeration values of the feature for the combo field for the
+	 * Get the new value of the feature for the the selection in the enumeration.
+	 * 
+	 * @param index
+	 *            the new selection in the enumeration.
+	 * @return the new value of the feature.
+	 */
+	protected Object getFeatureValue(String selection) {
+		String[] enumStrings = getEnumerationFeatureValues();
+		for (int index = 0; index < enumStrings.length; index++){
+			if (enumStrings[index].equals(selection)) 
+				return getAvailableDataElements().get(index);
+		}
+		return null;
+	}
+	
+	/**
+	 * TODO
+	 * Not sure this is needed - DataKind overrides it to convert value from integer
+	 * @param value
+	 * @return
+	 */
+	protected Object getFeatureByValue(Object value){
+		return value;
+	};
+	
+	/**
+	 * Get the enumeration labels corresponding to the 
+	 * feature values for the combo field for the
 	 * section.
 	 * 
 	 * @return the list of values of the feature as text.
@@ -125,13 +154,12 @@ public abstract class AbstractEnumerationPropertySection
 	 * @return the value of the feature as text.
 	 */
 	protected abstract String getFeatureAsText();
-
+	
 	/**
-	 * Get the new value of the feature for the the selection in the enumeration.
-	 * 
-	 * @param index
-	 *            the new selection in the enumeration.
-	 * @return the new value of the feature.
+	 * get a list of the possible values of this feature 
+	 * (i.e. the actual values, not text strings)
+	 * @return
 	 */
-	protected abstract Object getFeatureValue(String selection);
+	protected abstract List<? extends Object> getAvailableDataElements();
+
 }

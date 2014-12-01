@@ -33,6 +33,8 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -49,6 +51,8 @@ import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 public abstract class AbstractTablePropertySection
 	extends AbstractIumlbPropertySection {
 
+	final int TEXT_MARGIN = 3;
+	
 	/**
 	 * the table control for the section.
 	 */
@@ -91,6 +95,43 @@ public abstract class AbstractTablePropertySection
 			column.setText(label);
 			columns.add(column);
 		}
+
+		/*
+		 * NOTE: MeasureItem, PaintItem and EraseItem are called repeatedly.
+		 * Therefore, it is critical for performance that these methods be
+		 * as efficient as possible.
+		 */
+		table.addListener(SWT.MeasureItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem)event.item;
+				String text = item.getText(event.index);
+				Point size = event.gc.textExtent(text);
+				event.width = size.x + 2 * TEXT_MARGIN;
+				event.height = Math.max(event.height, size.y + TEXT_MARGIN);
+			}
+		});
+		table.addListener(SWT.EraseItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				event.detail &= ~SWT.FOREGROUND;
+			}
+		});
+		table.addListener(SWT.PaintItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem)event.item;
+				String text = item.getText(event.index);
+				/* center column 1 vertically */
+				int yOffset = 0;
+//				if (event.index == 1) {
+//					Point size = event.gc.textExtent(text);
+//					yOffset = Math.max(0, (event.height - size.y) / 2);
+//				}
+				event.gc.drawText(text, event.x + TEXT_MARGIN, event.y + yOffset, true);
+			}
+		});
+		
 		Shell shell = new Shell();
 		GC gc = new GC(shell);
 		gc.setFont(shell.getFont());

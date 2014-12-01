@@ -13,10 +13,9 @@ import org.eclipse.jface.viewers.IFilter;
 
 import ac.soton.eventb.emf.core.extension.coreextension.CoreextensionPackage;
 import ac.soton.eventb.emf.core.extension.coreextension.EventBEventGroup;
-import ac.soton.eventb.emf.core.extension.coreextension.EventBRelationKind;
 import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;
 
-public class ExtendedPropertySection extends AbstractEnumerationPropertySection {
+public class ExtendedPropertySection extends AbstractBooleanEnumerationPropertySection {
 
 	/**
 	 * Element Filter for this property section.
@@ -28,30 +27,10 @@ public class ExtendedPropertySection extends AbstractEnumerationPropertySection 
 			return DiagramUtils.unwrap(toTest) instanceof EventBEventGroup;
 		}
 	}
-		
-	protected Object getFeatureByValue(Object value) {
-		return (Boolean)value;
-	}
-	
-	@Override
-	protected boolean isEqual(String selection) {
-		return Boolean.toString(((EventBRelationKind)(eObject)).isInjective()).equals(selection);
-	}
-
-
-	@Override
-	protected String[] getEnumerationFeatureValues() {
-		return new String[]{"true", "false"};
-	}
 
 	@Override
 	protected String getFeatureAsText() {
 		return Boolean.toString(((EventBEventGroup) eObject).isExtended());
-	}
-
-	@Override
-	protected Object getFeatureValue(String selection) {
-		return Boolean.valueOf(selection);
 	}
 
 	@Override

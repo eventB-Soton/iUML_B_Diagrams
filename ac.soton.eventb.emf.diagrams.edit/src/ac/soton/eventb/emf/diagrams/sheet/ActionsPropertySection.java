@@ -51,6 +51,16 @@ public class ActionsPropertySection extends AbstractEditTableWithDefaultNamingPr
 	}
 	
 	@Override
+	protected boolean isMulti(final int col){
+		switch (col) {
+		case 0 : return false;	//name
+		case 1 : return true;	//expression field
+		case 2 : return true;	//comment field
+		default : return false;	//unknown
+		}
+	}
+	
+	@Override
 	protected int columnWidth(final int col){
 		switch (col) {
 		case 0 : return 160;	//name
@@ -72,15 +82,5 @@ public class ActionsPropertySection extends AbstractEditTableWithDefaultNamingPr
 		return labels;
 	}
 		
-		
-	@Override
-	protected List<?> getPossibleValues(final int col){
-//		if (col==1){
-//			Component container = (Component) owner.getContaining(ComponentsPackage.eINSTANCE.getComponent());
-//			return container.getOutConnectors();
-//		}else{
-			return super.getPossibleValues(col);
-//		}
-	}
 
 }
