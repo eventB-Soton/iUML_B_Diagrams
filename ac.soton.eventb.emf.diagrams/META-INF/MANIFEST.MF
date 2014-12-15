@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: ac.soton.eventb.emf.diagrams;singleton:=true
-Bundle-Version: 4.0.0
+Bundle-Version: 4.0.1
 Bundle-ClassPath: .
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
@@ -10,5 +10,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: ac.soton.eventb.emf.diagrams,
  ac.soton.eventb.emf.diagrams.impl,
  ac.soton.eventb.emf.diagrams.util
-Require-Bundle:  org.eclipse.emf.ecore;bundle-version="[2.7.0,3.0.0)";visibility:=reexport
+Require-Bundle:  org.eclipse.emf.ecore;bundle-version="[2.7.0,3.0.0)"
 Bundle-ActivationPolicy: lazy
