@@ -44,8 +44,8 @@ public abstract class AbstractTextPropertySection extends
 		data.right = new FormAttachment(100, 0);
 		data.top = new FormAttachment(0, 0);
 		text.setLayoutData(data);
+		text.setFont(JFaceResources.getFont(PreferenceConstants.RODIN_MATH_FONT));
 		if (isRodinKeyboard()) {
-			text.setFont(JFaceResources.getFont(PreferenceConstants.RODIN_MATH_FONT));
 			text.addModifyListener(RodinKeyboardUIPlugin.getDefault().createRodinModifyListener());
 		}
 		if (isReadOnly())

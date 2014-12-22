@@ -54,7 +54,7 @@ public class PredicatePropertySection extends AbstractTextPropertySection {
 	}
 
 	protected boolean isRodinKeyboard(){
-		return false;
+		return true;
 	}
 
 	@Override
