@@ -9,12 +9,9 @@ package ac.soton.eventb.emf.diagrams.sheet;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Text;
 import org.eventb.emf.core.EventBNamedCommentedDerivedPredicateElement;
 import org.eventb.emf.core.EventBPredicate;
 
-import ac.soton.eventb.emf.diagrams.sheet.AbstractTextPropertySection;
 import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;
 
 /**
@@ -56,14 +53,12 @@ public class PredicatePropertySection extends AbstractTextPropertySection {
 		return "change predicate";
 	}
 
-	@Override
-	protected Text createTextWidget(Composite parent) {
-		Text text = super.createTextWidget(parent);
-		text.addModifyListener(PropertySectionUtil.eventBListener);
-		text.setFont(PropertySectionUtil.rodinFont);
-		return text;
+	protected boolean isRodinKeyboard(){
+		return false;
 	}
 
 	@Override
-	protected int numberOfRows() { return 3;}
+	protected boolean isMultiLine() {
+		return true;
+	}
 }

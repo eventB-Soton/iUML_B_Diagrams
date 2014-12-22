@@ -46,6 +46,12 @@ public class ParametersPropertySection extends AbstractEditTablePropertySection 
 	}
 
 	@Override
+	protected boolean isMulti(final int col){
+		return col==2 ? true : false;
+	}
+	
+	
+	@Override
 	protected boolean isRodinKeyboard(final int col) {
 		return col==1? true : false;
 	}

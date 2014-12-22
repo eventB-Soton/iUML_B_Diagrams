@@ -55,7 +55,7 @@ public class GuardsPropertySection extends AbstractEditTableWithDefaultNamingPro
 	protected boolean isMulti(final int col){
 		switch (col) {
 		case 0 : return false;	//name
-		case 1 : return false;		//theorem field
+		case 1 : return false;	//theorem field
 		case 2 : return true;	//predicate field
 		case 3 : return true;	//comment field
 		default : return false;	//unknown

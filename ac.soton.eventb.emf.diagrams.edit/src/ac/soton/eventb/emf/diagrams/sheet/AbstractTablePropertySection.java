@@ -124,10 +124,8 @@ public abstract class AbstractTablePropertySection
 				String text = item.getText(event.index);
 				/* center column 1 vertically */
 				int yOffset = 0;
-//				if (event.index == 1) {
-//					Point size = event.gc.textExtent(text);
-//					yOffset = Math.max(0, (event.height - size.y) / 2);
-//				}
+					Point size = event.gc.textExtent(text);
+					yOffset = Math.max(0, (event.height - size.y) / 2);
 				event.gc.drawText(text, event.x + TEXT_MARGIN, event.y + yOffset, true);
 			}
 		});

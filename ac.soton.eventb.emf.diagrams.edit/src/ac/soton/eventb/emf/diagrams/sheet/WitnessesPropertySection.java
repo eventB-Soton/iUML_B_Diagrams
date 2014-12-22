@@ -39,7 +39,7 @@ public class WitnessesPropertySection extends AbstractEditTableWithDefaultNaming
 		switch (col) {
 		case 0 : return CorePackage.eINSTANCE.getEventBNamed_Name();
 		case 1 : return CorePackage.eINSTANCE.getEventBPredicate_Predicate();
-		case 3 : return CorePackage.eINSTANCE.getEventBCommented_Comment();
+		case 2 : return CorePackage.eINSTANCE.getEventBCommented_Comment();
 		default : return null;
 		}
 	}
@@ -64,7 +64,7 @@ public class WitnessesPropertySection extends AbstractEditTableWithDefaultNaming
 		switch (col) {
 		case 0 : return 160;	//name
 		case 1 : return 600;	//predicate field
-		case 3 : return 400;	//comment field
+		case 2 : return 400;	//comment field
 		default : return -1;	//unknown
 		}
 	}

@@ -402,6 +402,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		table.setFont(JFaceResources.getFont(PreferenceConstants.RODIN_MATH_FONT));
 		editor= new TableEditor (table);
 	    editor.grabHorizontal = true;
+	    
 		Shell shell = new Shell();
 		GC gc = new GC(shell);
 		gc.setFont(shell.getFont());
@@ -527,41 +528,39 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		  table.addListener(SWT.MouseUp, tableMouseListener);
 		  table.addDisposeListener(disposeListener);
 		  
-			/*
-			 * NOTE: MeasureItem, PaintItem and EraseItem are called repeatedly.
-			 * Therefore, it is critical for performance that these methods be
-			 * as efficient as possible.
-			 */
-			table.addListener(SWT.MeasureItem, new Listener() {
-				@Override
-				public void handleEvent(Event event) {
-					TableItem item = (TableItem)event.item;
-					String text = item.getText(event.index);
+		/*
+		 * NOTE: MeasureItem, PaintItem and EraseItem are called repeatedly.
+		 * Therefore, it is critical for performance that these methods be
+		 * as efficient as possible.
+		 */
+		table.addListener(SWT.MeasureItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem)event.item;
+				String text = item.getText(event.index);
+				Point size = event.gc.textExtent(text);
+				event.width = size.x + 2 * TEXT_MARGIN;
+				event.height = Math.max(event.height, size.y + TEXT_MARGIN);
+			}
+		});
+		table.addListener(SWT.EraseItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				event.detail &= ~SWT.FOREGROUND;
+			}
+		});
+		table.addListener(SWT.PaintItem, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem)event.item;
+				String text = item.getText(event.index);
+				/* center column 1 vertically */
+				int yOffset = 0;
 					Point size = event.gc.textExtent(text);
-					event.width = size.x + 2 * TEXT_MARGIN;
-					event.height = Math.max(event.height, size.y + TEXT_MARGIN);
-				}
-			});
-			table.addListener(SWT.EraseItem, new Listener() {
-				@Override
-				public void handleEvent(Event event) {
-					event.detail &= ~SWT.FOREGROUND;
-				}
-			});
-			table.addListener(SWT.PaintItem, new Listener() {
-				@Override
-				public void handleEvent(Event event) {
-					TableItem item = (TableItem)event.item;
-					String text = item.getText(event.index);
-					/* center column 1 vertically */
-					int yOffset = 0;
-//					if (event.index == 1) {
-//						Point size = event.gc.textExtent(text);
-//						yOffset = Math.max(0, (event.height - size.y) / 2);
-//					}
-					event.gc.drawText(text, event.x + TEXT_MARGIN, event.y + yOffset, true);
-				}
-			});
+					yOffset = Math.max(0, (event.height - size.y) / 2);
+				event.gc.drawText(text, event.x + TEXT_MARGIN, event.y + yOffset, true);
+			}
+		});
 
 	}
 
@@ -672,7 +671,9 @@ private final Listener tableMouseListener = new Listener() {
 			}
 			text.setFont(font);
 			textChangeListener.startListeningTo(text);
-			textChangeListener.startListeningForEnter(text);
+			if (!isMulti(column)){
+				textChangeListener.startListeningForEnter(text);
+			}
 			editor.setEditor(text, tableItem, column);
 			text.setText(tableItem.getText(column));
 			text.selectAll();
@@ -778,7 +779,7 @@ private final DisposeListener disposeListener = new DisposeListener() {
 
 /** override to return true for the columns that should support multiple lines
  * the default is for all columns to be single line of text only
- * @param column2
+ * @param column
  * @return
  */
 protected boolean isMulti(int column) {

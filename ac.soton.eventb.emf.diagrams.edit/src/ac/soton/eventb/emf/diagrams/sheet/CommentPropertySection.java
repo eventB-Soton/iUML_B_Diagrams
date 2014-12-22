@@ -54,5 +54,5 @@ public class CommentPropertySection extends AbstractTextPropertySection {
 	}
 
 	@Override
-	protected int numberOfRows() { return 3;}
+	protected boolean isMultiLine() { return true;}
 }
