@@ -80,13 +80,12 @@ public class NewDataDialog extends Dialog {
 	 * @param component to check for conflicts with existing data, or null if not required
 	 * @param default name proposed for data, or null
 	 */
-	protected NewDataDialog(Shell parentShell, List<EventBNamedCommentedComponentElement> componentList, DataKind defaultDataKind,
+	public NewDataDialog(Shell parentShell, List<EventBNamedCommentedComponentElement> componentList, DataKind defaultDataKind,
 			ILabelProvider dataLabelProvider,  String defaultName) {
 		super(parentShell);
 		this.defaultName = defaultName;
 		this.componentList = componentList;
 		this.defaultDataKind = defaultDataKind;
-		//for (EventBNamed e : list) conflictingNames.add(dataLabelProvider.getText(e));
 	}
 
 	@Override

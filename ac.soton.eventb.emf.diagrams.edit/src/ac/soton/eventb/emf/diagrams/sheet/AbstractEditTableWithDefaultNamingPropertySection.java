@@ -12,6 +12,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.util.NameUtils;
+
 import ac.soton.eventb.emf.diagrams.Diagram;
 import ac.soton.eventb.emf.diagrams.DiagramsPackage;
 
@@ -22,16 +23,28 @@ public abstract class AbstractEditTableWithDefaultNamingPropertySection extends
 	protected abstract EReference getFeature();
 
 	/**
-	 * Override the getNewValue method to add a default unique name to the DataPacket
+	 * This Overrides the getNewValue method to add a default unique name to the DataPacket
 	 */
 	@Override
 	protected Object getNewValue(){
 		Object newVal = super.getNewValue();
 		if (newVal instanceof EventBNamed && newVal instanceof EventBElement){
-			String newName = NameUtils.getName((Diagram)owner.getContaining(DiagramsPackage.Literals.DIAGRAM))+"_"+getFeature().getName();
+			String newName = NameUtils.getName((Diagram)owner.getContaining(DiagramsPackage.Literals.DIAGRAM))+"_"+getFeaturePrefix();
 			((EventBNamed)newVal).setName(NameUtils.getSafeName((EventBElement)newVal, newName, owner, getFeature()));
 		}
 		return newVal;
+	}
+	
+	/**
+	 * returns a name prefix to use for elements of the property sections feature
+	 * This default returns the feature name.
+	 * Extenders may override this to provide an alternative prefix
+	 * 
+	 * 
+	 * @return
+	 */
+	protected String getFeaturePrefix() {
+		return getFeature().getName();
 	}
 
 }

@@ -9,10 +9,6 @@ package ac.soton.eventb.emf.diagrams.sheet;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IFilter;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.eventb.emf.core.EventBNamed;
 
 import ac.soton.eventb.emf.core.extension.coreextension.EventBDataElaboration;
@@ -39,26 +35,6 @@ public class NamePropertySection extends AbstractTextPropertySection {
 	protected String getPropertyNameLabel() {
 		return "Name:";
 	}
-
-	public void createControls(Composite parent,
-			TabbedPropertySheetPage aTabbedPropertySheetPage) {
-		doCreateControls(parent, aTabbedPropertySheetPage);
-		getTextWidget().addModifyListener(new ModifyListener(){
-			@Override
-			public void modifyText(ModifyEvent e) {
-				EventBNamed ebn = (EventBNamed) eObject;
-				if (ebn instanceof EventBDataElaboration){
-					EventBDataElaboration ee = (EventBDataElaboration)ebn;
-					if (ee.getElaborates() != null){
-						getTextWidget().setEditable(false);
-					} else {
-						getTextWidget().setEditable(true);
-					}
-				}
-			}
-			
-		});
-	}
 	
 	@Override
 	protected void setPropertyValue(EObject object, Object value) {
@@ -80,10 +56,8 @@ public class NamePropertySection extends AbstractTextPropertySection {
 	public void refresh() {
 		super.refresh();
 		if (eObject instanceof EventBDataElaboration && ((EventBDataElaboration) eObject).getElaborates() != null){
-			getTextWidget().setForeground(org.eclipse.draw2d.ColorConstants.gray);
 			getTextWidget().setEnabled(false);
 		} else {
-			getTextWidget().setForeground(org.eclipse.draw2d.ColorConstants.black);
 			getTextWidget().setEnabled(true);
 		}
 	}

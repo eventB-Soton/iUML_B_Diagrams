@@ -50,7 +50,6 @@ public class ParametersPropertySection extends AbstractEditTablePropertySection 
 		return col==2 ? true : false;
 	}
 	
-	
 	@Override
 	protected boolean isRodinKeyboard(final int col) {
 		return col==1? true : false;
@@ -64,11 +63,6 @@ public class ParametersPropertySection extends AbstractEditTablePropertySection 
 		case 2 : return 400;	//comment field
 		default : return -1;	//unknown
 		}
-	}
-
-	@Override
-	protected String getLabelText() {
-		return "parameters";
 	}
 
 }

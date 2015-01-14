@@ -7,8 +7,6 @@
  *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.sheet;
 
-import java.util.List;
-
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.jface.viewers.IFilter;
@@ -69,18 +67,5 @@ public class ActionsPropertySection extends AbstractEditTableWithDefaultNamingPr
 		default : return -1;	//unknown
 		}
 	}
-
-	@Override
-	protected String getLabelText() {
-		return "actions";
-	}
-	
-	
-	@Override
-	protected List<String> getColumnLabelText(){
-		List<String> labels = super.getColumnLabelText();
-		return labels;
-	}
-		
 
 }

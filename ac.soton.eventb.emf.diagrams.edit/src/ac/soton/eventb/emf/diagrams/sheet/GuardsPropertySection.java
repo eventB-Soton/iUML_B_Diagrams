@@ -73,10 +73,4 @@ public class GuardsPropertySection extends AbstractEditTableWithDefaultNamingPro
 		}
 	}
 
-	@Override
-	protected String getLabelText() {
-		return "guards";
-	}
-	
-
 }

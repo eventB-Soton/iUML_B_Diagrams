@@ -11,21 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.common.command.CompoundCommand;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.AddCommand;
-import org.eclipse.emf.edit.command.RemoveCommand;
 import org.eclipse.emf.edit.command.SetCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.gmf.runtime.common.ui.dialogs.PopupDialog;
-import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -35,10 +31,12 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
+import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
+import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.core.machine.MachinePackage;
+import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 
 import ac.soton.eventb.emf.core.extension.coreextension.CoreextensionPackage;
 import ac.soton.eventb.emf.core.extension.coreextension.EventBEventGroup;
@@ -51,7 +49,7 @@ import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;
  * @author cfsnook
  *
  */
-public class ElaboratesPropertySection extends AbstractTablePropertySection {
+public class ElaboratesPropertySection extends AbstractEditTableWithReferencedObjectCreationDeletionPropertySection {
 	
 	/**
 	 * Element Filter for this property section.
@@ -62,19 +60,33 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 			return DiagramUtils.unwrap(toTest) instanceof EventBEventGroup;
 		}
 	}
-	
-	
-	private Button creAddButton;
-	private Button remDelButton;
-	private Button addRefinesButton;
-	private Button remRefinesButton;
-	
-	private static ILabelProvider eventLabelProvider = new LabelProvider() {
 
-		@Override
-		public String getText(Object element) {
-			return ((Event) element).getName();
-		}};
+	@Override
+	protected EReference getFeature() {
+		return CoreextensionPackage.Literals.EVENT_BEVENT_GROUP__ELABORATES;
+	}
+
+	@Override
+	protected Object getFeatureForCol(int col) {
+		switch (col) {
+		case 0 : return CorePackage.eINSTANCE.getEventBNamed_Name();
+		case 1 : return MachinePackage.eINSTANCE.getEvent_Extended();
+		case 2 : return MachinePackage.eINSTANCE.getEvent_Convergence();
+		case 3 : return MachinePackage.eINSTANCE.getEvent_Refines();
+		case 4 : return CorePackage.eINSTANCE.getEventBCommented_Comment();
+		default : return null;
+		}
+	}
+	
+	@Override
+	protected boolean isMulti(final int col){
+		return col==4;
+	}
+	
+	@Override
+	protected boolean isReadOnly(final int col) {
+		return  col==3;		//use buttons for refines
+	}
 
 	@Override
 	protected String getButtonLabelText() {
@@ -82,131 +94,45 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 	}
 
 	@Override
-	protected EList<Event> getOwnedRows() {
-		return ((EventBEventGroup) eObject).getElaborates();
-	}
-
-	@Override
-	protected EStructuralFeature getFeature() {
-		return CoreextensionPackage.Literals.EVENT_BEVENT_GROUP__ELABORATES;
-	}
-
-	@Override
-	protected List<String> getValuesForRow(Object object) {
-		List<String> values = new ArrayList<String>();
-		values.add(((Event) object).getName());
-		values.add(((Event) object).getRefinesNames().toString().substring(1).replace("]",""));		
-		return values;
-	}
-
-	@Override
-	protected List<String> getColumnLabelText() {
-		List<String> values = new ArrayList<String>();
-		values.add("Event");
-		values.add("Refines");		
-		return values;
-	}
-
-	@Override
-	protected Object getNewChild() {
-		EObject container = EcoreUtil.getRootContainer(eObject);
-		Machine machine = (Machine) container;
-		PopupDialog eventsDialog = new PopupDialog(getPart().getSite().getShell(), machine.getEvents(), eventLabelProvider);
-		eventsDialog.setTitle(machine.getName() + " Events");
-		eventsDialog.setMessage("Please select event to elaborate");
-		if (Dialog.OK == eventsDialog.open()) {
-			Object[] result = eventsDialog.getResult();
-			if (result.length > 0) {
-				return result[0];
-			}
-		}
-		return null;
-	}
-
-	@Override
 	protected String getLabelText() {
 		return "Elaborates:";
 	}
-
+	
 	@Override
-	protected ISelection getEditorSelection(Object object) {
-		return null;
+	protected Object createNewElement(){
+		EObject newEvent = null;
+		// create and add new element
+		Machine machine = (Machine) owner.getContaining(MachinePackage.Literals.MACHINE);
+		NewEventDialog dialog = new NewEventDialog(getPart().getSite().getShell(), machine, null);
+		if (Dialog.OK == dialog.open()) {
+			newEvent = dialog.getEvent();
+			if (newEvent != null) {
+				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
+				CompoundCommand cc = new CompoundCommand("Add new event for elaborates");
+				cc.append(AddCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS, newEvent));
+				editingDomain.getCommandStack().execute(cc);
+			}
+		}
+		return newEvent;
 	}
 
+	private Button addRefinesButton;
+	private Button remRefinesButton;
+	
 	@Override
-	public void createControls(Composite parent,
-			TabbedPropertySheetPage aTabbedPropertySheetPage) {
-		super.createControls(parent, aTabbedPropertySheetPage);
+	protected FormAttachment moreButtons(FormAttachment buttonLeftData, FormAttachment buttonTopData, FormAttachment buttonBottomData){
 		
+		if (addButton!=null) addButton.setText("Link "+getButtonLabelText());
+		if (removeButton!=null) removeButton.setText("Un-link "+getButtonLabelText());
 		Control[] children = parent.getChildren();
-		FormData data;
-		
-		// overriding "Delete" label
-		removeButton.setText("Remove Event");
-		
-		// a new button to create eventB event and add it to elaborates
-		creAddButton = getWidgetFactory().createButton((Composite) children[0], "Create && Add", SWT.PUSH);
-		data = new FormData();
-		data.left = new FormAttachment(removeButton, 0);
-		data.bottom = new FormAttachment(100, 0);
-		creAddButton.setLayoutData(data);
-		creAddButton.addSelectionListener(new SelectionAdapter() {
-
-			public void widgetSelected(SelectionEvent event) {
-				// remember selection
-				int idx = table.getSelectionIndex();
+		FormAttachment leftData = super.moreButtons(buttonLeftData, buttonTopData, buttonBottomData);
 				
-				// create and add new event
-				EObject container = EcoreUtil.getRootContainer(eObject);
-				Machine machine = (Machine) container;
-				NewEventDialog dialog = new NewEventDialog(getPart().getSite().getShell(), machine, null);
-				if (Dialog.OK == dialog.open()) {
-					EObject objectToBeAdded = dialog.getEvent();
-					if (objectToBeAdded == null) return;
-					EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-					CompoundCommand cc = new CompoundCommand("Add new event for elaborates");
-					cc.append(AddCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS, objectToBeAdded));
-					editingDomain.getCommandStack().execute(cc);
-					addObject(objectToBeAdded);
-					refresh();
-					// restore selection
-					table.select(idx);
-					table.notifyListeners(SWT.Selection, new org.eclipse.swt.widgets.Event());
-				}
-				
-			}
-		});
-		
-		// a new button to create eventB event and add it to elaborates
-		remDelButton = getWidgetFactory().createButton((Composite) children[0], "Remove && Delete", SWT.PUSH);
-		data = new FormData();
-		data.left = new FormAttachment(creAddButton, 0);
-		data.bottom = new FormAttachment(100, 0);
-		remDelButton.setLayoutData(data);
-		remDelButton.addSelectionListener(new SelectionAdapter() {
-
-			public void widgetSelected(SelectionEvent event) {
-				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-				Object objectToBeRemoved = table.getSelection()[0].getData();
-				removeObject(objectToBeRemoved);
-				refresh();
-				//delete the event from the machine
-				EObject container = EcoreUtil.getRootContainer(eObject);
-				Machine machine = (Machine) container;
-				if (objectToBeRemoved instanceof Event && machine instanceof Machine){
-					editingDomain.getCommandStack().execute(
-						RemoveCommand.create(editingDomain, machine, MachinePackage.Literals.MACHINE__EVENTS , objectToBeRemoved));
-					refresh();
-				}
-			}
-		});
-
-		
 		// button to add an event refines reference to an eventB event
 		addRefinesButton = getWidgetFactory().createButton((Composite) children[0], "Add Refines", SWT.PUSH);
-		data = new FormData();
-		data.left = new FormAttachment(remDelButton, 0);
-		data.bottom = new FormAttachment(100, 0);
+		FormData data = new FormData();
+		data.left = leftData;
+		data.bottom = buttonBottomData;
+		data.top = buttonTopData;
 		addRefinesButton.setLayoutData(data);
 		addRefinesButton.addSelectionListener(new SelectionAdapter() {
 
@@ -243,7 +169,8 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 		remRefinesButton = getWidgetFactory().createButton((Composite) children[0], "Remove Refines", SWT.PUSH);
 		data = new FormData();
 		data.left = new FormAttachment(addRefinesButton, 0);
-		data.bottom = new FormAttachment(100, 0);
+		data.bottom = buttonBottomData;
+		data.top = buttonTopData;
 		remRefinesButton.setLayoutData(data);
 		remRefinesButton.addSelectionListener(new SelectionAdapter() {
 
@@ -268,9 +195,15 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 				table.notifyListeners(SWT.Selection, new org.eclipse.swt.widgets.Event());
 			}
 		});
-		
+		return new FormAttachment(remRefinesButton, ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
 	}
 
+	private static ILabelProvider eventLabelProvider = new LabelProvider() {
+		@Override
+		public String getText(Object element) {
+			return ((Event) element).getName();
+		}};
+		
 /*
  * Select event to be refined
  */
@@ -294,16 +227,15 @@ public class ElaboratesPropertySection extends AbstractTablePropertySection {
 	@Override
 	public void refresh() {
 		super.refresh();
-		remDelButton.setEnabled(false);
 		addRefinesButton.setEnabled(false);
 		remRefinesButton.setEnabled(false);
 	}
 	
 	@Override
-	public void rowSelected(){
-		super.rowSelected();
-		remDelButton.setEnabled(true);
+	protected void rowSelectionAction(){
+		super.rowSelectionAction();
 		addRefinesButton.setEnabled(true);
 		remRefinesButton.setEnabled(true);
 	}
+
 }

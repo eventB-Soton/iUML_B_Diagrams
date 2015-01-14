@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.UnexecutableCommand;
+import org.eclipse.emf.common.util.ECollections;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.Enumerator;
 import org.eclipse.emf.ecore.EAttribute;
@@ -74,7 +75,7 @@ import org.eventb.emf.core.EventBCommented;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.core.Project;
+import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.util.NameUtils;
 import org.rodinp.keyboard.ui.RodinKeyboardUIPlugin;
 import org.rodinp.keyboard.ui.preferences.PreferenceConstants;
@@ -97,8 +98,19 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 	protected abstract EStructuralFeature getFeature();
 
 	protected abstract Object getFeatureForCol(int col);
+	
+	/**
+	 * This can be overridden to provide additional buttons
+	 * @param buttonLeftData 
+	 * @param buttonBottomData 
+	 * @param buttonTopData 
+	 * 
+	 * @return  newButtonLeftData
+	 */
+	protected FormAttachment moreButtons(FormAttachment buttonLeftData, FormAttachment buttonTopData, FormAttachment buttonBottomData){return null;};
 
-	protected String getTableLabel(){ return null;}
+	
+	protected String getLabelText(){ return null;}
 
 	protected String getNewChildrenDialogTitle(){
 		String elementKind = getFeature().getEType().getName();
@@ -186,13 +198,20 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		return ret;
 	}
 
+	/**
+	 * gets a new object to be added as a row in the table
+	 * if the feature is a reference, a selection dialog is created,
+	 * if the feature is a containment a new element is created
+	 * if the feature is an attribute a dialog is opened to enter its value
+	 * @return
+	 */
 	protected Object getNewValue(){
 		if (getFeature() instanceof EReference){
 			if (((EReference)getFeature()).isContainment()){
 				EClass eClass = ((EReference)getFeature()).getEReferenceType();
 				return eClass.getEPackage().getEFactoryInstance().create(eClass);
 			}else{
-				return getNewReferences();
+				return getNewReference();
 			}
 		}else if (getFeature() instanceof EAttribute){
 			EDataType eDataType = ((EAttribute)getFeature()).getEAttributeType();
@@ -202,16 +221,57 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 			return null;
 	}
 
-	protected Object[] getNewReferences(){
+	
+	protected Object getNewReference(){
 		Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 		ElementListSelectionDialog dialog = new ElementListSelectionDialog(shell,new BLabelProvider());
 		dialog.setFilter(null);
-		dialog.setElements(getPossibleChildren().toArray());
+		dialog.setElements(getPossibleReferences().toArray());
 		dialog.setTitle(getNewChildrenDialogTitle());
 		dialog.create();
 		dialog.open();
 		if (dialog.getReturnCode() == Window.CANCEL) return null;
-		return dialog.getResult();
+		return dialog.getResult()[0];
+	}
+
+	private class BLabelProvider extends LabelProvider{
+		@Override
+		public String getText(final Object element){
+			if (element==null) return "<null>";
+			else if (element instanceof EventBNamed) return ((EventBNamed)element).getName();
+			return "<unknown element>";
+		}
+		@Override
+		public org.eclipse.swt.graphics.Image getImage(final Object element){
+			if (element==null) return null;
+			else if (element instanceof EventBElement) {
+				//List adapters = ((EventBElement)element).eAdapters();
+				return null;
+			}
+			else return null;
+		}
+	}
+	
+	/**
+	 * returns the possible references that could be added as rows
+	 * (Only applicable for tables of references - not containments)
+	 * 
+	 * @return
+	 */
+	protected EList<?> getPossibleReferences() {
+		if (!(getFeature() instanceof EReference)) return null;
+		EReference feature = (EReference) getFeature();
+		EClass eClass = feature.getEReferenceType();
+		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
+		if (container == null){
+			container = owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+		}
+		if (container == null){ return ECollections.EMPTY_ELIST;}
+		EList<EObject> possibles = container.getAllContained(eClass, false);
+		possibles.removeAll(this.getElements());
+		possibles.remove(owner);
+		possibles.remove(null);
+		return possibles;
 	}
 
 	protected String getNewDataValue() {
@@ -221,17 +281,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		inputDialog.open();
 		return inputDialog.getValue();
 	}
-
-	protected EList<EObject> getPossibleChildren() {
-		if (!(getFeature() instanceof EReference)) return null;
-		EReference feature = (EReference) getFeature();
-		EClass eClass = feature.getEReferenceType();
-		Project project = (Project) owner.getContaining(CorePackage.eINSTANCE.getProject());
-		EList<EObject> possibles = project.getAllContained(eClass, false);
-		possibles.removeAll(this.getElements());
-		return possibles;
-	}
-
+	
 	protected List<?> getPossibleValues(final int col){
 		Object feature = getFeatureForCol(col);
 		if (feature instanceof EReference){
@@ -257,14 +307,6 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		}
 	}
 
-	protected Object getNewValue(final int col, final int index) {
-		Object newValue = null;
-		List<?> possVals = getPossibleValues(col);
-		if (possVals!=null) newValue=possVals.get(index);
-		if (newValue instanceof EEnumLiteral) newValue = ((EEnumLiteral)newValue).getInstance();
-		return newValue;
-	}
-
 	protected List<? extends Object> getElements() {
 		ArrayList<Object> ret= new ArrayList<Object>();
 		Object featureValue = owner.eGet(getFeature());
@@ -278,43 +320,44 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		return ret;
 	}
 
-	//the default column widths may be overridden in extensions
+	/**
+	 * the default column widths may be overridden in extensions
+	 * @param col
+	 * @return
+	 */
 	protected int columnWidth(final int col){
 		return 150;
 	}
 
-	//a column can be made read-only
+	/**
+	 * a column can be made read-only
+	 * @param col
+	 * @return
+	 */
 	protected boolean isReadOnly(final int col){
 		return false;
 	}
 
-	//a row can be made read-only
+	/**
+	 * a row can be made read-only
+	 * @param object
+	 * @return
+	 */
 	protected boolean isReadOnly(final Object object){
 		return false;
 	}
-
-	private class BLabelProvider extends LabelProvider{
-		@Override
-		public String getText(final Object element){
-			if (element==null) return "<null>";
-			else if (element instanceof EventBNamed) return ((EventBNamed)element).getName();
-			return "<unknown element>";
-		}
-		@Override
-		public org.eclipse.swt.graphics.Image getImage(final Object element){
-			if (element==null) return null;
-			else if (element instanceof EventBElement) {
-				//List adapters = ((EventBElement)element).eAdapters();
-				return null;
-			}
-			else return null;
-		}
+	
+	/**
+	 * can be overriden to force singular behaviour even when feature is many
+	 * @return
+	 */
+	protected boolean isSingular() {
+		return getFeature().getUpperBound()==1 && getFeature().isMany();
 	}
 
-	protected void addButtonAction() {
+	protected void addObject(Object newValue) {
 		EditingDomain editingDomain = ((DiagramDocumentEditor) getPart()).getEditingDomain();
 		Command command;
-		Object newValue = getNewValue();
 		if (newValue == null) {
 			command = UnexecutableCommand.INSTANCE;
 		}else{
@@ -323,7 +366,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 			}else{
 				command = AddCommand.create(editingDomain, owner, getFeature(), newValue);
 			}
-			if (newValue instanceof EventBCommented){
+			if (newValue instanceof EventBCommented && ((EReference)getFeature()).isContainment()){
 				((EventBCommented)newValue).setComment("");
 			}
 		}
@@ -331,9 +374,8 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		refresh();
 	}
 
-	protected void removeButtonAction() {
+	protected void removeObject(Object object) {
 		EditingDomain editingDomain = ((DiagramDocumentEditor) getPart()).getEditingDomain();
-		Object object = table.getSelection()[0].getData();
 		if (singular){
 			editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, owner, getFeature(), SetCommand.UNSET_VALUE));
 		}else{
@@ -363,11 +405,10 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 
 	protected Table table;
 	protected List<TableColumn> columns;
-	protected Button addButton;
-	protected Button removeButton;
-	protected Button upButton;
-	protected Button downButton;
-	protected Button seeErrorsButton;
+	protected Button addButton = null;
+	protected Button removeButton = null;
+	protected Button upButton = null;
+	protected Button downButton = null;
 
 	private Combo combo=null;
 	private Text text= null;
@@ -394,7 +435,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 	 **/
 
 	private void doCreateControls(){
-		singular = getFeature().getUpperBound()==1;
+		singular = isSingular();
 		Composite composite = getWidgetFactory().createFlatFormComposite(parent);
 		FormData data;
 		table = getWidgetFactory().createTable(composite,SWT.FILL |SWT.FULL_SELECTION);
@@ -414,63 +455,86 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		FormAttachment leftData = null;
 
 		//label
-		if (getTableLabel()!=null){
+		if (getLabelText()!=null){
 			CLabel nameLabel = getWidgetFactory().createCLabel(composite,
-				getTableLabel());
+				getLabelText());
 			data = new FormData();
 			data.left = new FormAttachment(0, 0);
 			data.right = new FormAttachment(table, -ITabbedPropertyConstants.HSPACE);
 			data.top = new FormAttachment(table, 0, SWT.CENTER);
 			nameLabel.setLayoutData(data);
-			leftData = new FormAttachment(0, getStandardLabelWidth(composite, new String[] {getTableLabel()}));
+			leftData = new FormAttachment(0, getPropertyLabelWidth(composite));
 		}else{
 			leftData = new FormAttachment(0, 0);
 		}
-
+		
+		//main table layout and row selection
+		data = new FormData();
+		data.left=leftData;
+		data.right = new FormAttachment(100, 0);
+		data.top = new FormAttachment(0, ITabbedPropertyConstants.VSPACE);
+//		if (!singular){
+		data.bottom = new FormAttachment(100,-buttonHeight-ITabbedPropertyConstants.VSPACE); 
+//			data.bottom = new FormAttachment(downButton,-ITabbedPropertyConstants.VSPACE);
+//		}
+		data.width = 400;
+		table.setLayoutData(data);
+		table.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(final SelectionEvent event) {
+				rowSelectionAction();
+			}
+		});
+		
+		//buttons
 		FormAttachment buttonTopData = null;
 		FormAttachment buttonBottomData = null;
 		if (singular){
 			buttonTopData = new FormAttachment(table,0);
-			buttonBottomData = new FormAttachment(table, buttonHeight+6, SWT.BOTTOM);
+			buttonBottomData = new FormAttachment(table, buttonHeight+ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
 		}else{
 			buttonTopData = new FormAttachment(100, -buttonHeight);
 			buttonBottomData = new FormAttachment(100, 0);
 		}
-
+		
 		//add button
-		addButton = getWidgetFactory().createButton(composite,
-			MessageFormat.format("Add {0}", new Object[] {getButtonLabelText()}), SWT.PUSH);
-		data = new FormData();
-		data.left = leftData;
-		data.bottom = buttonBottomData;
-		data.top = buttonTopData;
-		addButton.setLayoutData(data);
-		addButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(final SelectionEvent event) {addButtonAction();}
-		});
-
-		//delete button
-		removeButton = getWidgetFactory().createButton(composite,
-			MessageFormat.format("Delete {0}", new Object[] {getButtonLabelText()}), SWT.PUSH);
-		data = new FormData();
-		data.left = new FormAttachment(addButton, ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
-		data.bottom = buttonBottomData;
-		data.top = buttonTopData;
-		removeButton.setLayoutData(data);
-		removeButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(final SelectionEvent event) {removeButtonAction();}
-		});
-		Button lastButton=removeButton;
-
+		if (!isReadOnly()){
+			addButton = getWidgetFactory().createButton(composite,
+				MessageFormat.format("Add {0}", new Object[] {getButtonLabelText()}), SWT.PUSH);
+			data = new FormData();
+			data.left = leftData;
+			data.bottom = buttonBottomData;
+			data.top = buttonTopData;
+			addButton.setLayoutData(data);
+			addButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(final SelectionEvent event) {addObject(getNewValue());}
+			});
+	
+			//delete button
+			removeButton = getWidgetFactory().createButton(composite,
+				MessageFormat.format("Delete {0}", new Object[] {getButtonLabelText()}), SWT.PUSH);
+			data = new FormData();
+			data.left = new FormAttachment(addButton, ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
+			data.bottom = buttonBottomData;
+			data.top = buttonTopData;
+			removeButton.setLayoutData(data);
+			removeButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(final SelectionEvent event) {
+					removeObject(table.getSelection()[0].getData());
+				}
+			});
+			leftData = new FormAttachment(removeButton, ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
+		}
+		
 		//move buttons
 		if (!singular){
 			//up button
 			upButton = getWidgetFactory().createButton(composite,
 					MessageFormat.format("Move Up", new Object[] {}), SWT.PUSH);
 			data = new FormData();
-			data.left = new FormAttachment(lastButton, ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
+			data.left = leftData;
 			data.bottom = buttonBottomData;
 			data.top = buttonTopData;
 			upButton.setLayoutData(data);
@@ -490,30 +554,17 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 				@Override
 				public void widgetSelected(final SelectionEvent event) {downButtonAction();}
 			});
-			lastButton=downButton;
+			leftData = new FormAttachment(downButton, ITabbedPropertyConstants.VSPACE, SWT.BOTTOM);
 		}
-
-		//main table layout and row selection
-		data = new FormData();
-		data.left=leftData;
-		data.right = new FormAttachment(100, 0);
-		data.top = new FormAttachment(0, ITabbedPropertyConstants.VSPACE);
-		if (!singular){
-			data.bottom = new FormAttachment(addButton,-ITabbedPropertyConstants.VSPACE);
-		}
-		data.width = 400;
-		table.setLayoutData(data);
-		table.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(final SelectionEvent event) {rowSelectionAction();}
-		});
-
+		moreButtons(leftData, buttonTopData, buttonBottomData);
 	}
 
-	private void rowSelectionAction() {
-		removeButton.setEnabled(true);
-		if (upButton!=null) upButton.setEnabled(true);
-		if (downButton!=null) downButton.setEnabled(true);
+
+
+	protected void rowSelectionAction() {
+		if (removeButton!=null) removeButton.setEnabled(true);
+		if (upButton!=null) upButton.setEnabled(table.getSelectionIndex()>0);
+		if (downButton!=null) downButton.setEnabled(table.getSelectionIndex()<table.getItemCount()-1);
 	}
 
 	@Override
@@ -585,16 +636,6 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		if (text!=null) text.dispose();
 		table.removeAll();
 		table.redraw();
-		if (getFeature().getUpperBound() <0 ||
-			getElements().size()<getFeature().getUpperBound()){
-			addButton.setEnabled(true);
-		}else{
-			addButton.setEnabled(false);
-		}
-		removeButton.setEnabled(false);
-		if (upButton!=null) upButton.setEnabled(false);
-		if (downButton!=null) downButton.setEnabled(false);
-		if (seeErrorsButton!=null) seeErrorsButton.setEnabled(false);
 		for (Object next :getElements()) {
 			// create the table item
 			TableItem item = new TableItem(table, SWT.NONE);
@@ -610,13 +651,16 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 			item.setData(next);
 			if (isReadOnly(next)) item.setGrayed(true);
 		}
-
+		
+		if (removeButton!=null) removeButton.setEnabled(false);
+		if (upButton!=null) upButton.setEnabled(false);
+		if (downButton!=null) downButton.setEnabled(false);
 		if (owner instanceof EventBElement && ((EventBElement)owner).isGenerated()){
 			table.setEnabled(false);
-			addButton.setEnabled(false);
+			if (addButton!=null) addButton.setEnabled(false);
 		}else{
 			table.setEnabled(true);
-			addButton.setEnabled(true);
+			if (addButton!=null) addButton.setEnabled(getFeature().getUpperBound() <0 || getElements().size()<getFeature().getUpperBound());
 		}
 		
 		table.redraw();
@@ -713,17 +757,30 @@ private final Listener tableMouseListener = new Listener() {
 			Object object = getElements().get(row);
 			if (combo.getSelectionIndex()!=-1){
 				Object newValue = getNewValue(column, combo.getSelectionIndex());
-				if (getFeatureForCol(column) !=null)
-					editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, object, getFeatureForCol(column), newValue));
-				String setText = newValue instanceof String ? (String) newValue :
-						NameUtils.getNames(getPossibleValues(column)).get(combo.getSelectionIndex());
-				tableItem.setText(column, setText );
+				Object feature = getFeatureForCol(column);
+				if (feature instanceof EStructuralFeature){
+					if (((EStructuralFeature)feature).isMany()){
+						editingDomain.getCommandStack().execute(AddCommand.create(editingDomain, object, getFeatureForCol(column), newValue));						
+					}else{
+						editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, object, getFeatureForCol(column), newValue));
+					}
+				}
+				refresh();
 			}
         	combo.dispose();
 		}
 	};
-
 };
+
+
+private Object getNewValue(final int col, final int index) {
+	Object newValue = null;
+	List<?> possVals = getPossibleValues(col);
+	if (possVals!=null) newValue=possVals.get(index);
+	if (newValue instanceof EEnumLiteral) newValue = ((EEnumLiteral)newValue).getInstance();
+	return newValue;
+}
+
 
 protected void handleTextChanged(int column, int row, String newText){
 	EditingDomain editingDomain = ((DiagramDocumentEditor) getPart()).getEditingDomain();

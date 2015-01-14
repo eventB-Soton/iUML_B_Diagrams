@@ -11,15 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.common.command.CompoundCommand;
-import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.ECollections;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.edit.command.AbstractOverrideableCommand;
 import org.eclipse.emf.edit.command.AddCommand;
-import org.eclipse.emf.edit.command.RemoveCommand;
 import org.eclipse.emf.edit.command.SetCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.gmf.runtime.common.ui.dialogs.PopupDialog;
@@ -28,21 +28,12 @@ import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocument
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.IFilter;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
+import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.context.CarrierSet;
 import org.eventb.emf.core.context.Constant;
 import org.eventb.emf.core.context.Context;
@@ -62,7 +53,7 @@ import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;
  * @author cfsnook
  *
  */
-public class ElaboratesDataPropertySection extends AbstractTablePropertySection {
+public class ElaboratesDataPropertySection extends AbstractEditTableWithReferencedObjectCreationDeletionPropertySection {
 	
 	/**
 	 * Element Filter for this property section.
@@ -74,8 +65,117 @@ public class ElaboratesDataPropertySection extends AbstractTablePropertySection 
 		}
 	}
 	
-	private Button creAddButton;
-	private Button remDelButton;
+	@Override
+	protected EReference getFeature() {
+		return CoreextensionPackage.Literals.EVENT_BDATA_ELABORATION__ELABORATES;
+	}
+	
+	@Override
+	protected Object getFeatureForCol(int col) {
+		switch (col) {
+		case 0 : return CorePackage.eINSTANCE.getEventBNamed_Name();
+		case 1 : return EcorePackage.eINSTANCE.eContainer();
+		case 2 : return EcorePackage.eINSTANCE.eContainmentFeature();
+		case 3 : return CorePackage.eINSTANCE.getEventBCommented_Comment();
+		default : return null;
+		}
+	}
+	
+	@Override
+	protected boolean isMulti(final int col){
+		return col==3;
+	}
+	
+	@Override
+	protected boolean isReadOnly(final int col) {
+		return  col==1 || col==2;
+	}
+
+	@Override
+	protected String getButtonLabelText() {
+		return "Data";
+	}
+	
+
+	@Override
+	protected String getLabelText() {
+		return "Elaborates:";
+	}
+	
+	@Override
+	protected boolean isReadOnly(){
+		return super.isReadOnly(); 
+	}
+
+	protected boolean isSingular() {
+		return true;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private boolean isRefinement() {
+		EStructuralFeature refinesFeature = eObject.eClass().getEStructuralFeature("refines");
+		Object refines = refinesFeature==null? null : eObject.eGet(refinesFeature);
+		return 	refines == null? false : 
+				refines instanceof EList? !((EList)refines).isEmpty() : true;	
+	}
+	
+	protected EList<?> getPossibleReferences() {
+		if (!(getFeature() instanceof EReference)) return null;
+		EReference feature = (EReference) getFeature();
+		EClass eClass = feature.getEReferenceType();
+		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
+		if (container == null){
+			container = owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+		}
+		if (container == null){ return ECollections.EMPTY_ELIST;}
+		EList<EObject> possibles = container.getAllContained(eClass, false);
+		possibles.removeAll(this.getElements());
+		possibles.remove(owner);
+		possibles.remove(null);
+		return possibles;
+	}
+
+	@Override
+	protected Object createNewElement(){
+		EObject newData = null;
+		// create and add new data
+		String defaultName = eObject instanceof EventBNamed ? ((EventBNamed)eObject).getName() : null ;
+		NewDataDialog dialog = new NewDataDialog(
+				getPart().getSite().getShell(), 
+				getComponentList((EventBNamedCommentedComponentElement)((EventBElement) eObject).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT)),
+				((EventBDataElaboration)eObject).getDataKind(),
+				dataLabelProvider, defaultName );
+		if (Dialog.OK == dialog.open()) {
+			newData = dialog.getElement();
+			if (newData != null) {
+				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
+				CompoundCommand cc = new CompoundCommand("Add new data for elaborates");
+				cc.append(AddCommand.create(editingDomain, dialog.getComponent(), dialog.getFeature(), newData));
+				editingDomain.getCommandStack().execute(cc);
+				addObject(newData);
+			}
+		}
+		return newData;
+	}
+
+	private List<EventBNamedCommentedComponentElement> getComponentList(EventBNamedCommentedComponentElement component) {
+		List<EventBNamedCommentedComponentElement> list =  new ArrayList<EventBNamedCommentedComponentElement>() ;
+		if (component instanceof Machine){
+			Machine m = ((Machine)component);
+			list.add(m);
+			for (Context c : m.getSees()){
+				list.addAll(getComponentList(c));
+			}			
+		}else if (component instanceof Context){
+			Context c = ((Context)component);
+			list.add(c);
+			for (Context x : c.getExtends()){
+				list.addAll(getComponentList(x));
+			}
+		}
+		return list;
+	}
+	
 	
 	private static ILabelProvider dataLabelProvider = new LabelProvider() {
 		@Override
@@ -90,50 +190,14 @@ public class ElaboratesDataPropertySection extends AbstractTablePropertySection 
 		}
 	};
 
-	@Override
-	protected String getButtonLabelText() {
-		return "Data";
-	}
-
-	/**
-	 * data elaboration is singular (unlike event elaboration). 
-	 * However, for now this property section will cater for future  
-	 *  supporting of multiple data elaboration.
-	 */
-	@Override
-	protected EList<Object> getOwnedRows() {
-		EList<Object> list = new BasicEList<Object>();
-		list.add(((EventBDataElaboration) eObject).getElaborates());
-		return list;
-	}
-
-	@Override
-	protected EStructuralFeature getFeature() {
-		return CoreextensionPackage.Literals.EVENT_BDATA_ELABORATION__ELABORATES;
-	}
-
-	@Override
-	protected List<String> getValuesForRow(Object object) {
-		List<String> values = new ArrayList<String>();
-		values.add(dataLabelProvider.getText(object));
-		return values;
-	}
-
-	@Override
-	protected List<String> getColumnLabelText() {
-		ArrayList<String> values = new ArrayList<String>();
-		values.add("Elaborated Data");		
-		return values;
-	}
-
 	/**
 	 * Get a new data element to elaborate for the result of clicking the add button.
 	 * 
 	 * @return a data element.
 	 */
 	@Override
-	protected Object getNewChild() {
-		EventBNamedCommentedComponentElement container = (EventBNamedCommentedComponentElement)((EventBElement) eObject).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+	protected Object getNewValue() {
+		EventBNamedCommentedComponentElement container = (EventBNamedCommentedComponentElement)owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
 		PopupDialog dataDialog = new PopupDialog(getPart().getSite().getShell(), getAvailableDataElements(container), dataLabelProvider);
 		dataDialog.setTitle( "Data elements in scope of" + container.getName());
 		dataDialog.setMessage("Please select data to elaborate");
@@ -165,115 +229,20 @@ public class ElaboratesDataPropertySection extends AbstractTablePropertySection 
 		return list;
 	}
 	
-	private List<EventBNamedCommentedComponentElement> getComponentList(EventBNamedCommentedComponentElement component) {
-		List<EventBNamedCommentedComponentElement> list =  new ArrayList<EventBNamedCommentedComponentElement>() ;
-		if (component instanceof Machine){
-			Machine m = ((Machine)component);
-			list.add(m);
-			for (Context c : m.getSees()){
-				list.addAll(getComponentList(c));
-			}			
-		}else if (component instanceof Context){
-			Context c = ((Context)component);
-			list.add(c);
-			for (Context x : c.getExtends()){
-				list.addAll(getComponentList(x));
-			}
-		}
-		return list;
-	}
-	
-
 	@Override
-	protected String getLabelText() {
-		return "Elaborates:";
-	}
-
-	@Override
-	protected ISelection getEditorSelection(Object object) {
-		return null;
-	}
-
-	@Override
-	public void createControls(Composite parent,
-			TabbedPropertySheetPage aTabbedPropertySheetPage) {
-		super.createControls(parent, aTabbedPropertySheetPage);
-		
-		Control[] children = parent.getChildren();
-		FormData data;
-		
-		// overriding "Delete" label
-		removeButton.setText("Remove Data");
-		
-		// a new button to create eventB data and add it to elaborates
-		creAddButton = getWidgetFactory().createButton((Composite) children[0], "Create && Add", SWT.PUSH);
-		data = new FormData();
-		data.left = new FormAttachment(removeButton, 0);
-		data.bottom = new FormAttachment(100, 0);
-		creAddButton.setLayoutData(data);
-		creAddButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				// remember selection
-				int idx = table.getSelectionIndex();
-				// create and add new data
-				String defaultName = eObject instanceof EventBNamed ? ((EventBNamed)eObject).getName() : null ;
-				NewDataDialog dialog = new NewDataDialog(
-						getPart().getSite().getShell(), 
-						getComponentList((EventBNamedCommentedComponentElement)((EventBElement) eObject).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT)),
-						((EventBDataElaboration)eObject).getDataKind(),
-						dataLabelProvider, defaultName );
-				if (Dialog.OK == dialog.open()) {
-					EObject objectToBeAdded = dialog.getElement();
-					if (objectToBeAdded == null) return;
-					EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-					CompoundCommand cc = new CompoundCommand("Add new data for elaborates");
-					cc.append(AddCommand.create(editingDomain, dialog.getComponent(), dialog.getFeature(), objectToBeAdded));
-					editingDomain.getCommandStack().execute(cc);
-					addObject(objectToBeAdded);
-					refresh();
-					// restore selection
-					table.select(idx);
-					table.notifyListeners(SWT.Selection, new org.eclipse.swt.widgets.Event());
-				}
-				
-			}
-		});
-		
-		// a new button to delete eventB data and remove it from elaborates
-		remDelButton = getWidgetFactory().createButton((Composite) children[0], "Remove && Delete", SWT.PUSH);
-		data = new FormData();
-		data.left = new FormAttachment(creAddButton, 0);
-		data.bottom = new FormAttachment(100, 0);
-		remDelButton.setLayoutData(data);
-		remDelButton.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent event) {
-				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-				Object objectToBeRemoved = table.getSelection()[0].getData();
-				removeObject(objectToBeRemoved);
-				//delete the removed element
-				if (objectToBeRemoved instanceof EObject){
-					EObject container = EcoreUtil.getRootContainer((EObject)objectToBeRemoved);
-					EReference containment = ((EObject)objectToBeRemoved).eContainmentFeature();
-					editingDomain.getCommandStack().execute(
-						RemoveCommand.create(editingDomain, container, containment , objectToBeRemoved));
-				}
-				refresh();
-			}
-		});		
-	}
-	
 	protected void addObject(Object objectToBeAdded){
 		if (objectToBeAdded == null) return;
 		super.addObject(objectToBeAdded);
 		updateElementAfterElaboratesChanged(objectToBeAdded);
 	}
-	
+
+	@Override
 	protected void removeObject(Object objectToBeRemoved){
 		if (objectToBeRemoved == null) return;
 		super.removeObject(objectToBeRemoved);
 		updateElementAfterElaboratesChanged(null);
 	}
-	
+
 	private void updateElementAfterElaboratesChanged(Object newElaboratedElement) {
 		EditingDomain editingDomain = ((DiagramDocumentEditor) getPart()).getEditingDomain();
 		AbstractOverrideableCommand command;
@@ -313,12 +282,18 @@ public class ElaboratesDataPropertySection extends AbstractTablePropertySection 
 	@Override
 	public void refresh() {
 		super.refresh();
-		remDelButton.setEnabled(false);
+		if (addButton!=null) addButton.setEnabled(addButton.isEnabled() && !isRefinement());
+		if (creAddButton!=null) creAddButton.setEnabled(creAddButton.isEnabled() && !isRefinement());
+		if (removeButton!=null) removeButton.setEnabled(removeButton.isEnabled() && !isRefinement());
+		if (remDelButton!=null) remDelButton.setEnabled(remDelButton.isEnabled() && !isRefinement());
 	}
 	
 	@Override
-	public void rowSelected(){
-		super.rowSelected();
-		remDelButton.setEnabled(true);
+	protected void rowSelectionAction(){
+		super.rowSelectionAction();
+		if (addButton!=null) addButton.setEnabled(addButton.isEnabled() && !isRefinement());
+		if (creAddButton!=null) creAddButton.setEnabled(creAddButton.isEnabled() && !isRefinement());
+		if (removeButton!=null) removeButton.setEnabled(removeButton.isEnabled() && !isRefinement());
+		if (remDelButton!=null) remDelButton.setEnabled(remDelButton.isEnabled() && !isRefinement());
 	}
 }

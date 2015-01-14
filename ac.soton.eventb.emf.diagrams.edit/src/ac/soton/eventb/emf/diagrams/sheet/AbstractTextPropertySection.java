@@ -48,8 +48,8 @@ public abstract class AbstractTextPropertySection extends
 		if (isRodinKeyboard()) {
 			text.addModifyListener(RodinKeyboardUIPlugin.getDefault().createRodinModifyListener());
 		}
-		if (isReadOnly())
-			text.setEditable(false);
+		text.setText("");
+		text.setEnabled(!isReadOnly());
 		return text;
 	}
 
@@ -68,13 +68,19 @@ public abstract class AbstractTextPropertySection extends
 	@Override
 	public void refresh() {
 		super.refresh();
-		reSizeTextWidget(getTextWidget().getText());
+		if (getTextWidget() != null) {
+			String text = getPropertyValueString();
+//			getTextWidget().setText(text);  //setting the text field makes it do an update causing a model change just for clicking in the field
+											//not wanted for self names as we loose the default behaviour of tracking the class name
+			reSizeTextWidget(text);
+			getTextWidget().setEnabled(!isReadOnly());
+		}
 	}
 	
 	@Override
 	protected Object computeNewPropertyValue() {
 		reSizeTextWidget(getTextWidget().getText());
-		return getTextWidget().getText();
+		return super.computeNewPropertyValue();
 	}
 	
 	private void reSizeTextWidget(String text){
@@ -115,4 +121,5 @@ public abstract class AbstractTextPropertySection extends
 	protected boolean isMultiLine(){
 		return false;
 	}
+	
 }

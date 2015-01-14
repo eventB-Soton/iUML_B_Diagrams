@@ -69,13 +69,8 @@ public class WitnessesPropertySection extends AbstractEditTableWithDefaultNaming
 		}
 	}
 
-	@Override
-	protected String getLabelText() {
-		return "witnesses";
-	}	
-	
 	protected String getButtonLabelText(){
 		return "Witness";
 	}
-	
+
 }
