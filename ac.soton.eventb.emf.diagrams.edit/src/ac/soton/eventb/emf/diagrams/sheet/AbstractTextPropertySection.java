@@ -64,7 +64,12 @@ public abstract class AbstractTextPropertySection extends
 			}
 		}
 	}
-	
+
+	/**
+	 * can be overriden but make sure to call super and respect thebehaviour of super
+	 * e.g. do not enable the text widget directly as this will override other disabling factors
+	 * instead, override isReadOnly() to OR in your disabling condition
+	 */
 	@Override
 	public void refresh() {
 		super.refresh();

@@ -25,27 +25,12 @@ import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;
  */
 public abstract class AbstractIumlbPropertySection extends
 		AbstractModelerPropertySection {
-	
-//	/**
-//	 * the property sheet page for this section.
-//	 */
-//	protected TabbedPropertySheetPage propertySheetPage;
-//
-//	/**
-//	 * the GMF editing domain for the current diagram editor
-//	 */
-//	protected TransactionalEditingDomain editingDomain = null;
 
 	/**
 	 * The currently selected EventBElement or the first object in the selection
 	 * when multiple objects are selected.
 	 */
 	protected EventBElement owner;
-//
-//	/**
-//	 *
-//	 */
-//	protected Composite parent;
 	
 	
 	@Override
@@ -80,18 +65,7 @@ public abstract class AbstractIumlbPropertySection extends
 	 */
 	protected abstract EStructuralFeature getFeature();
 
-
-//	@Override
-//	public void createControls(final Composite parent, final TabbedPropertySheetPage propertySheetPage) {
-//		super.createControls(parent, propertySheetPage);
-//		this.parent = parent;
-//		this.propertySheetPage = propertySheetPage;
-//		IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-//		if (activeEditor instanceof DiagramEditor) {
-//			editingDomain = ((DiagramEditor) activeEditor).getEditingDomain();
-//		}
-//	}
-//	
+	
 	@Override
 	public void setInput(final IWorkbenchPart part, final ISelection selection) {
 		super.setInput(part, selection);
