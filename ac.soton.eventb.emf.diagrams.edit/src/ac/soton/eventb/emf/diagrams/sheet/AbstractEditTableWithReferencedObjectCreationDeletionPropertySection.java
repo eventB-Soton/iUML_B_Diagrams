@@ -49,6 +49,11 @@ public abstract class AbstractEditTableWithReferencedObjectCreationDeletionPrope
 	@Override
 	protected FormAttachment moreButtons(FormAttachment leftData, FormAttachment topData, FormAttachment bottomData){
 		
+		//change labels of add/remove buttons to link/un-link which is more appropriate for a reference
+		//and will match the creat/delete and link/un-link buttons we are adding here
+		if (addButton!=null) addButton.setText("Link "+getButtonLabelText());
+		if (removeButton!=null) removeButton.setText("Un-link "+getButtonLabelText());
+		
 		Control[] children = parent.getChildren();
 		FormData data;
 		

@@ -122,8 +122,6 @@ public class ElaboratesPropertySection extends AbstractEditTableWithReferencedOb
 	@Override
 	protected FormAttachment moreButtons(FormAttachment buttonLeftData, FormAttachment buttonTopData, FormAttachment buttonBottomData){
 		
-		if (addButton!=null) addButton.setText("Link "+getButtonLabelText());
-		if (removeButton!=null) removeButton.setText("Un-link "+getButtonLabelText());
 		Control[] children = parent.getChildren();
 		FormAttachment leftData = super.moreButtons(buttonLeftData, buttonTopData, buttonBottomData);
 				
