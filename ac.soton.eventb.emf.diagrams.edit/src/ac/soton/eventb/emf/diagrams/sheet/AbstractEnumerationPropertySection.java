@@ -98,6 +98,7 @@ public abstract class AbstractEnumerationPropertySection
 	public void refresh() {
 		combo.setItems(getEnumerationFeatureValues());
 		combo.setText(getFeatureAsText());
+		combo.setEnabled(!isReadOnly());	
 	}
 
 	/**

@@ -78,13 +78,6 @@ public class DataKindPropertySection extends AbstractEnumerationPropertySection 
 	}
 	
 	@Override
-	public void refresh() {
-		combo.setItems(getEnumerationFeatureValues());
-		combo.setText(getFeatureAsText());
-		combo.setEnabled(((EventBDataElaboration)eObject).getElaborates() == null);
-	}
-
-	@Override
 	protected Object getFeatureByValue(Object value) {
 		Integer ftValue = (Integer)value; 
 		return DataKind.get(ftValue);
@@ -95,4 +88,8 @@ public class DataKindPropertySection extends AbstractEnumerationPropertySection 
 		return DataKind.VALUES;
 	}
 
+	@Override
+	protected boolean isReadOnly(){
+		return super.isReadOnly() || ((EventBDataElaboration)eObject).getElaborates() != null;
+	}
 }

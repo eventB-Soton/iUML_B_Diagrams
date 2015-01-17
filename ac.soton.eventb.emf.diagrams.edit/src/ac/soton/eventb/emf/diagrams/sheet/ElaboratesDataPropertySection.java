@@ -113,6 +113,7 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 	
 	@SuppressWarnings("rawtypes")
 	private boolean isRefinement() {
+		if (eObject==null) return false;
 		EStructuralFeature refinesFeature = eObject.eClass().getEStructuralFeature("refines");
 		Object refines = refinesFeature==null? null : eObject.eGet(refinesFeature);
 		return 	refines == null? false : 

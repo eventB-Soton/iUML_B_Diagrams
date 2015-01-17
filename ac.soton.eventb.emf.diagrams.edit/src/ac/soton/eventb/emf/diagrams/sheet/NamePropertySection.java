@@ -53,12 +53,8 @@ public class NamePropertySection extends AbstractTextPropertySection {
 	}
 	
 	@Override
-	public void refresh() {
-		super.refresh();
-		if (eObject instanceof EventBDataElaboration && ((EventBDataElaboration) eObject).getElaborates() != null){
-			getTextWidget().setEnabled(false);
-		} else {
-			getTextWidget().setEnabled(true);
-		}
+	public boolean isReadOnly() {
+		return super.isReadOnly() || 
+			(eObject instanceof EventBDataElaboration && ((EventBDataElaboration) eObject).getElaborates() != null);
 	}
 }
