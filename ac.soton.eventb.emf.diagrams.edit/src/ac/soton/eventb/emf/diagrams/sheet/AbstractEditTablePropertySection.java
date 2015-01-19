@@ -26,6 +26,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.change.util.ChangeRecorder;
 import org.eclipse.emf.edit.command.AddCommand;
 import org.eclipse.emf.edit.command.ChangeCommand;
@@ -134,7 +135,14 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 			while ((feature=getFeatureForCol(col++)) != null){
 				String value = "<unknown feature>";
 				if (feature instanceof EStructuralFeature){
-					Object featureValue = ((EObject)object).eGet((EStructuralFeature)feature);
+					Object featureValue = null;
+					if (feature==EcorePackage.Literals.EREFERENCE__CONTAINER){
+						featureValue = ((EObject)object).eContainer();
+					}else if (feature==EcorePackage.Literals.EREFERENCE__CONTAINMENT){
+						featureValue = ((EObject)object).eContainingFeature().getName();
+					}else{	
+						featureValue = ((EObject)object).eGet((EStructuralFeature)feature);
+					}
 					if (featureValue instanceof String){
 						value=(String)featureValue;
 					}else if (featureValue instanceof List){
