@@ -73,22 +73,21 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 	@Override
 	protected Object getFeatureForCol(int col) {
 		switch (col) {
-		case 0 : return CorePackage.eINSTANCE.getEventBNamed_Name();
-		case 1 : return EcorePackage.eINSTANCE.eContainer();
-		case 2 : return EcorePackage.eINSTANCE.eContainmentFeature();
-		case 3 : return CorePackage.eINSTANCE.getEventBCommented_Comment();
+		case 0 : return EcorePackage.Literals.EREFERENCE__CONTAINER;
+		case 1 : return CorePackage.Literals.EVENT_BNAMED__NAME;
+		case 2 : return CorePackage.Literals.EVENT_BCOMMENTED__COMMENT;
 		default : return null;
 		}
 	}
 	
 	@Override
 	protected boolean isMulti(final int col){
-		return col==3;
+		return col==2;
 	}
 	
 	@Override
 	protected boolean isReadOnly(final int col) {
-		return  col==1 || col==2;
+		return  col==0;
 	}
 
 	@Override
@@ -181,10 +180,13 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 	private static ILabelProvider dataLabelProvider = new LabelProvider() {
 		@Override
 		public String getText(Object element) {
+			EventBElement container = (EventBElement) (element instanceof EventBElement? 
+					((EventBElement)element).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT) : null);
+			String containerName = container instanceof EventBNamed?  ((EventBNamed)container).getName() : "?";
 			if (element instanceof EventBNamed){
-				return ((EventBNamed)element).getName();
+				return containerName+" : "+((EventBNamed)element).getName();
 			} else if (element instanceof EventBLabeled){
-				return ((EventBLabeled)element).getLabel();
+				return containerName+" : "+((EventBLabeled)element).getLabel();
 			} else {
 				return "<unknown>";				
 			}
