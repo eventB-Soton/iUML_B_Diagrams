@@ -143,11 +143,14 @@ The EMF id of an EReference feature in the target meta-model which will contain 
          <attribute name="target_priority" type="string">
             <annotation>
                <documentation>
-                  CURRENTLY NOT USED
+                  CURRENTLY NOT USED (the priorities shown here can be set in the generation descriptors produced by rules).
+                  
 Can be used to indicate positioning within the containment feature. 
 
 10 - must come first
-0 - not important
+1 - not important
+---user entered items---
+0 must come after user entered items
 -10 must come last
 
 The numbers can be used to ensure relative positioning within the rules of this generator
