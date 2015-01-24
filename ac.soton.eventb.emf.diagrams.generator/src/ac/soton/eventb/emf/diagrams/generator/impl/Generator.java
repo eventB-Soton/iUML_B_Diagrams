@@ -253,67 +253,69 @@ public class Generator {
 		List<Resource> modifiedResources = new ArrayList<Resource>();
 		Map<EList,Integer> positions = new HashMap<EList,Integer>();
 		for (int pri=10; pri>=-10; pri--){
-			if (priorities.containsKey(pri))
-			for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
-				if (generationDescriptor.remove == false && filter(generationDescriptor)) continue;								
-				Resource resource = null;
-				Object value = generationDescriptor.value;
-				if (generationDescriptor.parent != null && 
-					generationDescriptor.parent.eClass().getEAllStructuralFeatures().contains(generationDescriptor.feature) &&
-					generationDescriptor.feature.getEType().isInstance(value)){
-					
-					Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
-
-					if (featureValue instanceof EList){	
-						if(generationDescriptor.remove == false){
-							if (generationDescriptor.value instanceof EventBElement){						
-								EventBElement newChild = ((EventBElement)generationDescriptor.value);					
-								// set the generated property
-								newChild.setLocalGenerated(true);				
-								// add an attribute with this generators ID
-								Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
-								genID.setValue(generatedByID);
-								genID.setType(AttributeType.STRING);
-								newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
-							}
-							if (pri >0 ){
-								int pos = 0;
-								if (positions.containsKey((EList)featureValue)){
-									pos = positions.get(featureValue);
+			positions.clear();
+			if (priorities.containsKey(pri)){
+				for (GenerationDescriptor generationDescriptor : priorities.get(pri)){
+					if (generationDescriptor.remove == false && filter(generationDescriptor)) continue;								
+					Resource resource = null;
+					Object value = generationDescriptor.value;
+					if (generationDescriptor.parent != null && 
+						generationDescriptor.parent.eClass().getEAllStructuralFeatures().contains(generationDescriptor.feature) &&
+						generationDescriptor.feature.getEType().isInstance(value)){
+						
+						Object featureValue = generationDescriptor.parent.eGet(generationDescriptor.feature);
+	
+						if (featureValue instanceof EList){	
+							if(generationDescriptor.remove == false){
+								if (generationDescriptor.value instanceof EventBElement){						
+									EventBElement newChild = ((EventBElement)generationDescriptor.value);					
+									// set the generated property
+									newChild.setLocalGenerated(true);				
+									// add an attribute with this generators ID
+									Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
+									genID.setValue(generatedByID);
+									genID.setType(AttributeType.STRING);
+									newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
 								}
-								((EList)featureValue).add(0, generationDescriptor.value);
-								positions.put((EList)featureValue,new Integer(pos+1));
-							}else{
-								((EList)featureValue).add(generationDescriptor.value);
+								if (pri >0 ){
+									int pos = 0;
+									if (positions.containsKey((EList)featureValue)){
+										pos = positions.get(featureValue);
+									}
+									((EList)featureValue).add(pos, generationDescriptor.value);
+									positions.put((EList)featureValue,new Integer(pos+1));
+								}else{
+									((EList)featureValue).add(generationDescriptor.value);
+								}
 							}
-						}
-						else{
-							ArrayList<Object> toRemove = new ArrayList<Object>();
-							for(Object obj : (EList)featureValue){
-								if(match(obj, generationDescriptor.value))
-									toRemove.add(obj);
+							else{
+								ArrayList<Object> toRemove = new ArrayList<Object>();
+								for(Object obj : (EList)featureValue){
+									if(match(obj, generationDescriptor.value))
+										toRemove.add(obj);
+								}
+								((EList)featureValue).removeAll(toRemove);
 							}
-							((EList)featureValue).removeAll(toRemove);
-						}
-					}else {
-						if(generationDescriptor.remove == false){
-							//FIXME: this should be analysed more
-							generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
-						}
-						else
-							if  (generationDescriptor.feature.isUnsettable())
-								generationDescriptor.parent.eUnset(generationDescriptor.feature);
+						}else {
+							if(generationDescriptor.remove == false){
+								//FIXME: this should be analysed more
+								generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.value);
+							}
 							else
-								generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.feature.getDefaultValue());
+								if  (generationDescriptor.feature.isUnsettable())
+									generationDescriptor.parent.eUnset(generationDescriptor.feature);
+								else
+									generationDescriptor.parent.eSet(generationDescriptor.feature, generationDescriptor.feature.getDefaultValue());
+						}
+						
+						//add to list of modifiedResources if not already there
+						resource = generationDescriptor.parent.eResource();
+					}else{
+						//Error messages are generated elsewhere - should not get here.
 					}
-					
-					//add to list of modifiedResources if not already there
-					resource = generationDescriptor.parent.eResource();
-				}else{
-					//Error messages are generated elsewhere - should not get here.
-				}
-				if (resource!= null && !modifiedResources.contains(resource)){
-					modifiedResources.add(resource);
+					if (resource!= null && !modifiedResources.contains(resource)){
+						modifiedResources.add(resource);
+					}
 				}
 			}
 		}
