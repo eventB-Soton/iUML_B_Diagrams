@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.context.Axiom;
 import org.eventb.emf.core.context.CarrierSet;
@@ -36,6 +37,10 @@ import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
  */
 
 public class Make {
+	
+	public static String generatedById(AbstractExtension sourceElement){
+		return sourceElement.getExtensionId();
+	}
 	
 	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority){
 		return new GenerationDescriptor(parent,feature,value,Integer.valueOf(priority));

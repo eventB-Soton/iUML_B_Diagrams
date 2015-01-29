@@ -46,7 +46,7 @@ public class Is {
 		if (sourceElement instanceof EventBObject){
 			AbstractExtension ae = (AbstractExtension) ((EventBObject) sourceElement).getContaining(CorePackage.Literals.ABSTRACT_EXTENSION);
 			if (ae instanceof AbstractExtension){
-				return generatedBy(object, ((AbstractExtension)ae).getExtensionId());
+				return generatedBy(object, Make.generatedById(ae));
 			}
 		}
 		return false;

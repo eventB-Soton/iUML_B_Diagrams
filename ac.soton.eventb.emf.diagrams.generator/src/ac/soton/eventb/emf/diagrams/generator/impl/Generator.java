@@ -30,6 +30,7 @@ import org.eventb.emf.core.AttributeType;
 import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
+import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
 import org.eventb.emf.core.machine.Action;
@@ -39,6 +40,7 @@ import org.eventb.emf.core.machine.Guard;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 import ac.soton.eventb.emf.diagrams.generator.IRule;
+import ac.soton.eventb.emf.diagrams.generator.utils.Make;
 
 /**
  * A generic Generator which is configured from rule classes which have been declared in an extension point.
@@ -86,7 +88,7 @@ public class Generator {
  * @param sourceElement 
  */
 	public List<Resource> generate (TransactionalEditingDomain editingDomain, final EventBElement sourceElement){
-		String sourceExtensionID;
+		String generatedByID;
 		List<Resource> modifiedResources = new ArrayList<Resource>();
 		try {
 			
@@ -103,8 +105,8 @@ public class Generator {
 			}
 			
 			//Obtain the extension ID from the source element
-			sourceExtensionID = ((AbstractExtension)sourceElement).getExtensionId();
-			assert(sourceExtensionID != null && sourceExtensionID.startsWith(generatorConfig.generatorID));
+			generatedByID = Make.generatedById(((AbstractExtension)sourceElement));
+			assert(generatedByID != null && generatedByID.startsWith(generatorConfig.generatorID));
 			
 			//do the generation
 			doGenerate(sourceElement);
@@ -124,9 +126,7 @@ public class Generator {
 			}
 
 			//create new EventB components
-			modifiedResources.addAll(
-					createNewComponents(editingDomain, sourceElement)
-					);
+			modifiedResources.addAll(createNewComponents(editingDomain, sourceElement, generatedByID));
 
 //			DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, sourceElement);
 //			if (deleteGeneratedCommand.canExecute()){
@@ -135,7 +135,7 @@ public class Generator {
 //				Activator.logError(Messages.GENERATOR_MSG_03);
 //				return null;
 //			}
-			GeneratedRemover genRemover = new GeneratedRemover(editingDomain, sourceElement);
+			GeneratedRemover genRemover = new GeneratedRemover(editingDomain, sourceElement, generatedByID);
 			modifiedResources.addAll(genRemover.removeGenerated());
 			
 		} catch (Exception e) {
@@ -148,7 +148,7 @@ public class Generator {
 		// This is so that we do not leave the model in an inconsistent state if the generation fails)
 		try {
 			modifiedResources.addAll(
-					placeGenerated(editingDomain, sourceExtensionID)
+					placeGenerated(editingDomain, generatedByID)
 					);
 			removeComponents(editingDomain, sourceElement);
 		} catch (Exception e) {
@@ -211,23 +211,20 @@ public class Generator {
  * @param sourceElement
  * @return list of new Resources
  */
-	private Collection<? extends Resource> createNewComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement) throws IOException {
+	private Collection<? extends Resource> createNewComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement, String generatedByID) throws IOException {
 		List<Resource> newResources = new ArrayList<Resource>();
-		String projectName = sourceElement.getURI().trimFragment().trimSegments(1).lastSegment();
+		String projectName = sourceElement.getURI().segment(1);
 		URI projectUri = URI.createPlatformResourceURI(projectName, true);
 		for (GenerationDescriptor generationDescriptor : generatedElements){
-			if (generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
-					generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
-					String fileName = ((EventBNamedCommentedComponentElement)generationDescriptor.value).getName();
+			if (generationDescriptor.remove == false && 
+				generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
+				generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
+					String fileName = ((EventBNamed)generationDescriptor.value).getName();
 					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc"); //$NON-NLS-1$
-					String fileString = fileUri.toString();
-					
-					if(generationDescriptor.remove == false){
-						Resource newResource = editingDomain.createResource(fileString);
-						newResource.getContents().add((EventBNamedCommentedComponentElement)generationDescriptor.value);
-						newResources.add(newResource);
-					}
-						
+					setGeneratedBy(generatedByID, (EventBElement)generationDescriptor.value);
+					Resource newResource = editingDomain.createResource(fileUri.toString());
+					newResource.getContents().add((EObject)generationDescriptor.value);
+					newResources.add(newResource);
 			}
 		}
 		return newResources;
@@ -269,13 +266,7 @@ public class Generator {
 							if(generationDescriptor.remove == false){
 								if (generationDescriptor.value instanceof EventBElement){						
 									EventBElement newChild = ((EventBElement)generationDescriptor.value);					
-									// set the generated property
-									newChild.setLocalGenerated(true);				
-									// add an attribute with this generators ID
-									Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
-									genID.setValue(generatedByID);
-									genID.setType(AttributeType.STRING);
-									newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
+									setGeneratedBy(generatedByID, newChild);
 								}
 								if (pri >0 ){
 									int pos = 0;
@@ -321,6 +312,21 @@ public class Generator {
 		}
 		return modifiedResources;
 	}
+
+
+/**
+ * @param generatedByID
+ * @param newChild
+ */
+private void setGeneratedBy(String generatedByID, EventBElement newChild) {
+	// set the generated property
+	newChild.setLocalGenerated(true);				
+	// add an attribute with this generators ID
+	Attribute genID =   CoreFactory.eINSTANCE.createAttribute();
+	genID.setValue(generatedByID);
+	genID.setType(AttributeType.STRING);
+	newChild.getAttributes().put(Identifiers.GENERATOR_ID_KEY,genID);
+}
 
 	/*
 	 * Filters out any generationDescriptors that should not be acted upon
