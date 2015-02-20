@@ -34,6 +34,12 @@ public class Messages extends NLS {
 	public static String GENERATOR_MSG_10;
 	public static String GENERATOR_MSG_11;
 	public static String GENERATOR_MSG_12;
+	public static String GENERATOR_MSG_12(EventBElement element){
+		return bind(GENERATOR_MSG_12,
+				element.eClass().getName(),
+				element instanceof EventBNamed ? ((EventBNamed)element).getName() : element.toString()
+				);
+	}
 	public static String GENERATOR_MSG_13;
 	public static String GENERATOR_MSG_13(EventBElement element){
 		return bind(GENERATOR_MSG_13,
@@ -44,7 +50,13 @@ public class Messages extends NLS {
 	public static String GENERATOR_MSG_14;
 	public static String GENERATOR_MSG_15;
 	public static String GENERATOR_MSG_16;
-	//public static String GENERATOR_MSG_17; deleted
+	public static String GENERATOR_MSG_17;
+	public static String GENERATOR_MSG_17(EventBElement element){
+		return bind(GENERATOR_MSG_17,
+				element.eClass().getName(),
+				element instanceof EventBNamed ? ((EventBNamed)element).getName() : element.toString()
+				);
+	}
 	public static String GENERATOR_MSG_18;
 	public static String GENERATOR_MSG_18(Object object){
 		return bind(GENERATOR_MSG_18,object);
