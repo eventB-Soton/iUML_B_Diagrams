@@ -33,6 +33,7 @@ import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
+import org.eventb.emf.core.context.Context;
 import org.eventb.emf.core.machine.Action;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Guard;
@@ -156,13 +157,10 @@ public class Generator {
 			return null;
 		}
 		
-		
-		
 		modifiedResources.add(sourceElement.eContainer().eResource());
-		
-		return modifiedResources;
-			
+		return modifiedResources;	
 	}
+	
 	/**
 	 * Removes Event-B components according to the descriptors
 	 * 
@@ -178,26 +176,18 @@ public class Generator {
 			if (generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
 					generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
 				String fileName = ((EventBNamedCommentedComponentElement)generationDescriptor.value).getName();
-				URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc"); //$NON-NLS-1$
+				String ext = generationDescriptor.value instanceof Context? "buc" :  "bum";
+				URI fileUri = projectUri.appendSegment(fileName).appendFileExtension(ext); //$NON-NLS-1$
 				if(generationDescriptor.remove == true){	
 					Resource oldResource = editingDomain.getResourceSet().getResource(fileUri, false);
 					if(oldResource != null) {
 						oldResource.delete(Collections.EMPTY_MAP);
-						
-					}
-						
+					}	
 				}
-
 			}
 		}
-
-
-
-
 	}
 
-	
-	
 /*
  * If any generated elements are a new EventB component (e.g. machine, context) this creates a new resource
  * for them in the editing domains resource set and attaches the new element as the content of the resource.
@@ -220,7 +210,8 @@ public class Generator {
 				generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
 				generationDescriptor.value instanceof EventBNamedCommentedComponentElement){
 					String fileName = ((EventBNamed)generationDescriptor.value).getName();
-					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension("buc"); //$NON-NLS-1$
+					String ext = generationDescriptor.value instanceof Context? "buc" :  "bum";
+					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension(ext); //$NON-NLS-1$
 					setGeneratedBy(generatedByID, (EventBElement)generationDescriptor.value);
 					Resource newResource = editingDomain.createResource(fileUri.toString());
 					newResource.getContents().add((EObject)generationDescriptor.value);
