@@ -39,10 +39,15 @@
                   name="transformations">
             </separator>
             <separator
-                  name="animations">
+                  name="additions">
             </separator>
             <separator
-                  name="additions">
+                  name="animations"
+                  visible="true">
+            </separator>
+            <separator
+                  name="commits"
+                  visible="true">
             </separator>
          </toolbar>
       </menuContribution>
