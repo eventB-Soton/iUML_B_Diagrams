@@ -46,6 +46,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.navigator.ICommonActionExtensionSite;
+import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.persistence.EMFRodinDB;
 
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
@@ -145,7 +146,6 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 				IFile diagramFile = project.getFile(filename);
 				URI diagramURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toOSString(), true);
 			
-
 				// create and initialise a file, if it doesn't exist
 				if (diagramFile.exists() == false) {
 					Resource resource = getEditingDomain().getResourceSet().createResource(diagramURI);
@@ -180,11 +180,18 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 		 */
 		private Diagram getDiagramToOpen(Resource resource) {
 			Diagram diagram = null;
-			for (EObject e : resource.getContents())
-				if (e instanceof Diagram && EcoreUtil.equals(((Diagram) e).getElement(), getDiagramDomainElement())) {
-					diagram = (Diagram) e;
-					break;
-				}
+			EObject de1 = getDiagramDomainElement();
+			String ref1;
+			if (de1 instanceof EventBElement && (ref1 = ((EventBElement)de1).getReference())!=null ){
+				for (EObject e : resource.getContents()){
+					EObject de2 = ((Diagram) e).getElement();			
+					if (e instanceof Diagram && de2 instanceof EventBElement &&
+							(ref1.equals(((EventBElement)de2).getReference()))){
+						diagram = (Diagram) e;
+						break;
+					}
+				}				
+			}
 			return diagram;
 		}
 
@@ -196,11 +203,9 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 		 * @throws ExecutionException
 		 */
 		protected Diagram initializeNewDiagram(final Resource resource) throws ExecutionException {
-			Diagram d = ViewService.createDiagram(getDiagramDomainElement(),
-					getDiagramKind(), getPreferencesHint());
+			Diagram d = ViewService.createDiagram(getDiagramDomainElement(), getDiagramKind(), getPreferencesHint());
 			if (d == null) {
-				throw new ExecutionException("Can't create diagram of '"
-						+ getDiagramKind() + "' kind");
+				throw new ExecutionException("Can't create diagram of '" + getDiagramKind() + "' kind");
 			}
 			resource.getContents().add(d);
 			try {
@@ -209,24 +214,18 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 							throws CoreException, InvocationTargetException,
 							InterruptedException {
 						try {
-							if (resource.isLoaded()
-									&& !getEditingDomain().isReadOnly(
-											resource)) {
-								resource
-										.save(getSaveOptions());
+							if (resource.isLoaded() && !getEditingDomain().isReadOnly(resource)) {
+								resource.save(getSaveOptions());
 							}
 						} catch (IOException ex) {
-							throw new InvocationTargetException(ex,
-									"Save operation failed");
+							throw new InvocationTargetException(ex, "Save operation failed");
 						}
 					}
 				}.run(null);
 			} catch (InvocationTargetException e) {
-				throw new ExecutionException("Can't create diagram of '"
-						+ getDiagramKind() + "' kind", e);
+				throw new ExecutionException("Can't create diagram of '" + getDiagramKind() + "' kind", e);
 			} catch (InterruptedException e) {
-				throw new ExecutionException("Can't create diagram of '"
-						+ getDiagramKind() + "' kind", e);
+				throw new ExecutionException("Can't create diagram of '" + getDiagramKind() + "' kind", e);
 			}
 			return d;
 		}
