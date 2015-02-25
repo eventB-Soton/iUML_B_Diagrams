@@ -34,46 +34,30 @@
            style="push">
      </command>
   </menuContribution>
-  <menuContribution
-        allPopups="true"
-        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=commits">
-     <command
-           commandId="ac.soton.eventb.emf.diagrams.generator.commit"
-           icon="icons/Commit.png"
-           label="commit"
-           style="push">
-     </command>
-  </menuContribution>
 </extension>
 <extension
      point="org.eclipse.ui.commands">
-   <command
-         categoryId="ac.soton.eventb.emf.diagrams.generator.iUMLB"
-         description="Commit all iUML-B changes at this refinement level and propagate (this generates from all iUML-B diagrams, propagates changes to lower refinements and discards change recorders)"
-         id="ac.soton.eventb.emf.diagrams.generator.commit"
-         name="Commit all iUML-B changes at this refinement level and propagate">
-   </command>
   <command
-        categoryId="ac.soton.eventb.emf.diagrams.generator.iUMLB"
+        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
         description="Generate from all iUML-B diagrams in the current refinement level (this does not commit diagram changes)"
         id="ac.soton.eventb.emf.diagrams.generator.generateEventBAll"
         name="Generate from all iUML-B diagrams in the current refinement level ">
   </command>
   <command
-        categoryId="ac.soton.eventb.emf.diagrams.generator.iUMLB"
+        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
         description="Validate the current diagram model"
         id="ac.soton.eventb.emf.diagrams.generator.validate"
         name="Validate the current diagram model">
   </command>
   <command
-        categoryId="ac.soton.eventb.emf.diagrams.generator.iUMLB"
+        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
         description="Generate from the current diagram (this does not commit diagram changes)"
         id="ac.soton.eventb.emf.diagrams.generator.generateEventB"
         name="Generate from the current diagram">
   </command>
   <category
         description="Commands associated with iUML-B Diagrams"
-        id="ac.soton.eventb.emf.diagrams.generator.iUMLB"
+        id="ac.soton.eventb.emf.diagrams.iUMLB"
         name="iUML-B Commands">
   </category>
 </extension>
@@ -121,27 +105,7 @@
          </activeWhen>
       </handler>
       <handler
-            class="ac.soton.eventb.emf.diagrams.generator.actions.CommitAction"
-            commandId="ac.soton.eventb.emf.diagrams.generator.commit">
-         <enabledWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </enabledWhen>
-         <activeWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </activeWhen>
-      </handler>
-      <handler
-            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllAction"
+            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler"
             commandId="ac.soton.eventb.emf.diagrams.generator.generateEventBAll">
          <enabledWhen>
             <with

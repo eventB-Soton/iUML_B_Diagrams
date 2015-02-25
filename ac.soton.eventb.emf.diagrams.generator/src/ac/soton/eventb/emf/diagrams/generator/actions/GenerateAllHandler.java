@@ -15,12 +15,14 @@ import java.util.List;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.Diagnostician;
+import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -43,7 +45,7 @@ import ac.soton.eventb.emf.diagrams.generator.impl.Messages;
  * @author cfs
  *
  */
-public class GenerateAllAction extends AbstractHandler {
+public class GenerateAllHandler extends AbstractHandler {
 
 	List<EventBElement> generateList = null;
 	
@@ -59,51 +61,64 @@ public class GenerateAllAction extends AbstractHandler {
 			if (editor.isDirty()) editor.doSave(new NullProgressMonitor());	 // save before transformation
 			if (ValidateAction.validate(diagramDocumentEditor)) {			//do not proceed if validation of current diagram fails
 				EObject element = diagramDocumentEditor.getDiagram().getElement();
-				if (element instanceof EventBElement){
-					EventBObject component = ((EventBElement)element).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-					generateList = new ArrayList<EventBElement>();
-					getDiagramRoots(component, null);
-					for (EventBElement eventBElement : generateList){
-						if (validateElement(eventBElement, editor.getSite().getShell())){ //validate this element
-							final GenerateCommand generateCommand = new GenerateCommand(
-									diagramDocumentEditor.getDiagramEditPart().getEditingDomain(), 
-									eventBElement); 
-							if (generateCommand.canExecute()) {	
-								// run with progress
-								ProgressMonitorDialog dialog = new ProgressMonitorDialog(diagramDocumentEditor.getSite().getShell());
-								try {
-									dialog.run(false, true, new IRunnableWithProgress(){
-									     public void run(IProgressMonitor monitor) { 
-									    	 monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
-									         try {
-									        	 generateCommand.execute(monitor, diagramDocumentEditor);
-									         } catch (ExecutionException e) {
-												Activator.logError(Messages.GENERATOR_MSG_06, e);
-									         }
-									         monitor.done();
-									     }
-									 });
-								} catch (InvocationTargetException e) {
-									Activator.logError(Messages.GENERATOR_MSG_07, e);
-									return null;
-								} catch (InterruptedException e) {
-									Activator.logError(Messages.GENERATOR_MSG_08, e);
-									return null;
-								} 
-			
-								// error feedback
-								if (false == generateCommand.getCommandResult().getStatus().isOK())
-									MessageDialog
-											.openError(editor.getSite().getShell(),
-													Messages.GENERATOR_MSG_09,
-													Messages.GENERATOR_MSG_10);
-							}
-						}
+				generateAllDiagrams(element, editor.getSite().getShell(), diagramDocumentEditor.getDiagramEditPart().getEditingDomain(), editor);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 
+	 * This can be called programmatically to do the same as the Generate All command Handler
+	 * 
+	 * @param element        - The root level element that might contain diagrams
+	 * @param shell          - The active shell for messages, or null
+	 * @param editingDomain  - The editing domain
+	 * @param info           -  THIS IS NOT USED.. pass null
+	 */
+	public void generateAllDiagrams(EObject element, Shell shell, TransactionalEditingDomain editingDomain, final IAdaptable info ) {
+		if (element instanceof EventBElement){
+			EventBObject component = ((EventBElement)element).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+			generateList = new ArrayList<EventBElement>();
+			getDiagramRoots(component, null);
+			for (EventBElement eventBElement : generateList){
+				if (validateElement(eventBElement, shell)){ //validate this element
+					final GenerateCommand generateCommand = new GenerateCommand(
+							editingDomain, 
+							eventBElement); 
+					if (generateCommand.canExecute()) {	
+						// run with progress
+						ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
+						try {
+							dialog.run(false, true, new IRunnableWithProgress(){
+							     public void run(IProgressMonitor monitor) { 
+							    	 monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
+							         try {
+							        	 generateCommand.execute(monitor, info);
+							         } catch (ExecutionException e) {
+										Activator.logError(Messages.GENERATOR_MSG_06, e);
+							         }
+							         monitor.done();
+							     }
+							 });
+						} catch (InvocationTargetException e) {
+							Activator.logError(Messages.GENERATOR_MSG_07, e);
+							return;
+						} catch (InterruptedException e) {
+							Activator.logError(Messages.GENERATOR_MSG_08, e);
+							return;
+						} 
+	
+						// error feedback
+						if (false == generateCommand.getCommandResult().getStatus().isOK())
+							MessageDialog
+									.openError(shell,
+											Messages.GENERATOR_MSG_09,
+											Messages.GENERATOR_MSG_10);
 					}
 				}
 			}
 		}
-		return null;
 	}
 
 	private static boolean validateElement(EventBElement eventBElement, Shell shell){
