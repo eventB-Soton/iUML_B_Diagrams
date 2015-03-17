@@ -61,4 +61,14 @@ public class Is {
 		}
 		return false;
 	}
+	
+	public static boolean generated(Object object){
+		if (object instanceof EventBElement){
+			Attribute generatedBy = ((EventBElement)object).getAttributes().get(Identifiers.GENERATOR_ID_KEY);
+			if (generatedBy!= null){
+				return true;
+			}
+		}
+		return false;
+	}
 }
