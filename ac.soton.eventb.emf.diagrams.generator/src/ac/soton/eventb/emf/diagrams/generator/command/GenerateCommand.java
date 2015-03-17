@@ -10,7 +10,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
@@ -117,10 +116,9 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 		} catch (RodinDBException e) {
 			Activator.logError(Messages.GENERATOR_MSG_19, e);
 			return CommandResult.newErrorCommandResult(e);
-		} catch (WrappedException e) {
+		} catch (Exception e) {
 			Activator.logError(Messages.GENERATOR_MSG_20, e);
 			return CommandResult.newErrorCommandResult(e);
-
 		} finally {
 			monitor.done();
 		}
