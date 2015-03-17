@@ -19,6 +19,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EObjectEList;
 import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.core.IEventBRoot;
@@ -217,6 +218,7 @@ public class DiagramUtil {
 		if (monitor!= null) monitor.beginTask("Copying " + sourceDiagramFileName, 1);
 		
 		final IFile sourceFile = project.getFile(new Path(sourceDiagramFileName));
+		if (!sourceFile.exists()) return;
 		String targetDiagramFileName = sourceDiagramFileName.replaceFirst( oldRootName, newRootName);			
 		final IFile targetFile = project.getFile(new Path(targetDiagramFileName));
 		try {
@@ -277,8 +279,16 @@ public class DiagramUtil {
 			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
 				dirty = updateModelReferencesForNewProjectName(abstractExtension, oldProjectName, newProjectName) || dirty;
 			}
-			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
-			eventBElement.eResource().unload();
+			Resource resource = eventBElement.eResource();
+			//unloading was causing a TED exception, need to stop delivering notifications  while unloading
+			//... but do we need to unload at all?  for now leave the component loaded
+			//boolean deliver = resource.eDeliver();
+			//resource.eSetDeliver(false); // turn off notifications
+			if (dirty = true){
+				resource.save(Collections.emptyMap());
+			}
+			//resource.unload();
+			//resource.eSetDeliver(deliver); // turn on notifications, maybe
 		} catch (IOException e) {
 			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
 		}
