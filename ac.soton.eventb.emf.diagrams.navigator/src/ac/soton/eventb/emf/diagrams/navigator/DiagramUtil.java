@@ -19,6 +19,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EObjectEList;
 import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.core.IEventBRoot;
@@ -51,7 +52,9 @@ public class DiagramUtil {
 				deleteDiagramFile(absExt);
 			}
 		}
-		eventBElement.eResource().unload();
+		if (eventBElement!=null && eventBElement.eResource()!= null && eventBElement.eResource().isLoaded()){
+			eventBElement.eResource().unload();
+		}
 	}
 
 //	THIS WAS AN ALTERNATIVE HACK TO TRY TO GET DELETE TO WORK FOR POST CHANGE NOTIFICATION BUT IT DIDN"T WORK
@@ -277,8 +280,12 @@ public class DiagramUtil {
 			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
 				dirty = updateModelReferencesForNewProjectName(abstractExtension, oldProjectName, newProjectName) || dirty;
 			}
+			Resource resource = eventBElement.eResource();
+			boolean deliver = resource.eDeliver();
+			resource.eSetDeliver(false);
 			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
 			eventBElement.eResource().unload();
+			resource.eSetDeliver(deliver);
 		} catch (IOException e) {
 			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
 		}
