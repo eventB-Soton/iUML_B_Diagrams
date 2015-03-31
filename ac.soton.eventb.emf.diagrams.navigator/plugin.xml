@@ -65,24 +65,6 @@
          point="org.eclipse.ui.menus">
       <menuContribution
             locationURI="popup:fr.systerel.explorer.navigator.view">
-         <!--command
-               commandId="ac.soton.eventb.statemachines.navigator.commands.addStatemachine"
-               icon="icons/NewStatemachine.gif"
-               label="Add Statemachine"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <iterate
-                        ifEmpty="false">
-                     <instanceof
-                           value="org.eventb.core.IMachineRoot">
-                     </instanceof>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command-->
          <command
                commandId="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
                label="Delete"
@@ -109,26 +91,128 @@
                </with>
             </visibleWhen>
          </command>
+         <menu
+               icon="icons/ChangeDescription.gif"
+               id="ac.soton.eventb.emf.diagrams.navigator.menus.refactoring"
+               label="iUML-B Refactoring ">
+            <command
+                  commandId="ac.soton.eventb.emf.diagrams.navigator.commands.commit"
+                  icon="icons/Commit.png"
+                  label="Commit Changes"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false">
+                        <or>
+                           <instanceof
+                                 value="org.eventb.core.IMachineRoot">
+                           </instanceof>
+                           <instanceof
+                                 value="org.eventb.core.IContextRoot">
+                           </instanceof>
+                        </or>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="ac.soton.eventb.emf.diagrams.navigator.commands.revert"
+                  icon="icons/Revert.png"
+                  label="Revert Changes"
+                  style="push">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false">
+                        <or>
+                           <instanceof
+                                 value="org.eventb.core.IMachineRoot">
+                           </instanceof>
+                           <instanceof
+                                 value="org.eventb.core.IContextRoot">
+                           </instanceof>
+                        </or>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:fr.systerel.explorer.navigator.view">
+         <menu
+               icon="icons/IUMLB.png"
+               id="ac.soton.eventb.emf.diagrams.navigator.addDiagram"
+               label="Add iUML-B....">
+         </menu>
       </menuContribution>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
-      <!--command
-            defaultHandler="ac.soton.eventb.statemachines.navigator.actions.AddStatemachineHandler"
-            id="ac.soton.eventb.statemachines.navigator.commands.addStatemachine"
-            name="Add Statemachine">
-      </command-->
       <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.CommitChangesHandler"
+            description="Commit all iUML-B changes at this refinement level"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.commit"
+            name="Commit Changes">
+      </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.RevertChangesHandler"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.revert"
+            name="Revert Changes">
+      </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.DeleteDiagramElementHandler"
             id="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
             name="Delete">
       </command>
+      <category
+        description="Commands associated with iUML-B Diagrams"
+        id="ac.soton.eventb.emf.diagrams.iUMLB"
+        name="iUML-B Commands">
+      </category>
    </extension>
+   
    <extension
          point="org.eclipse.ui.startup">
       <startup
             class="ac.soton.eventb.emf.diagrams.navigator.DiagramUpdaterListener">
       </startup>
    </extension>
-   
+   <extension
+         point="org.eclipse.emf.ecore.extension_parser">
+      <parser
+            class="org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl"
+            type="changes">
+      </parser>
+      <parser
+            class="org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl"
+            type="proxymap">
+      </parser>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.emf.ecore.xmi"
+            file-extensions="changes"
+            id="eventBChangeDescription"
+            name="Event-B Change Description"
+            priority="normal">
+      </content-type>
+      <content-type
+            base-type="org.eclipse.emf.ecore.xmi"
+            file-extensions="proxymap"
+            id="eventBChangeProxyMap"
+            name="Event-B Change Description Proxy Map"
+            priority="normal">
+      </content-type>
+  </extension>
 </plugin>
