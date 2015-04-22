@@ -11,13 +11,17 @@ import org.eclipse.emf.ecore.change.ChangeDescription;
 import org.eclipse.emf.ecore.change.util.ChangeRecorder;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.util.EcoreUtil.Copier;
 import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
+import org.eventb.emf.persistence.EMFRodinDB;
 
 public abstract class RefactorAssistant {
 
+	protected ChangeDescription changes;
 	protected Map<EObject,URI> proxyMap;
 	protected Resource res;
 	protected ResourceSet rs;
@@ -32,10 +36,13 @@ public abstract class RefactorAssistant {
 		res = component.eResource();
 		rs = res.getResourceSet();
 		ed = TransactionUtil.getEditingDomain(rs);
-		
+//		if (ed!= EMFRodinDB.INSTANCE.getEditingDomain()){
+//			int i=0;
+//		}
 		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
-		
+		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
+		EObject content = chRes.getContents().size()>0? chRes.getContents().get(0) : null;
+		changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
 	}
 	
 	/**
@@ -43,7 +50,7 @@ public abstract class RefactorAssistant {
 	 * @return true if the changes resource is not empty
 	 */
 	public boolean hasChanges() {
-		return chRes!=null &&  !chRes.getContents().isEmpty();
+		return changes!=null;
 	}
 
 	/**
@@ -64,8 +71,16 @@ public abstract class RefactorAssistant {
 	 */
 	public void deleteChangeRecords() {
 		try {
+			
+			disposeChangeRecords();
+			
+			chRes.eSetDeliver(false);
 			chRes.delete(Collections.EMPTY_MAP);
-			RefactorPersistence.INSTANCE.getProxyMapResource(res).delete(Collections.EMPTY_MAP);
+			
+			Resource pmr = RefactorPersistence.INSTANCE.getProxyMapResource(res);
+			pmr.eSetDeliver(false);
+			pmr.delete(Collections.EMPTY_MAP);
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -74,18 +89,13 @@ public abstract class RefactorAssistant {
 	
 	////////////////////////////// PROTECTED //////////////////////////////////
 	
-	/**
-	 * 
-	 * @return
-	 */
-	protected ChangeDescription getChangeDescription(){
-		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
-		EList<EObject> contents = chRes.getContents();
-		EObject content = contents.size()>0? chRes.getContents().get(0) : null;
-		ChangeDescription changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
-		return changes;
-	}
+//	/**
+//	 * 
+//	 * @return
+//	 */
+//	protected ChangeDescription getChangeDescription(){
+//		return changes;
+//	}
 	
 	////////////////////////////// COMMANDS //////////////////////////////////
 	
@@ -102,10 +112,17 @@ public abstract class RefactorAssistant {
 	}
 	
 	protected class CopyReverseCommand extends ChangeCommand {
-		ChangeDescription changes;
-		CopyReverseCommand(Resource chRes, ChangeDescription changes){
+		private ChangeDescription changes;
+		private Map<EObject, URI> proxyMap;
+		CopyReverseCommand(Resource chRes, ChangeDescription changes, Map<EObject, URI> proxyMap){
 			super(new ChangeRecorder(chRes).endRecording()); 	//!!! can't find a way to avoid this.. a change recorder to record what the change recorder does!
+			
+//			Copier copier = new Copier();
+//			copier.copy(changes);
+//			this.changes = copier.clone();
+			
 			this.changes = changes;
+			this.proxyMap = proxyMap;
 		}
 		@Override
 		public void doExecute(){

@@ -1,5 +1,6 @@
 package ac.soton.eventb.emf.diagrams.navigator.refactor;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
@@ -23,6 +24,8 @@ public class Recorder {
 	protected Resource res;
 	protected ResourceSet rs;
 	protected Resource chRes;
+	protected Resource pmRes;
+	protected boolean recordingInProgress;
 	
 	protected EventBNamedCommentedComponentElement component;
 	private TransactionalEditingDomain ed;
@@ -33,8 +36,10 @@ public class Recorder {
 		res = component.eResource();
 		rs = res.getResourceSet();
 		ed = TransactionUtil.getEditingDomain(rs);
+		recordingInProgress = false;
 		
 		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
+		pmRes = RefactorPersistence.INSTANCE.getProxyMapResource(res);
 		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
 	}
 	
@@ -47,7 +52,7 @@ public class Recorder {
 //	}
 	
 	/**
-	 * Resume recording for the given component.
+	 * Resume recording.
 	 * If no previous recording is found a new recording is started. 
 	 * 
 	 * @param component to record changes for
@@ -58,14 +63,30 @@ public class Recorder {
 			//TODO: log an error
 			return;
 		}
+		if (recordingInProgress) return;
 		ChangeDescription changes = getChangeDescription();
 		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
 		if (cr==null) 		
 			cr = new ChangeRecorder();
 		cr.setEObjectToProxyURIMap(proxyMap);
-		BeginRecordingCommand command = new BeginRecordingCommand(chRes, cr, changes , component);
+		BeginRecordingCommand command = new BeginRecordingCommand(changes);
 		ed.getCommandStack().execute(command);
 		command.dispose();
+		recordingInProgress = true;
+	}
+	
+	/**
+	 * End the recording.
+	 * saves (persists)  the changes in the current recorder and proxyMap
+	 * 
+	 */
+	public void endRecording() {
+		if (!recordingInProgress) return;
+		EndRecordingCommand erc = new EndRecordingCommand(); //chRes, cr);
+		ed.getCommandStack().execute(erc);
+		//ChangeDescription changes = erc.getChanges(); 
+		erc.dispose();
+		recordingInProgress = false;
 	}
 
 	/**
@@ -75,8 +96,8 @@ public class Recorder {
 		if (cr!=null) cr.dispose();
 		if (chRes!=null){
 			rs.getResources().remove(chRes);
-			rs.getResources().remove(
-					RefactorPersistence.INSTANCE.getProxyMapResource(res));
+			rs.getResources().remove(pmRes);
+					//RefactorPersistence.INSTANCE.getProxyMapResource(res));
 		}
 	}
 	
@@ -94,18 +115,28 @@ public class Recorder {
 //			e.printStackTrace();
 //		}
 //	}
+//	
 	
 	/**
-	 * saves (persists)  the changes in the current recorder and proxyMap
+	 * Convenience method that saves (persists)  the changes in the current recorder and proxyMap
+	 * if recording, endRecording is called first, then the changes resource and proxyMap resources are saved
+	 * 
+	 * N.B. Editors may automatically save all resources in the same resource set when editor save is performed.
+	 * Calling this extra save may cause synchronisation problems.
 	 * 
 	 */
 	public void saveChanges() {
-		EndRecordingCommand erc = new EndRecordingCommand(chRes, cr);
-		ed.getCommandStack().execute(erc);
-		ChangeDescription changes = erc.getChanges();
-		erc.dispose();
-		Resource proxyMapResource = RefactorPersistence.INSTANCE.getProxyMapResource(res);
-		RefactorPersistence.INSTANCE.saveChanges(chRes,changes,proxyMapResource,proxyMap);
+		if (recordingInProgress){
+			endRecording();
+		}
+		try {
+			chRes.save(Collections.EMPTY_MAP);
+			pmRes.save(Collections.EMPTY_MAP);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	
@@ -114,6 +145,9 @@ public class Recorder {
 	 * @return
 	 */
 	private ChangeDescription getChangeDescription(){
+		if (recordingInProgress){
+			endRecording();
+		}
 		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
 		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
 		EList<EObject> contents = chRes.getContents();
@@ -125,14 +159,14 @@ public class Recorder {
 	////////////////////////////// COMMANDS //////////////////////////////////
 	
 	protected class BeginRecordingCommand extends ChangeCommand {
-		ChangeRecorder cr;
+//		ChangeRecorder cr;
 		ChangeDescription changes;
-		EventBNamedCommentedComponentElement component;
-		 BeginRecordingCommand(Resource chRes, ChangeRecorder cr, ChangeDescription changes, EventBNamedCommentedComponentElement component){
+//		EventBNamedCommentedComponentElement component;
+		 BeginRecordingCommand(ChangeDescription changes){
 			super(new ChangeRecorder(chRes).endRecording());
-			this.cr = cr;
+//			this.cr = cr;
 			this.changes = changes;
-			this.component = component;
+//			this.component = component;
 		}
 		@Override
 		public void doExecute(){			
@@ -141,16 +175,25 @@ public class Recorder {
 	}
 	
 	protected class EndRecordingCommand extends ChangeCommand {
-		ChangeRecorder cr;
 		ChangeDescription changes;
-		 EndRecordingCommand(Resource chRes, ChangeRecorder cr){
+//		ChangeRecorder cr;
+//		Resource chRes;
+		 EndRecordingCommand(){
 			super(new ChangeRecorder(chRes).endRecording());
-			this.cr = cr;
+//			this.cr = cr;
+//			this.chRes = chRes;
 		}
 		@Override
 		public void doExecute(){
 			changes = cr.endRecording();
+			chRes.getContents().clear();
+			chRes.getContents().add(0, changes);
+			pmRes.getContents().clear();
+			EObject m = RefactorPersistence.INSTANCE.convert(proxyMap);
+			pmRes.getContents().add(m);
+
 		}
+		
 		public ChangeDescription getChanges() { return changes; }
 	}
 }

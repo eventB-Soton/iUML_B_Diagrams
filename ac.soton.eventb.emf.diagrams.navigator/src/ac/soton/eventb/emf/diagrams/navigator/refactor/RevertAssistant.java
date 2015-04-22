@@ -19,7 +19,7 @@ public class RevertAssistant extends RefactorAssistant {
 	 */
 	public void revertChangeRecords() {
 		if (!hasChanges()) return;
-		ApplyReverseCommand command = new ApplyReverseCommand(chRes, getChangeDescription());
+		ApplyReverseCommand command = new ApplyReverseCommand(chRes, changes);
 		ed.getCommandStack().execute(command);
 		command.dispose();
 		try {

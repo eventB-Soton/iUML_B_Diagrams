@@ -95,7 +95,7 @@ public class RefactorPersistence {
 		proxyMapEntryURIAttribute = (EAttribute) proxyMapEntryClass.getEStructuralFeature("proxyMapEntryURIAttribute");
 	}
 
-	private EObject convert(Map<EObject, URI> proxyMap) {
+	public EObject convert(Map<EObject, URI> proxyMap) {
 		EFactory proxyMapFactory = proxyMapPackage.getEFactoryInstance();
 		EObject proxyMapObject = proxyMapFactory.create(proxyMapClass);
 		@SuppressWarnings("unchecked")
@@ -109,7 +109,7 @@ public class RefactorPersistence {
 		return proxyMapObject;
 	}
 	
-	private Map<EObject, URI> convert(EObject proxyMapObject) {
+	public Map<EObject, URI> convert(EObject proxyMapObject) {
 		Map<EObject, URI> map = new HashMap<EObject, URI>();
 		if (proxyMapObject.eClass() == proxyMapClass){
 			@SuppressWarnings("unchecked")
@@ -146,50 +146,82 @@ public class RefactorPersistence {
 		return uri;
 	}
 	
-	/**
-	 * saves (persists)  the given changes and proxyMap in the changes and proxyMap resources
-	 * 
-	 * 
-	 */
-	public void saveChanges(Resource chRes, ChangeDescription changes, Resource proxyMapResource, Map<EObject,URI> proxyMap) {
-		if (changes!=null){
-			try {
-				boolean deliver = chRes.eDeliver();
-				boolean deliver2 = changes.eDeliver();
-				chRes.eSetDeliver(false);
-				changes.eSetDeliver(false);
-				EList<Adapter> adpt = changes.eAdapters();
-				changes.eAdapters().clear();
+//	/**
+//	 * inserts the given changes and proxyMap into the given changes and proxyMap resources
+//	 * 
+//	 * 
+//	 */
+//	public void putChangesInResources(Resource chRes, ChangeDescription changes, Resource proxyMapResource, Map<EObject,URI> proxyMap) {
+//		
+//		if (changes!=null && changes.eContents().size()>0){
+//			
+//			boolean deliver = chRes.eDeliver();
+//			boolean deliver2 = changes.eDeliver();
+//			chRes.eSetDeliver(false);
+//			changes.eSetDeliver(false);
+//			EList<Adapter> adpt = changes.eAdapters();
+//			changes.eAdapters().clear();
+//			chRes.eSetDeliver(false);
+//			chRes.getContents().clear();
+//			chRes.getContents().add(0, changes);
+//			chRes.eSetDeliver(deliver);
+//			changes.eAdapters().addAll(adpt);
+//			changes.eSetDeliver(deliver2);
+//			
+//			if (proxyMap!=null){
+//				deliver = proxyMapResource.eDeliver();
+//				proxyMapResource.eSetDeliver(false);
+//				proxyMapResource.getContents().clear();
+//				EObject m = convert(proxyMap);
+//				proxyMapResource.getContents().add(m);
+//				proxyMapResource.eSetDeliver(deliver);			
+//			}
+//			
+//		}
+//	}
 	
-				chRes.eSetDeliver(false);
-				chRes.getContents().clear();
-				chRes.getContents().add(0, changes);
-				chRes.eSetDeliver(deliver);
-				changes.eAdapters().addAll(adpt);
-				changes.eSetDeliver(deliver2);
-
-				chRes.save(Collections.EMPTY_MAP);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if (proxyMap!=null){
-			try {
-				boolean deliver = proxyMapResource.eDeliver();
-				proxyMapResource.eSetDeliver(false);
-				proxyMapResource.getContents().clear();
-				EObject m = convert(proxyMap);
-				proxyMapResource.getContents().add(m);
-				proxyMapResource.eSetDeliver(deliver);			
-
-				proxyMapResource.save(Collections.EMPTY_MAP);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
+//	/**
+//	 * saves (persists)  the given changes and proxyMap in the changes and proxyMap resources
+//	 * 
+//	 * 
+//	 */
+//	public void saveChanges(Resource chRes, ChangeDescription changes, Resource proxyMapResource, Map<EObject,URI> proxyMap) {
+//		if (changes!=null && changes.eContents().size()>0){
+//			try {
+//				boolean deliver = chRes.eDeliver();
+//				boolean deliver2 = changes.eDeliver();
+//				chRes.eSetDeliver(false);
+//				changes.eSetDeliver(false);
+//				EList<Adapter> adpt = changes.eAdapters();
+//				changes.eAdapters().clear();
+//				chRes.eSetDeliver(false);
+//				chRes.getContents().clear();
+//				chRes.getContents().add(0, changes);
+//				chRes.save(Collections.EMPTY_MAP);
+//				chRes.eSetDeliver(deliver);
+//				changes.eAdapters().addAll(adpt);
+//				changes.eSetDeliver(deliver2);
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			if (proxyMap!=null){
+//				try {
+//					boolean deliver = proxyMapResource.eDeliver();
+//					proxyMapResource.eSetDeliver(false);
+//					proxyMapResource.getContents().clear();
+//					EObject m = convert(proxyMap);
+//					proxyMapResource.getContents().add(m);
+//					proxyMapResource.save(Collections.EMPTY_MAP);
+//					proxyMapResource.eSetDeliver(deliver);			
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//
+//	}
 
 	public Map<EObject, URI> getProxyMap(Resource res) {
 		Resource proxyMapResource;
@@ -280,14 +312,15 @@ public class RefactorPersistence {
 	 */
 	public boolean hasChangesResource(EventBNamedCommentedComponentElement component){
 		//Resource res = component.eResource();
-		URI uri = component.getURI();
-		String oldFileExtension = component instanceof Machine? "bum" : "buc"; //uri.fileExtension();
-		uri = uri.trimFileExtension();
-		String componentName =  component.getName(); //uri.segments()[uri.segmentCount()-1];
-		uri = uri.trimSegments(1);
-		uri = uri.appendSegment("changes");
-		uri = uri.appendSegment(componentName+"."+oldFileExtension);
-		uri = uri.appendFileExtension("changes");
+		//URI uri = component.getURI();
+		URI	uri = getRelatedURI(component.eResource(), changesFolder, null, "changes");
+//		String oldFileExtension = component instanceof Machine? "bum" : "buc"; //uri.fileExtension();
+//		uri = uri.trimFileExtension();
+//		String componentName =  component.getName(); //uri.segments()[uri.segmentCount()-1];
+//		uri = uri.trimSegments(1);
+//		uri = uri.appendSegment("changes");
+//		uri = uri.appendSegment(componentName+"."+oldFileExtension);
+//		uri = uri.appendFileExtension("changes");
 		Path path = new Path(uri.toPlatformString(true));
 		//boolean exists = ResourcesPlugin.getWorkspace().getRoot().exists(path);
 		return ResourcesPlugin.getWorkspace().getRoot().exists(path);

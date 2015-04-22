@@ -8,15 +8,23 @@
 
 package ac.soton.eventb.emf.diagrams.navigator.handler;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.change.ChangeDescription;
+import org.eclipse.emf.ecore.impl.BasicEObjectImpl;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.core.IMachineRoot;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
@@ -25,7 +33,9 @@ import org.eventb.emf.persistence.EMFRodinDB;
 
 import ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.CommitAssistant;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.Recorder;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.RefactorPersistence;
+
 
 /**
  * Commit changes handler.
@@ -55,13 +65,13 @@ public class CommitChangesHandler extends AbstractHandler {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
 			if (element instanceof IMachineRoot) {
 				EventBNamedCommentedComponentElement component = (EventBNamedCommentedComponentElement) EMFRodinDB.INSTANCE.loadEventBComponent((IMachineRoot)element);
-
-				CommitAssistant commitAssistant = new CommitAssistant(component);		
-				
+				String projectName = EMFRodinDB.INSTANCE.getProjectName(component);
+				List<EventBNamedCommentedComponentElement> components = EMFRodinDB.INSTANCE.loadAllComponents(projectName);
+		
 				// Check that there is a change record for this refinement level
-				if (commitAssistant.hasChanges()){
+				if (RefactorPersistence.INSTANCE.hasChangesResource(component)){
 					
-					if (!hasLowerLevelChanges(component)){
+					if (!hasLowerLevelChanges(component,components)){
 					
 						boolean ok = MessageDialog.openConfirm(shell,
 					    		  "Confirm Commit", 
@@ -69,28 +79,85 @@ public class CommitChangesHandler extends AbstractHandler {
 					    		  "This consists of:\n"+
 					    			  "* propagating the changes made in the current selected component to each lower refinement\n"+
 					    			  "* delete the change record for the current selected component\n"+
-					    			  "* generate all diagrams in the current selected component and all lower level refinements."
+					    			  "* generate all diagrams in the current selected component and all lower level refinements.\n"+
+					    			  "(all editors will be closed automatically before commit begins)"
 					    			);
 						if (ok){
+							
+							//save/close all diagrams
+							for(IWorkbenchPage pg : HandlerUtil.getActiveWorkbenchWindow(event).getPages()){
+								pg.closeAllEditors(true);
+//						    	for(IEditorReference editorRef: pg.getEditorReferences()){
+//						    		IEditorPart editor = editorRef.getEditor(true);
+//						    		if (editor instanceof DiagramEditor) {
+//						    			DiagramEditor diagramEditor = (DiagramEditor) editor;
+//						    			EObject diagramElement = diagramEditor.getDiagram().getElement();
+//						    			Resource resource = diagramElement.eResource();
+//						    			if (diagramElement instanceof EventBObject){
+//					    					EventBObject c = ((EventBObject)diagramElement).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+//					    					if (c!= null && components.contains(c)){
+//					    						if (diagramEditor.isDirty()){
+//					    							diagramEditor.doSave(new NullProgressMonitor());
+//					    						}
+//					    						editorRef.getPage().closeAllEditors(true);
+//					    						diagramEditor.dispose();
+//					    					}
+//						    			}
+//					    	    	}
+//						    	}
+							}
+
+							GenerateAllHandler genAll = new GenerateAllHandler();
+							
 							 //propagate the changes made in the current selected component to each lower refinement (TBD)
 							//ecr.createForwardChangeRecords();
 							EventBNamedCommentedComponentElement cp = component;
-							while ((cp=getRefinement(cp))!=null){
-								commitAssistant.applyChangesTo(cp);
-							}
-							
-							//delete the change record for the current selected component
-							commitAssistant.deleteChangeRecords();
-							
-							//generate all diagrams in the current selected component and all lower level refinements
-							GenerateAllHandler genAll = new GenerateAllHandler();
-							cp = component;
-							do {
+							EventBNamedCommentedComponentElement rcp = null;
+							do {														
+								CommitAssistant commitAssistant = new CommitAssistant(cp);			
+								if ((rcp=getRefinement(cp, components))!=null 
+									&& commitAssistant.hasChanges()){
+									Recorder ecr = new Recorder(rcp);
+									ecr.resumeRecording();
+									commitAssistant.applyChangesTo(rcp);
+									ecr.endRecording();
+									ecr.saveChanges();
+									ecr.disposeChangeRecorder();
+								}
+								//delete the change record for the current selected component
+								commitAssistant.deleteChangeRecords();
+								
 								genAll.generateAllDiagrams(cp, shell, EMFRodinDB.INSTANCE.getEditingDomain(), null);
-							}while ((cp=getRefinement(cp))!=null);
+
+								try {
+									if (!cp.eIsProxy()){
+										cp.eResource().save(Collections.EMPTY_MAP);
+									}
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}while ((cp=rcp)!=null);
 							
-							//tidyup
-							commitAssistant.disposeChangeRecords();
+//							 //propagate the changes made in the current selected component to each lower refinement (TBD)
+//							//ecr.createForwardChangeRecords();
+//							EventBNamedCommentedComponentElement cp = component;
+//							while ((cp=getRefinement(cp, components))!=null){
+//								commitAssistant.applyChangesTo(cp);
+//							}
+//							
+//							//delete the change record for the current selected component
+//							commitAssistant.deleteChangeRecords();
+//							
+//							//generate all diagrams in the current selected component and all lower level refinements
+//							GenerateAllHandler genAll = new GenerateAllHandler();
+//							cp = component;
+//							do {
+//								genAll.generateAllDiagrams(cp, shell, EMFRodinDB.INSTANCE.getEditingDomain(), null);
+//							}while ((cp=getRefinement(cp, components))!=null);
+//							
+//							//tidyup
+//							commitAssistant.disposeChangeRecords();
 						}
 					}else{
 						MessageDialog.openError(shell,
@@ -110,21 +177,21 @@ public class CommitChangesHandler extends AbstractHandler {
 	}
 
 
-	
-	private EventBNamedCommentedComponentElement getRefinement(EventBNamedCommentedComponentElement abs){
-		String projectName = EMFRodinDB.INSTANCE.getProjectName(abs);
-		List<EventBNamedCommentedComponentElement> components = EMFRodinDB.INSTANCE.loadAllComponents(projectName);
+
+	private EventBNamedCommentedComponentElement getRefinement(EventBNamedCommentedComponentElement abs, List<EventBNamedCommentedComponentElement> components){
 		for (EventBNamedCommentedComponentElement cp : components){
 			if (isDirectRefinementOf(abs,cp)) {
+				if (cp.eIsProxy()){		 //FIXME: needed because commit assistant unloads components in 'components'
+					cp = (EventBNamedCommentedComponentElement) EMFRodinDB.INSTANCE.loadElement(cp.getURI());
+				}
 				return cp;
 			}
 		}
 		return null;
 	}
 	
-	private boolean hasLowerLevelChanges(EventBNamedCommentedComponentElement abs){
-		String projectName = EMFRodinDB.INSTANCE.getProjectName(abs);		
-		for (EventBNamedCommentedComponentElement cp : EMFRodinDB.INSTANCE.loadAllComponents(projectName)){
+	private boolean hasLowerLevelChanges(EventBNamedCommentedComponentElement abs, List<EventBNamedCommentedComponentElement> components){	
+		for (EventBNamedCommentedComponentElement cp : components){
 			if (isRefinementOf(abs,cp) && RefactorPersistence.INSTANCE.hasChangesResource(cp)) {
 				return true;
 			}
