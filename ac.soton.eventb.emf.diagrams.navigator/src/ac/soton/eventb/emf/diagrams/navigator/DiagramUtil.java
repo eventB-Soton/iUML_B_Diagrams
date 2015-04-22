@@ -220,6 +220,7 @@ public class DiagramUtil {
 		if (monitor!= null) monitor.beginTask("Copying " + sourceDiagramFileName, 1);
 		
 		final IFile sourceFile = project.getFile(new Path(sourceDiagramFileName));
+		if (!sourceFile.exists()) return;	//nothing to copy
 		String targetDiagramFileName = sourceDiagramFileName.replaceFirst( oldRootName, newRootName);			
 		final IFile targetFile = project.getFile(new Path(targetDiagramFileName));
 		try {
