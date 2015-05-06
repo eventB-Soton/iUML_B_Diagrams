@@ -10,7 +10,6 @@ package ac.soton.eventb.emf.diagrams.generator.actions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
@@ -23,8 +22,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.InternalEObject;
-import org.eclipse.emf.ecore.impl.BasicEObjectImpl;
 import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
@@ -38,8 +35,6 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
-import org.eventb.emf.core.EventBObject;
-import org.eventb.emf.persistence.EMFRodinDB;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.command.DeleteGeneratedCommand;
