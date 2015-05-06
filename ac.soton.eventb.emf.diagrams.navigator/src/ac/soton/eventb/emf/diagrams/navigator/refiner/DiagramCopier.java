@@ -31,6 +31,11 @@ import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
  *
  */
 public class DiagramCopier implements IRefinementParticipant {
+
+	/**
+	 * Create an EMFRodinDB for loading extensions into EMF
+	 */
+	private final static EMFRodinDB emfRodinDB = new EMFRodinDB();
 	
 	@Override
 	public void process(IInternalElement targetRoot, IInternalElement sourceRoot, IProgressMonitor monitor) throws RodinDBException {
@@ -39,7 +44,7 @@ public class DiagramCopier implements IRefinementParticipant {
 		String newRootName = targetRoot.getElementName();
 		String fileExtension = sourceRoot.getResource().getFileExtension();		
 
-		EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(sourceRoot);
+		EventBElement eventBElement = emfRodinDB.loadEventBComponent(sourceRoot);
 		if (eventBElement != null){
 			//get the diagram provider registry
 			Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();

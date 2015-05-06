@@ -36,17 +36,24 @@ import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 public class DiagramUtil {
 	
+	/**
+	 * Create an EMFRodinDB for loading extensions into EMF
+	 */
+	private final static EMFRodinDB emfRodinDB = new EMFRodinDB();
+	
 	private static final Map<String, IDiagramProvider> registry = DiagramsNavigatorExtensionPlugin.getDefault().getDiagramProviderRegistry();
 	private static final IProgressMonitor nullProgressMonitor = new NullProgressMonitor();
 	
 	/**
 	 * Finds all the extensions elements in the root and loads them into EMF to call deleteDiagramFile
+	 * 
+	 * Also deletes any change records for the deleted 
 	 * @param eventBRoot
 	 * 
 	 */
 
 	public static void deleteDiagramFiles(IEventBRoot eventBRoot) {
-		EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
+		EventBElement eventBElement = emfRodinDB.loadEventBComponent(eventBRoot);
 		if (eventBElement instanceof EventBNamed){
 			for (AbstractExtension absExt : eventBElement.getExtensions()){
 				deleteDiagramFile(absExt);
@@ -110,7 +117,7 @@ public class DiagramUtil {
 		String newComponentName = eventBRoot.getElementName();
 		String componentFileExtension = eventBRoot.getResource().getFileExtension();
 		try {
-			EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
+			EventBElement eventBElement = emfRodinDB.loadEventBComponent(eventBRoot);
 			if (eventBElement==null) return;
 			//for the changed root, update the corresponding diagram files
 			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
@@ -120,7 +127,7 @@ public class DiagramUtil {
 			IRodinFile[] rodinFiles = eventBRoot.getRodinProject().getRodinFiles();
 			for (IRodinFile rodinFile : rodinFiles){
 				IInternalElement root = rodinFile.getRoot();
-				eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(root);
+				eventBElement = emfRodinDB.loadEventBComponent(root);
 				if (eventBElement!=null) {
 					//for all roots update any references				
 					boolean dirty = updateModelReferencesForNewComponentName(eventBElement, oldComponentName, newComponentName,componentFileExtension);	
