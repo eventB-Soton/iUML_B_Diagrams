@@ -4,22 +4,18 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.change.ChangeDescription;
 import org.eclipse.emf.ecore.change.util.ChangeRecorder;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.emf.ecore.util.EcoreUtil.Copier;
 import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.persistence.EMFRodinDB;
 
-public abstract class RefactorAssistant {
+public class RefactorAssistant {
 
 	protected ChangeDescription changes;
 	protected Map<EObject,URI> proxyMap;
@@ -41,6 +37,26 @@ public abstract class RefactorAssistant {
 //		}
 		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
 		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
+		EObject content = chRes.getContents().size()>0? chRes.getContents().get(0) : null;
+		changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
+	}
+	
+	/**
+	 * This constructor can be used when the EventB component does not exist
+	 * 
+	 * @param componentUri
+	 */
+	public RefactorAssistant(URI componentUri, TransactionalEditingDomain ed) {
+		super();
+		this.component=null;
+		res = null;
+		rs = ed.getResourceSet();
+		this.ed = ed; //TransactionUtil.getEditingDomain(rs);
+//		if (ed!= EMFRodinDB.INSTANCE.getEditingDomain()){
+//			int i=0;
+//		}
+		chRes = RefactorPersistence.INSTANCE.getChangesResource(rs, componentUri);
+		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(rs, componentUri);		
 		EObject content = chRes.getContents().size()>0? chRes.getContents().get(0) : null;
 		changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
 	}

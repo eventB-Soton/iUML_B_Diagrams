@@ -2,6 +2,7 @@ package ac.soton.eventb.emf.diagrams.navigator.refactor;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.emf.common.util.EList;
@@ -56,14 +57,18 @@ public class Recorder {
 	 * If no previous recording is found a new recording is started. 
 	 * 
 	 * @param component to record changes for
+	 * @return codes: 	0 resumed, 
+	 * 					1 changes out of sync, restarted changes,
+	 * 					2 ignored, recording already in progress, 
+	 * 					3 ignored no editing domain
 	 */
-	public void resumeRecording(){
+	public int resumeRecording(){
 		if (ed==null) {
 			System.out.println("cannot use change recorder without editing domain");
 			//TODO: log an error
-			return;
+			return 3;
 		}
-		if (recordingInProgress) return;
+		if (recordingInProgress) return 2;
 		ChangeDescription changes = getChangeDescription();
 		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
 		if (cr==null) 		
@@ -71,8 +76,10 @@ public class Recorder {
 		cr.setEObjectToProxyURIMap(proxyMap);
 		BeginRecordingCommand command = new BeginRecordingCommand(changes);
 		ed.getCommandStack().execute(command);
+		boolean reset = command.resetChanges;
 		command.dispose();
 		recordingInProgress = true;
+		return reset? 1 : 0; 
 	}
 	
 	/**
@@ -161,16 +168,25 @@ public class Recorder {
 	protected class BeginRecordingCommand extends ChangeCommand {
 //		ChangeRecorder cr;
 		ChangeDescription changes;
+		boolean resetChanges;
 //		EventBNamedCommentedComponentElement component;
 		 BeginRecordingCommand(ChangeDescription changes){
 			super(new ChangeRecorder(chRes).endRecording());
 //			this.cr = cr;
 			this.changes = changes;
 //			this.component = component;
+			resetChanges = false;
 		}
 		@Override
-		public void doExecute(){			
-			cr.beginRecording(changes, Collections.singleton(component));
+		public void doExecute(){
+			try{
+				resetChanges = false;
+				cr.beginRecording(changes, Collections.singleton(component));
+			}catch (Exception e){
+				cr.setEObjectToProxyURIMap(new HashMap<EObject,URI>());
+				cr.beginRecording(null, Collections.singleton(component));
+				resetChanges = true;
+			}
 		}
 	}
 	

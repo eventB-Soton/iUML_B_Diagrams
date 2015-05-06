@@ -15,11 +15,7 @@ import java.util.List;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.InternalEObject;
-import org.eclipse.emf.ecore.change.ChangeDescription;
-import org.eclipse.emf.ecore.impl.BasicEObjectImpl;
-import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -69,7 +65,7 @@ public class CommitChangesHandler extends AbstractHandler {
 				List<EventBNamedCommentedComponentElement> components = EMFRodinDB.INSTANCE.loadAllComponents(projectName);
 		
 				// Check that there is a change record for this refinement level
-				if (RefactorPersistence.INSTANCE.hasChangesResource(component)){
+				if (RefactorPersistence.INSTANCE.hasChangesResource(EcoreUtil.getURI(component))){
 					
 					if (!hasLowerLevelChanges(component,components)){
 					
@@ -192,7 +188,7 @@ public class CommitChangesHandler extends AbstractHandler {
 	
 	private boolean hasLowerLevelChanges(EventBNamedCommentedComponentElement abs, List<EventBNamedCommentedComponentElement> components){	
 		for (EventBNamedCommentedComponentElement cp : components){
-			if (isRefinementOf(abs,cp) && RefactorPersistence.INSTANCE.hasChangesResource(cp)) {
+			if (isRefinementOf(abs,cp) && RefactorPersistence.INSTANCE.hasChangesResource(EcoreUtil.getURI(cp))) {
 				return true;
 			}
 		}

@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
@@ -16,14 +15,12 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
+import org.eclipse.emf.ecore.EPackage.Registry;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
-import org.eclipse.emf.ecore.EPackage.Registry;
-import org.eclipse.emf.ecore.change.ChangeDescription;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.core.machine.Machine;
+import org.eclipse.emf.ecore.resource.ResourceSet;
 
 
 public class RefactorPersistence {
@@ -132,6 +129,10 @@ public class RefactorPersistence {
 	 */
 	public URI getRelatedURI(Resource originalResource, String[] subFolders, String timestamp, String extension){
 		URI uri = originalResource.getURI();
+		return getRelatedURI(uri, subFolders, timestamp, extension);
+	}
+		
+	public URI getRelatedURI(URI uri, String[] subFolders, String timestamp, String extension){	
 		String oldFileExtension = uri.fileExtension();
 		uri = uri.trimFileExtension();
 		String componentName = uri.segments()[uri.segmentCount()-1];
@@ -236,6 +237,15 @@ public class RefactorPersistence {
 			return new HashMap<EObject,URI>();
 		}
 	}
+		
+	public Map<EObject, URI> getProxyMap(ResourceSet rs, URI componentUri) {
+		Resource proxyMapResource = getProxyMapResource(rs, componentUri);
+		if (proxyMapResource.getContents().size()>0){
+			return convert(proxyMapResource.getContents().get(0));
+		}else{
+			return new HashMap<EObject,URI>();
+		}
+	}
 	
 	/**
 	 * this gets a changes resource corresponding to the given Resource and if necessary creates it in the file system
@@ -243,14 +253,15 @@ public class RefactorPersistence {
 	 * 
 	 */
 	public Resource getChangesResource(Resource res){
-		return getChangesResource(res,changesFolder);
+		return getChangesResource(res.getResourceSet(),res.getURI());
 	}
 	
-	public Resource getChangesResource(Resource res, String[] changesFolder){
-		URI	uri = getRelatedURI(res, changesFolder, null, "changes");
-		Resource chRes = res.getResourceSet().getResource(uri, false); //n.b. do not load until notifications disabled
+
+	public Resource getChangesResource(ResourceSet rs, URI comp_uri){
+		URI	uri = getRelatedURI(comp_uri, changesFolder, null, "changes");
+		Resource chRes = rs.getResource(uri, false); //n.b. do not load until notifications disabled
 		if (chRes == null) {
-			chRes = res.getResourceSet().createResource(uri);
+			chRes = rs.createResource(uri);
 		}
 
 		if (!chRes.isLoaded()){	
@@ -274,16 +285,17 @@ public class RefactorPersistence {
 		chRes.setTrackingModification(false);
 		return chRes;
 	}
-	
+
+
 	public Resource getProxyMapResource(Resource res){
-		return getProxyMapResource(res,changesFolder);
+		return getProxyMapResource(res.getResourceSet(),res.getURI());
 	}
 	
-	public Resource getProxyMapResource(Resource res, String[] changesFolder){
-		URI uri = getRelatedURI(res, changesFolder, null, "proxymap");
-		Resource proxyMapResource = res.getResourceSet().getResource(uri, false); //n.b. do not load until notifications disabled
+	public Resource getProxyMapResource(ResourceSet rs, URI comp_uri){
+		URI uri = getRelatedURI(comp_uri, changesFolder, null, "proxymap");
+		Resource proxyMapResource = rs.getResource(uri, false); //n.b. do not load until notifications disabled
 		if (proxyMapResource == null) {
-			proxyMapResource = res.getResourceSet().createResource(uri);
+			proxyMapResource = rs.createResource(uri);
 		}
 		if (!proxyMapResource.isLoaded()){	
 			boolean deliver = proxyMapResource.eDeliver();
@@ -310,10 +322,9 @@ public class RefactorPersistence {
 	 * This checks whether a changes file exists for an arbitrary component
 	 * 
 	 */
-	public boolean hasChangesResource(EventBNamedCommentedComponentElement component){
-		//Resource res = component.eResource();
-		//URI uri = component.getURI();
-		URI	uri = getRelatedURI(component.eResource(), changesFolder, null, "changes");
+		
+	public boolean hasChangesResource(URI componentUri){
+		URI	uri = getRelatedURI(componentUri, changesFolder, null, "changes");
 //		String oldFileExtension = component instanceof Machine? "bum" : "buc"; //uri.fileExtension();
 //		uri = uri.trimFileExtension();
 //		String componentName =  component.getName(); //uri.segments()[uri.segmentCount()-1];
