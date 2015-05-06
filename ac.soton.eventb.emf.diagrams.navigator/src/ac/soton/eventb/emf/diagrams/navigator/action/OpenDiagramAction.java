@@ -135,7 +135,8 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 				if (element.eResource()==null) {
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 					if (element.eIsProxy()){
-						element = EMFRodinDB.INSTANCE.loadElement(((InternalEObject)element).eProxyURI());
+						EMFRodinDB db = new EMFRodinDB(getEditingDomain());
+						element = db.loadElement(((InternalEObject)element).eProxyURI());
 					}
 					if (element.eResource()==null)
 						throw new ExecutionException("Can't open diagram - try refreshing workspace", null);
