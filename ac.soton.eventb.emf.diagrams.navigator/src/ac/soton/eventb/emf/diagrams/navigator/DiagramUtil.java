@@ -291,8 +291,8 @@ public class DiagramUtil {
 			Resource resource = eventBElement.eResource();
 			boolean deliver = resource.eDeliver();
 			resource.eSetDeliver(false);
-			if (dirty = true) eventBElement.eResource().save(Collections.emptyMap());
-			eventBElement.eResource().unload();
+			if (dirty = true) resource.save(Collections.emptyMap());
+			resource.unload();
 			resource.eSetDeliver(deliver);
 		} catch (IOException e) {
 			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));

@@ -35,7 +35,6 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
-
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.command.DeleteGeneratedCommand;
 import ac.soton.eventb.emf.diagrams.generator.command.GenerateCommand;
