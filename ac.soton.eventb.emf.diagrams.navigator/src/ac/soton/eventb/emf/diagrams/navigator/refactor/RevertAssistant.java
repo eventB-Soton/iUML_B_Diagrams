@@ -1,8 +1,11 @@
 package ac.soton.eventb.emf.diagrams.navigator.refactor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
+import org.eclipse.emf.edit.command.DeleteCommand;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
 public class RevertAssistant extends RefactorAssistant {
@@ -24,7 +27,10 @@ public class RevertAssistant extends RefactorAssistant {
 		command.dispose();
 		try {
 			res.save(Collections.EMPTY_MAP);
-			chRes.delete(Collections.EMPTY_MAP); 
+			//chRes.eSetDeliver(false);
+			List<Object> dels = new ArrayList<Object>();
+			dels.add(chRes);
+			DeleteCommand del = new DeleteCommand(ed, dels); 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
