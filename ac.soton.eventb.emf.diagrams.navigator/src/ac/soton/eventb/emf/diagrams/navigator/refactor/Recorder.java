@@ -202,11 +202,17 @@ public class Recorder {
 		@Override
 		public void doExecute(){
 			changes = cr.endRecording();
-			chRes.getContents().clear();
-			chRes.getContents().add(0, changes);
-			pmRes.getContents().clear();
-			EObject m = RefactorPersistence.INSTANCE.convert(proxyMap);
-			pmRes.getContents().add(m);
+			if (changes!=null){
+				chRes.getContents().clear();
+				chRes.getContents().add(0, changes);
+				pmRes.getContents().clear();
+				EObject m = RefactorPersistence.INSTANCE.convert(proxyMap);
+				if (m!=null){
+					pmRes.getContents().add(m);
+				}
+			}else{
+				int i=0;
+			}
 
 		}
 		
