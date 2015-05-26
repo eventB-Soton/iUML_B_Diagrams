@@ -215,4 +215,26 @@
             priority="normal">
       </content-type>
   </extension>
+  <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="ac.soton.eventb.emf.diagrams.navigator.refactor.ChangesStatusDec"
+            id="ac.soton.eventb.emf.diagrams.navigator.refactor.changesStatus"
+            label="%decorator.changesStatus.label"
+            lightweight="true"
+            location="TOP_LEFT"
+            state="true">
+         <enablement>
+            <or>
+               <objectClass
+                     name="org.rodinp.core.IRodinElement">
+               </objectClass>
+               <objectClass
+                     name="fr.systerel.explorer.IElementNode">
+               </objectClass>
+            </or>
+         </enablement>
+      </decorator>
+   </extension>
+  
 </plugin>
