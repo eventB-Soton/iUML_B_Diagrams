@@ -264,9 +264,14 @@ public class RefactorPersistence {
 			chRes = rs.createResource(uri);
 		}
 
-		if (!chRes.isLoaded()){	
+
 			boolean deliver = chRes.eDeliver();
 			chRes.eSetDeliver(false);
+			
+			if (chRes.isLoaded()){
+				chRes.unload();
+			}
+			
 			Path path = new Path(chRes.getURI().toPlatformString(true));
 			boolean exists = ResourcesPlugin.getWorkspace().getRoot().exists(path);
 			if (exists){
@@ -280,12 +285,10 @@ public class RefactorPersistence {
 				chRes.getContents().clear(); //this makes the new Resource appear loaded
 			}
 			chRes.eSetDeliver(deliver);
-		}
 
 		chRes.setTrackingModification(false);
 		return chRes;
 	}
-
 
 	public Resource getProxyMapResource(Resource res){
 		return getProxyMapResource(res.getResourceSet(),res.getURI());
@@ -297,23 +300,27 @@ public class RefactorPersistence {
 		if (proxyMapResource == null) {
 			proxyMapResource = rs.createResource(uri);
 		}
-		if (!proxyMapResource.isLoaded()){	
-			boolean deliver = proxyMapResource.eDeliver();
-			proxyMapResource.eSetDeliver(false);
-			Path path = new Path(proxyMapResource.getURI().toPlatformString(true));
-			boolean exists = ResourcesPlugin.getWorkspace().getRoot().exists(path);
-			if (exists){
-				try {
-					proxyMapResource.load(Collections.EMPTY_MAP);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}else{
-				proxyMapResource.getContents().clear(); //this makes the new Resource appear loaded
-			}
-			proxyMapResource.eSetDeliver(deliver);
+
+		boolean deliver = proxyMapResource.eDeliver();
+		proxyMapResource.eSetDeliver(false);
+		
+		if (proxyMapResource.isLoaded()){
+			proxyMapResource.unload();
 		}
+		
+		Path path = new Path(proxyMapResource.getURI().toPlatformString(true));
+		boolean exists = ResourcesPlugin.getWorkspace().getRoot().exists(path);
+		if (exists){
+			try {
+				proxyMapResource.load(Collections.EMPTY_MAP);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else{
+			proxyMapResource.getContents().clear(); //this makes the new Resource appear loaded
+		}
+		proxyMapResource.eSetDeliver(deliver);
 		proxyMapResource.setTrackingModification(false);
 		return proxyMapResource;
 	}
