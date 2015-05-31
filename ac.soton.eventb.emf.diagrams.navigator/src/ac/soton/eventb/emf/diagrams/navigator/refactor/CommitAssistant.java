@@ -112,6 +112,8 @@ public class CommitAssistant extends RefactorAssistant {
 					//first do containments so that references will work
 					for (Entry<EObject, EList<FeatureChange>> change : forwardChanges.getObjectChanges()){
 						EObject abstractObject = change.getKey();
+						if (abstractObject==null) continue;
+
 						
 						// get the reverse feature changes for this abstract object
 						EList<FeatureChange> reverseFeatureChanges = reverseObjectChanges.get(abstractObject);
@@ -149,6 +151,8 @@ public class CommitAssistant extends RefactorAssistant {
 					//now do references etc
 					for (Entry<EObject, EList<FeatureChange>> change : forwardChanges.getObjectChanges()){
 						EObject abstractObject = change.getKey();
+						if (abstractObject==null) continue;
+
 						
 						// get the reverse feature changes for this abstract object
 						EList<FeatureChange> reverseFeatureChanges = reverseObjectChanges.get(abstractObject);
