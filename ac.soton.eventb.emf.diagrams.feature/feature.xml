@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="%featureName"
-      version="5.3.1.refactor_v20150527"
+      version="5.3.1.refactor_v20150531"
       provider-name="%providerName">
 
    <description>
@@ -37,6 +37,8 @@
       <import plugin="ac.soton.eventb.emf.core.extension.persistence" version="2.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams" version="4.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.generator" version="3.1.0" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="4.0.1" match="compatible"/>
+      <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.8.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.4.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.5.0" match="compatible"/>
       <import plugin="org.rodinp.core" version="1.7.0" match="compatible"/>
@@ -49,8 +51,6 @@
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.0.0" match="compatible"/>
       <import plugin="org.rodinp.keyboard.ui" version="2.0.0" match="compatible"/>
       <import plugin="org.eventb.emf.persistence" version="3.1.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="4.0.1" match="compatible"/>
-      <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.8.0" match="compatible"/>
    </requires>
 
    <plugin
