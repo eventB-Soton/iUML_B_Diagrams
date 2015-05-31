@@ -281,7 +281,8 @@ public class DiagramUtil {
 	 * @param oldComponentName
 	 */
 	public static void updateDiagramsForNewProjectName(IEventBRoot eventBRoot, String newProjectName, String oldProjectName) {
-		try { 
+		try {
+			if (oldProjectName==null) return;
 			EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
 			if (eventBElement==null) return;
 			boolean dirty = false;
