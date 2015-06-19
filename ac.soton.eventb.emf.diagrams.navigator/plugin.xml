@@ -236,5 +236,11 @@
          </enablement>
       </decorator>
    </extension>
-  
+   <extension point="org.eclipse.ui.preferencePages" id="prefpages">
+      <page
+            class="ac.soton.eventb.emf.diagrams.navigator.preferences.IUMLBPreferencesPage"
+            id="ac.soton.eventb.iumlb"
+            name="%prefpage.ac.soton.eventb.iumlb">
+      </page>
+   </extension>
 </plugin>
