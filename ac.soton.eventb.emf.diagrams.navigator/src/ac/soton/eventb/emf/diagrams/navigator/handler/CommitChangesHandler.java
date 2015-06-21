@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -28,6 +29,7 @@ import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.EMFRodinDB;
 
 import ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler;
+import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.CommitAssistant;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.Recorder;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.RefactorPersistence;
@@ -56,6 +58,19 @@ public class CommitChangesHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {	
 		Shell shell = HandlerUtil.getActiveShell(event);
+		
+		//check refactoring preference is enabled
+		Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
+		if (!refactoringEnabled) {
+			MessageDialog.open(MessageDialog.INFORMATION, shell,
+		    		  "Refactoring is switched off", 
+		    		  "Changes are not being recorded because refactoring is disabled in preferences. "+
+		    		  " Therefore there are no changes to commit. "+
+		    		  " To switch refactoring on, go to Rodin Platform - Preferences and select iUML-B.", SWT.NONE 
+		    			);
+			return null;
+		}
+
 		ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
 		if (selection instanceof IStructuredSelection) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
@@ -113,7 +128,7 @@ public class CommitChangesHandler extends AbstractHandler {
 								CommitAssistant commitAssistant = new CommitAssistant(cp);			
 								if ((rcp=getRefinement(cp, components))!=null 
 									&& commitAssistant.hasChanges()){
-									Recorder ecr = new Recorder(rcp);
+									Recorder ecr = Recorder.getNewRecorder(rcp);
 									ecr.resumeRecording();
 									commitAssistant.applyChangesTo(rcp);
 									ecr.endRecording();

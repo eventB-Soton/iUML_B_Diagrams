@@ -14,6 +14,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.core.IMachineRoot;
@@ -21,19 +22,21 @@ import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.EMFRodinDB;
 
+import ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler;
+import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.RevertAssistant;
 
 /**
- * Commit changes handler.
- * This handler commits the recorded changes made to the selected machine.
+ * Revert changes handler.
+ * This handler reverts the recorded changes made to the selected machine.
  * This consists of:
- * a) propagating the changes made in the current selected component to each lower refinement (TBD)
+ * a) applying the reversed changes made in the current selected component
  * b) delete the change record for the current selected component
- * c) generate all diagrams in the current selected component and all lower level refinements
+ * c) generate all diagrams in the current selected component
  * 
- * Committing is NOT enabled if 
+ * Reverting is NOT enabled if 
  * There is no change record for this refinement level OR
- * ANY of the lower refinement levels have outstanding change records.
+ * refactoring is disabled in the system preferences.
  * 
  * @author cfs 
  *
@@ -46,6 +49,19 @@ public class RevertChangesHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {	
 		Shell shell = HandlerUtil.getActiveShell(event);
+		
+		//check refactoring preference is enabled
+		Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
+		if (!refactoringEnabled) {
+			MessageDialog.open(MessageDialog.INFORMATION, shell,
+		    		  "Refactoring is switched off", 
+		    		  "Changes are not being recorded because refactoring is disabled in preferences. "+
+		    		  " Therefore there are no changes to revert. "+
+		    		  " To switch refactoring on, go to Rodin Platform - Preferences and select iUML-B.", SWT.NONE 
+		    			);
+			return null;
+		}
+		
 		ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
 		if (selection instanceof IStructuredSelection) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
@@ -76,6 +92,9 @@ public class RevertChangesHandler extends AbstractHandler {
 				    		  "Revert Changes", 
 				    		  "There are no changes to revert on this refinement.\n"
 				    			  );
+				
+				GenerateAllHandler genAll = new GenerateAllHandler();
+				genAll.generateAllDiagrams(machine, shell, EMFRodinDB.INSTANCE.getEditingDomain(), null);
 			}
 		}
 		return null;

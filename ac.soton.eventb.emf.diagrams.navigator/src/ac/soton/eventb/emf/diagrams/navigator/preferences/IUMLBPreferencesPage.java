@@ -1,5 +1,6 @@
 package ac.soton.eventb.emf.diagrams.navigator.preferences;
 
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -11,13 +12,13 @@ import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
  * @author cfsnook
  *         The main, top level, preference page for iUML-B.
  *          
- *         At the moment, this page is empty, but sub-pages can use it as their category field
+ *         sub-pages can use this as their category field
  */
 
 public class IUMLBPreferencesPage extends FieldEditorPreferencePage implements
 		IWorkbenchPreferencePage {
 
-	private static final String message = "iUML-B preference settings - see sub-pages for specific features";
+	private static final String message = "iUML-B preference settings - see sub-pages for specific diagram features";
 	/**
 	 * Constructor.
 	 */
@@ -34,9 +35,12 @@ public class IUMLBPreferencesPage extends FieldEditorPreferencePage implements
 	 */
 	@Override
 	public void createFieldEditors() {
-		// Do nothing at the moment.
+		addField(new BooleanFieldEditor("RefactoringEnabled",
+			        "&Enable Refactoring Support (make sure there are no outstanding changes before changing this setting)", getFieldEditorParent()));
+//		addField(new BooleanFieldEditor("LockingEnabled",
+//		        "&Refinement Locking (one refinement level can be edited at a time - needs refactoring to be enabled)", getFieldEditorParent()));
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -44,7 +48,8 @@ public class IUMLBPreferencesPage extends FieldEditorPreferencePage implements
 	 */
 	@Override
 	public void init(IWorkbench workbench) {
-		// Do nothing at the moment.
+	    setPreferenceStore(DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore());
+	    setDescription(message);
 	}
 
 	

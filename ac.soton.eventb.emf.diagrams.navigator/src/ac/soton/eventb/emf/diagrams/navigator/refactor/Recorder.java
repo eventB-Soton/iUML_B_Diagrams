@@ -17,6 +17,8 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
+import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
+
 
 public class Recorder {
 	
@@ -28,10 +30,12 @@ public class Recorder {
 	protected Resource pmRes;
 	protected boolean recordingInProgress;
 	
+	protected static Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
+	
 	protected EventBNamedCommentedComponentElement component;
 	private TransactionalEditingDomain ed;
 	
-	public Recorder(EventBNamedCommentedComponentElement component) {
+	protected Recorder(EventBNamedCommentedComponentElement component) {
 		super();
 		this.component=component;
 		res = component.eResource();
@@ -42,6 +46,20 @@ public class Recorder {
 		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
 		pmRes = RefactorPersistence.INSTANCE.getProxyMapResource(res);
 		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
+	}
+	
+	/** 
+	 * if re-factoring is enabled 
+	 * 	gets a new change recorder 
+	 * otherwise returns null
+	 * 
+	 */
+	public static Recorder getNewRecorder(EventBNamedCommentedComponentElement component){
+		if (refactoringEnabled){
+			return new Recorder(component);
+		}else{
+			return null;
+		}
 	}
 	
 //	/**
