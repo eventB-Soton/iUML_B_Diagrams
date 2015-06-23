@@ -15,6 +15,8 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -47,17 +49,20 @@ public class GenerateAction extends AbstractHandler {
 			final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
 			if (GeneratorFactory.getFactory().canGenerate(diagramDocumentEditor.getDiagram().getElement().eClass())){
 				if (diagramDocumentEditor.getDiagram().getElement() instanceof EventBElement){
-					final EventBElement eventBElement = (EventBElement) diagramDocumentEditor.getDiagram().getElement();
-	
 					// save before transformation
 					if (editor.isDirty())
 						editor.doSave(new NullProgressMonitor());
-	
+
+					EventBElement eventBElement = (EventBElement) diagramDocumentEditor.getDiagram().getElement();
+					TransactionalEditingDomain editingDomain = diagramDocumentEditor.getDiagramEditPart().getEditingDomain();
+					if (eventBElement.eIsProxy()){
+						eventBElement =  (EventBElement) EcoreUtil.resolve(eventBElement, editingDomain.getResourceSet());
+					}
 					// first validate, then transform
 					if (ValidateAction.validate(diagramDocumentEditor)){
 	
 						final GenerateCommand generateCommand = new GenerateCommand(
-								diagramDocumentEditor.getDiagramEditPart().getEditingDomain(), 
+								editingDomain, 
 								eventBElement);
 						if (generateCommand.canExecute()) {	
 							// run with progress

@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.gmf.runtime.common.core.command.CommandResult;
@@ -37,7 +38,16 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 	public GenerateCommand(TransactionalEditingDomain editingDomain, EventBElement element) {
 		super(editingDomain, Messages.GENERATOR_MSG_11, null);
 		setOptions(Collections.singletonMap(Transaction.OPTION_UNPROTECTED, Boolean.TRUE));
-		this.element = element;
+		if (element.eIsProxy()){
+			this.element = (EventBElement) EcoreUtil.resolve(element, editingDomain.getResourceSet());
+		}else{
+			this.element = element;			
+		}
+	}
+	
+	@Override
+	public boolean canExecute(){
+		return super.canExecute() && element!=null && !element.eIsProxy();
 	}
 	
 	@Override

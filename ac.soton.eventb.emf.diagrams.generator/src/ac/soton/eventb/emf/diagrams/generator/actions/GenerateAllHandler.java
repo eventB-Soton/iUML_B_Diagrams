@@ -111,6 +111,9 @@ public class GenerateAllHandler extends AbstractHandler {
 			generateList = new ArrayList<EventBElement>();
 			getDiagramRoots(component, null);
 			for (EventBElement eventBElement : generateList){
+				if (eventBElement.eIsProxy()){
+					eventBElement =  (EventBElement) EcoreUtil.resolve(eventBElement, editingDomain.getResourceSet());
+				}
 				if (validateElement(eventBElement, shell)){ //validate this element
 					final GenerateCommand generateCommand = new GenerateCommand(
 							editingDomain, 
