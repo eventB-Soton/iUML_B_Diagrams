@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eventb.emf.core.AbstractExtension;
@@ -33,10 +34,9 @@ import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
+import org.eventb.emf.core.EventBNamedCommentedPredicateElement;
 import org.eventb.emf.core.context.Context;
-import org.eventb.emf.core.machine.Action;
 import org.eventb.emf.core.machine.Event;
-import org.eventb.emf.core.machine.Guard;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
@@ -170,7 +170,7 @@ public class Generator {
 	 * @throws IOException 
 	 */
 	private void removeComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement) throws IOException{
-		String projectName = sourceElement.getURI().trimFragment().trimSegments(1).lastSegment();
+		String projectName = EcoreUtil.getURI(sourceElement).trimFragment().trimSegments(1).lastSegment();
 		URI projectUri = URI.createPlatformResourceURI(projectName, true);
 		for (GenerationDescriptor generationDescriptor : generatedElements){
 			if (generationDescriptor.feature == CorePackage.Literals.PROJECT__COMPONENTS &&
@@ -203,7 +203,7 @@ public class Generator {
  */
 	private Collection<? extends Resource> createNewComponents(TransactionalEditingDomain editingDomain, EventBElement sourceElement, String generatedByID) throws IOException {
 		List<Resource> newResources = new ArrayList<Resource>();
-		String projectName = sourceElement.getURI().segment(1);
+		String projectName = EcoreUtil.getURI(sourceElement).segment(1);
 		URI projectUri = URI.createPlatformResourceURI(projectName, true);
 		for (GenerationDescriptor generationDescriptor : generatedElements){
 			if (generationDescriptor.remove == false && 
@@ -371,27 +371,27 @@ private void setGeneratedBy(String generatedByID, EventBElement newChild) {
 	 */
 	private boolean match(Object el1, Object el2) {
 		if (el1.getClass()!=el2.getClass()) return false;
-		if (el1 instanceof Guard && el2 instanceof Guard){
-			String s1 = ((Guard)el1).getPredicate();
-			String s2 = ((Guard)el2).getPredicate();
-			if (s1 != null && s1.equals(s2)) return true;
-		}
-		if (el1 instanceof Action && el2 instanceof Action){
-			String s1 = ((Action)el1).getAction();
-			String s2 = ((Action)el2).getAction();
-			if (s1 != null && s1.equals(s2)) return true;
-		}
-		if (el1 instanceof EventBNamedCommentedElement && el2 instanceof EventBNamedCommentedElement){
+		if (el1 instanceof EventBNamedCommentedPredicateElement){	
+			return stringEquivalent(
+					((EventBNamedCommentedPredicateElement)el1).getPredicate(),
+					((EventBNamedCommentedPredicateElement)el2).getPredicate()
+					);
+		} else if (el1 instanceof EventBNamedCommentedElement){
 			String s1 = ((EventBNamedCommentedElement)el1).getName();
 			String s2 = ((EventBNamedCommentedElement)el2).getName();
-			if (s1 != null && s1.equals(s2)) return true;
-		}
-		if(el1 instanceof String && el2 instanceof String)
-			if(el1 != null && el1.equals(el2)) return true;
-		return false;
+			return (s1 != null && s1.equals(s2));
+		} else if(el1 instanceof String && el2 instanceof String) {
+			return (el1 != null && el1.equals(el2));
+		} else return false;
 	}
 
-
+	private boolean stringEquivalent(String s1, String s2) {
+		if (s1==null) return s2==null;
+		if (s2==null) return false;
+		String s1r = s1.replaceAll("\\s", "");
+		String s2r = s2.replaceAll("\\s", "");
+		return s1r.equals(s2r);
+	}
 
 	/*
 	 * a record of rules that have been deferred
