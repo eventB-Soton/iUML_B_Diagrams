@@ -341,15 +341,22 @@ public class CommitAssistant extends RefactorAssistant {
 	}
 
 	private boolean stringEquivalent(String s1, String s2) {
-		String[] s1a = s1.split("[ \t \r \n \f ]+");
-		String[] s2a = s2.split("[ \t \r \n \f ]+");	
-		if (s1a.length!=s2a.length) return false;
-		for (int i=0; i<s1a.length; i++){
-			if (!s1a[i].equals(s2a[i])) 
-				return false;
-		}
-		return true;
+		if (s1==null) return s2==null;
+		if (s2==null) return false;
+		String s1r = s1.replaceAll("\\s", "");
+		String s2r = s2.replaceAll("\\s", "");
+		return s1r.equals(s2r);
 	}
+//	private boolean stringEquivalent(String s1, String s2) {
+//		String[] s1a = s1.split("[ \t \r \n \f ]+");
+//		String[] s2a = s2.split("[ \t \r \n \f ]+");	
+//		if (s1a.length!=s2a.length) return false;
+//		for (int i=0; i<s1a.length; i++){
+//			if (!s1a[i].equals(s2a[i])) 
+//				return false;
+//		}
+//		return true;
+//	}
 
 	private FeatureChange findReverseFeatureChange(EList<FeatureChange> reverseFeatureChanges,FeatureChange featureChange) {
 		for (FeatureChange fc : reverseFeatureChanges){
