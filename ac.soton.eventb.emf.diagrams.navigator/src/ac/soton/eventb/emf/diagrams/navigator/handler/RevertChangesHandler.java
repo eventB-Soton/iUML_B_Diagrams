@@ -43,6 +43,11 @@ import ac.soton.eventb.emf.diagrams.navigator.refactor.RevertAssistant;
  */
 public class RevertChangesHandler extends AbstractHandler {
 	
+	/**
+	 * Create an EMFRodinDB for loading extensions into EMF
+	 */
+	private final static EMFRodinDB emfRodinDB = new EMFRodinDB();
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
@@ -66,7 +71,7 @@ public class RevertChangesHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
 			if (element instanceof IMachineRoot) {
-				EventBElement machine = EMFRodinDB.INSTANCE.loadEventBComponent((IMachineRoot)element);
+				EventBElement machine = emfRodinDB.loadEventBComponent((IMachineRoot)element);
 
 				RevertAssistant assistant = new RevertAssistant((Machine)machine);		
 				
@@ -94,7 +99,7 @@ public class RevertChangesHandler extends AbstractHandler {
 				    			  );
 				
 				GenerateAllHandler genAll = new GenerateAllHandler();
-				genAll.generateAllDiagrams(machine, shell, EMFRodinDB.INSTANCE.getEditingDomain(), null);
+				genAll.generateAllDiagrams(machine, shell, emfRodinDB.getEditingDomain(), null);
 			}
 		}
 		return null;

@@ -52,6 +52,12 @@ import ac.soton.eventb.emf.diagrams.navigator.refactor.RefactorPersistence;
  */
 public class CommitChangesHandler extends AbstractHandler {
 	
+	/**
+	 * Create an EMFRodinDB for loading extensions into EMF
+	 */
+	private final static EMFRodinDB emfRodinDB = new EMFRodinDB();
+	
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
@@ -75,9 +81,9 @@ public class CommitChangesHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
 			if (element instanceof IMachineRoot) {
-				EventBNamedCommentedComponentElement component = (EventBNamedCommentedComponentElement) EMFRodinDB.INSTANCE.loadEventBComponent((IMachineRoot)element);
-				String projectName = EMFRodinDB.INSTANCE.getProjectName(component);
-				List<EventBNamedCommentedComponentElement> components = EMFRodinDB.INSTANCE.loadAllComponents(projectName);
+				EventBNamedCommentedComponentElement component = (EventBNamedCommentedComponentElement) emfRodinDB.loadEventBComponent((IMachineRoot)element);
+				String projectName = emfRodinDB.getProjectName(component); 
+				List<EventBNamedCommentedComponentElement> components = emfRodinDB.loadAllComponents(projectName);
 		
 				// Check that there is a change record for this refinement level
 				if (RefactorPersistence.INSTANCE.hasChangesResource(EcoreUtil.getURI(component))){
@@ -138,7 +144,7 @@ public class CommitChangesHandler extends AbstractHandler {
 								//delete the change record for the current selected component
 								commitAssistant.deleteChangeRecords();
 								
-								genAll.generateAllDiagrams(cp, shell, EMFRodinDB.INSTANCE.getEditingDomain(), null);
+								genAll.generateAllDiagrams(cp, shell, emfRodinDB.getEditingDomain(), null);
 
 								try {
 									if (!cp.eIsProxy()){
@@ -193,7 +199,7 @@ public class CommitChangesHandler extends AbstractHandler {
 		for (EventBNamedCommentedComponentElement cp : components){
 			if (isDirectRefinementOf(abs,cp)) {
 				if (cp.eIsProxy()){		 //FIXME: needed because commit assistant unloads components in 'components'
-					cp = (EventBNamedCommentedComponentElement) EMFRodinDB.INSTANCE.loadElement(cp.getURI());
+					cp = (EventBNamedCommentedComponentElement) emfRodinDB.loadElement(cp.getURI());
 				}
 				return cp;
 			}

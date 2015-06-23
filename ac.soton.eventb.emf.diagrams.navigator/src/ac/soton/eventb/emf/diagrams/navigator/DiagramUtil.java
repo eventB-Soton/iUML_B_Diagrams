@@ -283,7 +283,7 @@ public class DiagramUtil {
 	public static void updateDiagramsForNewProjectName(IEventBRoot eventBRoot, String newProjectName, String oldProjectName) {
 		try {
 			if (oldProjectName==null) return;
-			EventBElement eventBElement = EMFRodinDB.INSTANCE.loadEventBComponent(eventBRoot);
+			EventBElement eventBElement = emfRodinDB.loadEventBComponent(eventBRoot);
 			if (eventBElement==null) return;
 			boolean dirty = false;
 			for (AbstractExtension abstractExtension : eventBElement.getExtensions()){
