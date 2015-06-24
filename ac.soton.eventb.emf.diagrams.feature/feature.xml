@@ -2,8 +2,9 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="%featureName"
-      version="5.3.1.refactor_v20150531"
-      provider-name="%providerName">
+      version="5.4.0"
+      provider-name="%providerName"
+      plugin="ac.soton.iumlb.branding">
 
    <description>
       %description
@@ -80,5 +81,11 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="ac.soton.iumlb.branding"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>
