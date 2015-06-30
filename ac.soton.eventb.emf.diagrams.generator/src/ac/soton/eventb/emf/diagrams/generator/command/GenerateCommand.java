@@ -101,6 +101,9 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 						//"Generation Failed - see error log for details"
 						
 					}else{
+						if (element.eIsProxy()){
+							element = (EventBElement) EcoreUtil.resolve(element, editingDomain.getResourceSet());
+						}
 						modifiedResources.add(element.eResource());
 						//try to save all the modified resources
 				        monitor.subTask(Messages.GENERATOR_MSG_16);
