@@ -1,20 +1,27 @@
 package ac.soton.eventb.emf.diagrams.navigator.refactor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.change.ChangeDescription;
+import org.eclipse.emf.ecore.change.FeatureChange;
+import org.eclipse.emf.ecore.change.ListChange;
 import org.eclipse.emf.ecore.change.util.ChangeRecorder;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
+import org.eclipse.gmf.runtime.emf.core.util.EMFCoreUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
@@ -108,8 +115,7 @@ public class Recorder {
 	public void endRecording() {
 		if (!recordingInProgress) return;
 		EndRecordingCommand erc = new EndRecordingCommand(); //chRes, cr);
-		ed.getCommandStack().execute(erc);
-		//ChangeDescription changes = erc.getChanges(); 
+		ed.getCommandStack().execute(erc); 
 		erc.dispose();
 		recordingInProgress = false;
 	}
@@ -221,6 +227,7 @@ public class Recorder {
 		public void doExecute(){
 			changes = cr.endRecording();
 			if (changes!=null){
+				fixRefs();
 				chRes.getContents().clear();
 				chRes.getContents().add(0, changes);
 				pmRes.getContents().clear();
@@ -234,6 +241,58 @@ public class Recorder {
 
 		}
 		
+		private void fixRefs() {
+			for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
+				EList<FeatureChange> abstractFeatureChanges = change.getValue();
+				for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
+					EList<ListChange> listChanges = reverseFeatureChange.getListChanges();
+					for (ListChange lc : listChanges){
+						List<EObject> newList = new ArrayList<EObject>();
+						for (EObject ref : lc.getReferenceValues()){
+							URI uri = EcoreUtil.getURI(ref);
+							EObject proxy = EMFCoreUtil.createProxy(ref.eClass(), fixURI(ref, uri));
+							newList.add(proxy);
+						}
+						lc.getReferenceValues().clear();
+						lc.getReferenceValues().addAll(newList);
+					}
+				}
+			}
+		}
+		
+		/**
+		 * The change description persistence uses the default offset referencing scheme
+		 * whereas the references created by our model elements will be our intrinsic ids
+		 * Therefore we need to find all the references in the change description and convert
+		 * the fragment part to containment offsets.
+		 * 
+		 * @param object
+		 * @param uri
+		 * @return
+		 */
+		private URI fixURI(EObject object, URI uri){
+			EList<EObject> attach = changes.getObjectsToAttach();
+			for (EObject o : attach){
+				URI ouri = EcoreUtil.getURI(o);
+				if (ouri.equals(uri)){
+					URI fixedURI = uri.trimFragment().appendFragment("//@objectsToAttach."+attach.indexOf(o));
+					return fixedURI;
+				}
+			}
+//		NOT SURE IF THIS IS ALSO NEEDED - THESE ARE REFERENCES NOT CONTAINMENTS AND SEEM TO BE OK
+//		EList<EObject> detach = changes.getObjectsToDetach();
+//			for (EObject o : detach){
+//				URI ouri = EcoreUtil.getURI(o);
+//				if (ouri.equals(uri)){
+//					URI fixedURI = URI.createURI("//@objectsToDetach."+detach.indexOf(o));
+//					return fixedURI;
+//				}
+//			}
+			return uri;
+		}
+		
 		public ChangeDescription getChanges() { return changes; }
 	}
+	
+
 }
