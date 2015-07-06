@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IFile;
@@ -48,7 +50,8 @@ public class CommitAssistant extends RefactorAssistant {
 	/**
 	 * Apply the recorded changes to the given (refined) component where appropriate
 	 * 
-	 * Note that the recorded changes are in reverse (i.e. undo) and therefore need to be reversed as they are applied
+	 * Note that the recorded changes are in reverse (i.e. undo) format and therefore need to be reversed as they are applied.
+	 * 
 	 * Changes are only applied where an equivalent element is still present in the refinement 
 	 * and the corresponding feature has an equivalent value in the refinement.
 	 * 
@@ -59,15 +62,22 @@ public class CommitAssistant extends RefactorAssistant {
 		report = "\nPropagation report for "+newComponent.eResource().getURI().toPlatformString(true)+" :: "+timeStamp+"\n";
 		
 		try {
+			//ChangeDescriptionImpl cdi = (ChangeDescriptionImpl) changes;
+				//((ChangeDescriptionImpl)changes). ;
 				if (changes==null || newComponent.eResource().getResourceSet() != rs) return;
 				CompoundCommand cc = new CompoundCommand();
 
+				preApply();
+				
+				EList<EObject> detaches = changes.getObjectsToDetach();
+				EList<EObject> attaches = changes.getObjectsToAttach();
 				//first do containments so that references will work
 				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
 
 					EObject abstractObject = change.getKey();
 					if (abstractObject==null) continue;
-					
+					EList<FeatureChange> abstractFeatureChanges = change.getValue();
+
 					// get a refiner for the ePackage containing this abstract object
 //					EClass ec = abstractObject.eClass();
 //					EPackage ep = ec==null ? null : ec.getEPackage();
@@ -84,10 +94,10 @@ public class CommitAssistant extends RefactorAssistant {
 					if (refinedObject==null) continue;
 					
 					// create commands to make corresponding changes to the refined object 
-					for (FeatureChange reverseFeatureChange : change.getValue()){
+					for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
+						EStructuralFeature feature = reverseFeatureChange.getFeature();
 						//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
-						if (reverseFeatureChange.getFeature() instanceof EReference &&
-							((EReference)reverseFeatureChange.getFeature()).isContainment() &&
+						if (feature instanceof EReference && ((EReference)feature).isContainment() &&
 							canApplyFeatureChange(refinedObject, reverseFeatureChange)){
 							cc.append(makeFeatureChangeCommand(abstractObject, refinedObject, reverseFeatureChange, refiner));	
 						}
@@ -139,52 +149,137 @@ public class CommitAssistant extends RefactorAssistant {
 		}
 		return;
 	}
-
+	
+	/**
+	 * 	list changes of type REMOVE (i.e. for items that have been added) refer to the element to be
+	 *  removed by index into the original list rather than by caching the element in the lc. 
+	 *  Unfortunately the index assumes and previous removal lc on the same feature have been applied.
+	 *  Hence we need to calculate the real index into the current abstract list by counting how many 
+	 *  lc remove from the same feature.
+	 * 
+	 */
+	 protected Map<ListChange, Integer> listChangeIndex = new HashMap<ListChange,Integer>();
+	/**
+	 *	populate list change index map 
+	 *	
+	 */
+	private void preApply() {
+		Map<EObject, Map<EStructuralFeature,Integer>> indexMap = new HashMap<EObject, Map<EStructuralFeature,Integer>>();
+		for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
+			EObject eObject = change.getKey();
+			for (FeatureChange fc : change.getValue()){
+				EStructuralFeature feature = fc.getFeature();
+				EList<ListChange> listChanges = fc.getListChanges();
+				for (ListChange lc : listChanges){
+					if (lc.getKind()==ChangeKind.REMOVE_LITERAL){
+						int indexOffset=0;
+						if (indexMap.containsKey(eObject) && 
+								indexMap.get(eObject).containsKey(feature)) {
+							 indexOffset = indexMap.get(eObject).get(feature);
+							 int newIndex = lc.getIndex()+indexOffset;
+							 //lc.setIndex(newIndex); //changing the index can cause problems
+							 listChangeIndex.put(lc,newIndex);
+						}
+						if (!indexMap.containsKey(eObject)){
+							indexMap.put(eObject,new HashMap<EStructuralFeature,Integer>());
+						}
+						indexMap.get(eObject).put(feature, new Integer(indexOffset+1));
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Generates a command to apply a (reversed) feature change to the refined parent
+	 * 
+	 * Note that the feature change is in reversed (i.e. undo) format. Hence the value it contains is the original old value. 
+	 * The current (new) valaue must be obtained by reading the feature in the abstract Parent. 
+	 * The given refiner is used to generate new refined elements for additions aas well as to find corresponding elements 
+	 * to be changed.
+	 * 
+	 * @param abstractParent
+	 * @param refinedParent
+	 * @param reverseFeatureChange
+	 * @param refiner
+	 * @return
+	 */
 	private Command makeFeatureChangeCommand(EObject abstractParent, EventBObject refinedParent, FeatureChange reverseFeatureChange, AbstractElementRefiner refiner) {
 		EventBNamedCommentedComponentElement concreteComponent = (EventBNamedCommentedComponentElement) refinedParent.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
 		EStructuralFeature feature = reverseFeatureChange.getFeature();
+		Object value = reverseFeatureChange.getValue();
 		if (feature.isMany()){
 			CompoundCommand cc = new CompoundCommand();
 			EList<ListChange> listChanges = reverseFeatureChange.getListChanges();
 			for (ListChange lc : listChanges){
 				ChangeKind kind = lc.getKind();
+//				EList<Object> values = lc.getValues();
+//				EList<?> abstractList = ((EList<?>)abstractParent.eGet(feature));
+//				
+//				@SuppressWarnings("unchecked")
+//				EList<Object> refinedList = ((EList<Object>)refinedParent.eGet(feature));			
+//				EObject dummyParent = EcoreUtil.copy(abstractParent);
+//				@SuppressWarnings("unchecked")
+//				EList<Object> dummyList = ((EList<Object>)dummyParent.eGet(feature));
+//				
+//				lc.reverse(dummyList);
+//				lc.apply(refinedList);
+//				int i=0;
 				switch (kind){
-				case ADD_LITERAL:
+				case REMOVE_LITERAL:	//I.E. ADD values to the list in the refinement
 					List<Object> newValues = new ArrayList<Object>();
-					if (lc.getDataValues()!=null && lc.getDataValues().size()>0){
-						newValues.addAll(lc.getValues());
-					}else{
-						for (Object v : lc.getValues()){
-							if (v instanceof EObject){
-								URI uri = null;
-								EObject refinedObject;
-								if (feature instanceof EReference && ((EReference)feature).isContainment()){
-									uri = EcoreUtil.getURI(abstractParent); //((EventBObject)abstractParent).getURI();
-									String fragment = EcoreUtil.getID((EObject) v);
-									int i = fragment.lastIndexOf("::")+2;
-									String tail = fragment.substring(i);
-									fragment=fragment.substring(0,i);
-									fragment=fragment+uri.fragment().substring(i);
-									fragment=fragment+"."+tail;
-									uri = uri.appendFragment(fragment); 
-									refinedObject = v instanceof EventBObject? refiner.refine(uri, (EventBObject) v, concreteComponent) : null;
-								}else{
-									refinedObject = refiner.getEquivalentObject(concreteComponent, (EObject) v);
-								}
-								if (refinedObject!=null){
-									newValues.add(refinedObject);
-								}
-							}
+					List<Object> rawValues = new ArrayList<Object>();
+					if (lc.getValues()!=null && lc.getValues().size()>0){
+						rawValues.addAll(lc.getValues());
+					} else if (lc.getReferenceValues()!=null && lc.getReferenceValues().size()>0) {
+						rawValues.addAll(lc.getReferenceValues());
+					} else {
+						//Single Value to be added - get it from current model using index
+						// (note lc index assumes that other changes to this feature have been applied
+						int i = listChangeIndex.containsKey(lc) ? listChangeIndex.get(lc) : lc.getIndex();
+						Object v = ((EList<?>)abstractParent.eGet(feature)).get(i);
+						if (v!=null){
+							rawValues.add(v);							
 						}
 					}
+					for (Object v : rawValues){
+						if (v instanceof EObject){
+							URI uri = null;
+							EObject refinedObject;
+							if (feature instanceof EReference && ((EReference)feature).isContainment()){
+								uri = EcoreUtil.getURI(abstractParent);
+								String fragment = EcoreUtil.getID((EObject) v);
+								int i = fragment.lastIndexOf("::")+2;
+								String tail = fragment.substring(i);
+								fragment=fragment.substring(0,i);
+								fragment=fragment+uri.fragment().substring(i);
+								fragment=fragment+"."+tail;
+								uri = uri.appendFragment(fragment); 
+								refinedObject = v instanceof EventBObject? refiner.refine(uri, (EventBObject) v, concreteComponent) : null;
+							}else{
+								//FIXME: for some elements the changes may break the equivalence used here. E.g. transitions may have had their 
+								// source and/or target changed or their elaborates changed. Could we check the pre-change state?
+								refinedObject = refiner.getEquivalentObject(concreteComponent, (EObject) v);
+//								if (refinedObject==null){ //sometimes will fail on the modified element so also try a copy of the pre-change abstract
+//									refinedObject = refiner.getEquivalentObject(concreteComponent, (EObject) v);
+//								}
+							}
+							if (refinedObject!=null){
+								newValues.add(refinedObject);
+							}
+						}else{
+							newValues.add(v);
+						}
+					}
+
 					int index = lc.getIndex();
 					int max = ((List<?>)refinedParent.eGet(feature)).size(); 
-					report = report+"\nAdd "+getURIsAsCSL(newValues)+" to "+feature.getName()+" of "+refinedParent.getURI().fragment();
+					report = report+"\nAdd "+getURIsAsCSL(newValues)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment();
 					cc.append(AddCommand.create(ed, refinedParent, feature, newValues, index>max? max : index ));
 					break;
 				case MOVE_LITERAL:
 					break;
-				case REMOVE_LITERAL:
+				case ADD_LITERAL:	//I.E. REMOVE Values from the list in the refinement
 					List<Object> removeValues = new ArrayList<Object>();
 					if (lc.getDataValues()!=null && lc.getDataValues().size()>0){
 						removeValues.addAll(lc.getValues());
@@ -196,17 +291,14 @@ public class CommitAssistant extends RefactorAssistant {
 							}
 						}
 					}else {
-						//FIXME: where do we get the abstract removed object from?
-						Object v = null; //((EList<?>)abstractParent.eGet(feature)).get(lc.getIndex());
-						if (v instanceof EObject){
-							EObject refinedObject = v instanceof EObject? refiner.getEquivalentObject(refinedParent, feature, (EObject)v) : null;
-							if (refinedObject!=null) removeValues.add(refinedObject);
-						}else if (v!=null){
-							removeValues.add(v);							
-						}
+						EList<Object> v = lc.getValues();
+						//SHOULD NOT GET HERE AS ADD ALWAYS SETS VALUES 
+						int I=0;
 					}
-					report = report+"\nRemove "+getURIsAsCSL(removeValues)+" from "+feature.getName()+" of "+refinedParent.getURI().fragment();
-					cc.append(RemoveCommand.create(ed, refinedParent, feature, removeValues));
+					if (removeValues.size()>0){
+						report = report+"\nRemove "+getURIsAsCSL(removeValues)+" from "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment();
+						cc.append(RemoveCommand.create(ed, refinedParent, feature, removeValues));
+					}
 					break;
 				default:
 					break;
@@ -224,12 +316,25 @@ public class CommitAssistant extends RefactorAssistant {
 		}
 	}
 
+	/**
+	 * Returns true if the child EObject is directly or indirectly contained in the container EObject
+	 * @param container
+	 * @param child
+	 * @return
+	 */
 	private boolean isIn(EObject container,EObject child) {
 		if (child==null || container==null) return false;
 		if (container==child) return true;
 		return isIn(container,child.eContainer());
 	}
 	
+	/**
+	 * Converts a list of objects into a comma separated list of identifiers
+	 * For EventBObjects the identifiers come from their uri fragments
+	 * 
+	 * @param newValues
+	 * @return
+	 */
 	private String getURIsAsCSL(List<Object> newValues) {
 		String ret = "";
 		for (Object o : newValues){
@@ -243,8 +348,19 @@ public class CommitAssistant extends RefactorAssistant {
 		return ret.length()>0? ret : "FAILED";
 	}
 	
+	/**
+	 * tests whether the (reverse) FeatureChange can be applied to the EObject
+	 * this is true if the corresponding feature value in the target object is
+	 * equivalent to the old value from the feature change
+	 * 
+	 *
+	 * @param refinedObject
+	 * @param reverseFeatureChange
+	 * @return
+	 */
 	private boolean canApplyFeatureChange(EObject refinedObject, FeatureChange reverseFeatureChange) {
 		EStructuralFeature feature = reverseFeatureChange.getFeature();
+		if (feature.isMany()) return true; //for now, all lists can apply changes
 		if (refinedObject.eClass().getEAllStructuralFeatures().contains(feature)){
 			Object refinedFeatureValue = refinedObject.eGet(feature);
 			Object oldAbstractFeatureValue = reverseFeatureChange.getValue();
@@ -253,6 +369,17 @@ public class CommitAssistant extends RefactorAssistant {
 		return false;
 	}
 	
+	/**
+	 * returns true if the two value instances, fv1 and fv2, of feature, are equivalent
+	 * (where equivalence depends on type)
+	 * 
+	 * for now lists always return true
+	 * 
+	 * @param feature
+	 * @param fv1
+	 * @param fv2
+	 * @return
+	 */
 	private boolean isEquivalent(EStructuralFeature feature, Object fv1, Object fv2){
 		if (feature.getEType().equals(EcorePackage.Literals.ESTRING)){
 			return isStringEquivalent((String)fv1,(String)fv2);
@@ -267,6 +394,12 @@ public class CommitAssistant extends RefactorAssistant {
 		}
 	}
 
+	/**
+	 * returns true iff s1 and s2 are equal after removal of whitespace or both null
+	 * @param s1
+	 * @param s2
+	 * @return
+	 */
 	private boolean isStringEquivalent(String s1, String s2) {
 		if (s1==null) return s2==null;
 		if (s2==null) return false;
@@ -320,6 +453,10 @@ public class CommitAssistant extends RefactorAssistant {
 		}
 	}
 
+	/**
+	 * generates a string from the current time
+	 * @return
+	 */
 	private String getTimeStamp() {
 		Calendar cal = Calendar.getInstance();
 		String m = ""+(cal.get(Calendar.MONTH)+1);
@@ -332,4 +469,5 @@ public class CommitAssistant extends RefactorAssistant {
 		n=n.length()<2? "0"+n : n;
 		return ""+cal.get(Calendar.YEAR)+m+d+h+n;
 	}
+
 }
