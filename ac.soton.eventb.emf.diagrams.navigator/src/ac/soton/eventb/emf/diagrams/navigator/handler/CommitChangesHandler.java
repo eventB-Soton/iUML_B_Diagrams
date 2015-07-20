@@ -16,11 +16,14 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.core.IMachineRoot;
@@ -103,10 +106,11 @@ public class CommitChangesHandler extends AbstractHandler {
 							
 							//save/close all diagrams
 							for(IWorkbenchPage pg : HandlerUtil.getActiveWorkbenchWindow(event).getPages()){
-								pg.closeAllEditors(true);
-//						    	for(IEditorReference editorRef: pg.getEditorReferences()){
-//						    		IEditorPart editor = editorRef.getEditor(true);
-//						    		if (editor instanceof DiagramEditor) {
+								//pg.closeAllEditors(true);
+						    	for(IEditorReference editorRef: pg.getEditorReferences()){
+						    		IEditorPart editor = editorRef.getEditor(true);
+						    		if (editor instanceof DiagramEditor) {
+						    			pg.closeEditor(editor, true);
 //						    			DiagramEditor diagramEditor = (DiagramEditor) editor;
 //						    			EObject diagramElement = diagramEditor.getDiagram().getElement();
 //						    			Resource resource = diagramElement.eResource();
@@ -120,13 +124,13 @@ public class CommitChangesHandler extends AbstractHandler {
 //					    						diagramEditor.dispose();
 //					    					}
 //						    			}
-//					    	    	}
-//						    	}
+					    	    	}
+						    	}
 							}
 
 							GenerateAllHandler genAll = new GenerateAllHandler();
 							
-							 //propagate the changes made in the current selected component to each lower refinement (TBD)
+							//propagate the changes made in the current selected component to each lower refinement (TBD)
 							//ecr.createForwardChangeRecords();
 							EventBNamedCommentedComponentElement cp = component;
 							EventBNamedCommentedComponentElement rcp = null;
