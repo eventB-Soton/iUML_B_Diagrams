@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.change.ChangeDescription;
 import org.eclipse.emf.ecore.change.FeatureChange;
 import org.eclipse.emf.ecore.change.ListChange;
@@ -21,7 +21,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
-import org.eclipse.gmf.runtime.emf.core.util.EMFCoreUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
@@ -30,19 +29,25 @@ import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 public class Recorder {
 	
 	protected ChangeRecorder cr;
-	protected Map<EObject,URI> proxyMap;
+//	protected Map<EObject,URI> proxyMap;
 	protected Resource res;
 	protected ResourceSet rs;
 	protected Resource chRes;
-	protected Resource pmRes;
+//	protected Resource pmRes;
+	protected Resource preCompRes;
+	protected Resource eqmRes;
 	protected boolean recordingInProgress;
 	
 	protected static Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
 	
 	protected EventBNamedCommentedComponentElement component;
+//	protected EventBNamedCommentedComponentElement preComponent;
+//	protected Copier copier;
+//	protected Map<EObject, EObject> equivalenceMap;
 	private TransactionalEditingDomain ed;
+//	private Resource equivalenceMapRes;
 	
-	protected Recorder(EventBNamedCommentedComponentElement component) {
+	protected Recorder(EventBNamedCommentedComponentElement component) throws IOException {
 		super();
 		this.component=component;
 		res = component.eResource();
@@ -50,11 +55,43 @@ public class Recorder {
 		ed = TransactionUtil.getEditingDomain(rs);
 		recordingInProgress = false;
 		
-		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-		pmRes = RefactorPersistence.INSTANCE.getProxyMapResource(res);
-		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
+
+			chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
+//			pmRes = RefactorPersistence.INSTANCE.getProxyMapResource(res);
+//			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
+			
+			RefactorPersistence.INSTANCE.checkPreState(component);
+			preCompRes = RefactorPersistence.INSTANCE.getPreStateResource(res);
+			//preCompRes.eSetDeliver(false);
+			eqmRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
+			//eqmRes.eSetDeliver(false);
+			
+//			// 
+//			//preComponentRes = (RodinResource) RefactorPersistence.INSTANCE.getPreStateResource(res);
+//			
+//			preComponent = RefactorPersistence.INSTANCE.getPreComponent(res);
+//			equivalenceMapRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
+//			equivalenceMap = RefactorPersistence.INSTANCE.getEquivalenceMap(res);
+//			
+//			if (preComponent==null || equivalenceMap==null){
+//				//EcoreUtil.copy(component);
+//				copier = new Copier();
+//				preComponent = (EventBNamedCommentedComponentElement) copier.copy(component); 
+//				copier.copyReferences();
+//				preComponentRes.getContents().add(0, preComponent);	
+//
+//				//equivalenceMap = new HashMap<EObject,EObject>(copier);
+//				EObject xx = RefactorPersistence.INSTANCE.convertEMToEMF(copier); //equivalenceMap);
+//				equivalenceMapRes.getContents().add(0,xx);
+//				
+//				equivalenceMapRes.save(Collections.EMPTY_MAP);
+//				preComponentRes.save(Collections.EMPTY_MAP);
+//				RefactorPersistence.INSTANCE.storePreState()
+//			}
+	
 	}
 	
+
 	/** 
 	 * if re-factoring is enabled 
 	 * 	gets a new change recorder 
@@ -63,7 +100,13 @@ public class Recorder {
 	 */
 	public static Recorder getNewRecorder(EventBNamedCommentedComponentElement component){
 		if (refactoringEnabled){
-			return new Recorder(component);
+			try {
+				return new Recorder(component);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
 		}else{
 			return null;
 		}
@@ -95,10 +138,15 @@ public class Recorder {
 		}
 		if (recordingInProgress) return 2;
 		ChangeDescription changes = getChangeDescription();
-		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
+//		try {
+////			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		if (cr==null) 		
 			cr = new ChangeRecorder();
-		cr.setEObjectToProxyURIMap(proxyMap);
+//		cr.setEObjectToProxyURIMap(proxyMap);
 		BeginRecordingCommand command = new BeginRecordingCommand(changes);
 		ed.getCommandStack().execute(command);
 		boolean reset = command.resetChanges;
@@ -127,7 +175,7 @@ public class Recorder {
 		if (cr!=null) cr.dispose();
 		if (chRes!=null){
 			rs.getResources().remove(chRes);
-			rs.getResources().remove(pmRes);
+//			rs.getResources().remove(pmRes);
 					//RefactorPersistence.INSTANCE.getProxyMapResource(res));
 		}
 	}
@@ -162,7 +210,9 @@ public class Recorder {
 		}
 		try {
 			chRes.save(Collections.EMPTY_MAP);
-			pmRes.save(Collections.EMPTY_MAP);
+//			pmRes.save(Collections.EMPTY_MAP);
+			preCompRes.save(Collections.EMPTY_MAP);
+			eqmRes.save(Collections.EMPTY_MAP);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -179,12 +229,18 @@ public class Recorder {
 		if (recordingInProgress){
 			endRecording();
 		}
-		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-		proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
-		EList<EObject> contents = chRes.getContents();
-		EObject content = contents.size()>0? chRes.getContents().get(0) : null;
-		ChangeDescription changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
-		return changes;
+		try {
+			chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
+//			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
+			EList<EObject> contents = chRes.getContents();
+			EObject content = contents.size()>0? chRes.getContents().get(0) : null;
+			ChangeDescription changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
+			return changes;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	////////////////////////////// COMMANDS //////////////////////////////////
@@ -230,11 +286,11 @@ public class Recorder {
 				fixRefs();
 				chRes.getContents().clear();
 				chRes.getContents().add(0, changes);
-				pmRes.getContents().clear();
-				EObject m = RefactorPersistence.INSTANCE.convert(proxyMap);
-				if (m!=null){
-					pmRes.getContents().add(m);
-				}
+//				pmRes.getContents().clear();
+//				EObject m = RefactorPersistence.INSTANCE.convertPMToEMF(proxyMap);
+//				if (m!=null){
+//					pmRes.getContents().add(m);
+//				}
 			}else{
 				int i=0;
 			}
@@ -250,7 +306,8 @@ public class Recorder {
 						List<EObject> newList = new ArrayList<EObject>();
 						for (EObject ref : lc.getReferenceValues()){
 							URI uri = EcoreUtil.getURI(ref);
-							EObject proxy = EMFCoreUtil.createProxy(ref.eClass(), fixURI(ref, uri));
+							InternalEObject proxy = (InternalEObject) ref.eClass().getEPackage().getEFactoryInstance().create(ref.eClass());
+							proxy.eSetProxyURI(fixURI(ref, uri));
 							newList.add(proxy);
 						}
 						lc.getReferenceValues().clear();
@@ -259,6 +316,7 @@ public class Recorder {
 				}
 			}
 		}
+		
 		
 		/**
 		 * The change description persistence uses the default offset referencing scheme
