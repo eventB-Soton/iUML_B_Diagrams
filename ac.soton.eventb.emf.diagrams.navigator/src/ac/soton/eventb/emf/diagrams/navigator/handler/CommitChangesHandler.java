@@ -35,7 +35,7 @@ import ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler;
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.CommitAssistant;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.Recorder;
-import ac.soton.eventb.emf.diagrams.navigator.refactor.RefactorPersistence;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersistence;
 
 
 /**
