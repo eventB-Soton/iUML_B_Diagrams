@@ -1,26 +1,18 @@
-package ac.soton.eventb.emf.diagrams.navigator.refactor;
+package ac.soton.eventb.emf.diagrams.navigator.refactor.persistence;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EFactory;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.EPackage.Registry;
-import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.EcoreFactory;
-import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil.Copier;
+import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.persistence.factory.RodinResource;
 
@@ -36,22 +28,22 @@ public class RefactorPersistence {
 //	private EClass proxyMapEntryClass;
 //	private EReference proxyMapEntryProxyReference;
 //	private EAttribute proxyMapEntryURIAttribute;
-	
-	public final static String equivalenceMapNsURI = "http://ac.soton.iumlb.refactoring.equivMap";
-	private EPackage equivMapPackage;
-	private EClass equivMapClass;
-	private EReference equivMapContainment;
-	private EClass equivMapEntryClass;
-	private EReference equivMapEntryKeyReference;
-	private EReference equivMapEntryValueReference;
+//	
+//	public final static String equivalenceMapNsURI = "http://ac.soton.iumlb.refactoring.equivMap";
+//	public static EPackage equivMapPackage;
+//	public static EClass equivMapClass;
+//	public static EReference equivMapContainment;
+//	public static EClass equivMapEntryClass;
+//	public static EReference equivMapEntryKeyReference;
+//	public static EReference equivMapEntryValueReference;
 
 	
 	public static RefactorPersistence INSTANCE = new RefactorPersistence();
 	
 	private RefactorPersistence() {
 //		getProxyMapPackage();
-		getEquivalenceMapPackage();
-		//INSTANCE = this;
+//		getEquivalenceMapPackage();
+//		//INSTANCE = this;
 	}
 	
 //	private void getProxyMapPackage(){
@@ -228,111 +220,136 @@ public class RefactorPersistence {
 //			return new HashMap<EObject,URI>();
 //		}
 //	}
-
+//
+//	
+//	/**
+//	 * This dynamically constructs an ecore package for storing the map from objects in the changed model
+//	 * to equivalent objects in a copy of the model before change
+//	 */
+//	private void getEquivalenceMapPackage(){
+//		Registry registry = EPackage.Registry.INSTANCE;		
+//		if (!registry.containsKey(equivalenceMapNsURI)){
+//			//set up dynamic EMF EClass for storing the equivalenceMap
+//			EcoreFactory ef =  EcoreFactory.eINSTANCE;
+//
+//			equivMapEntryKeyReference = ef.createEReference();
+//			equivMapEntryKeyReference.setName("equivMapEntryKeyReference");
+//			equivMapEntryKeyReference.setEType(EcorePackage.Literals.EOBJECT);
+//			equivMapEntryKeyReference.setContainment(false);
+//			equivMapEntryKeyReference.setUpperBound(1);
+//			
+//			equivMapEntryValueReference = ef.createEReference();
+//			equivMapEntryValueReference.setName("equivMapEntryValueReference");
+//			equivMapEntryValueReference.setEType(EcorePackage.Literals.EOBJECT);
+//			equivMapEntryValueReference.setContainment(false);
+//			equivMapEntryValueReference.setUpperBound(1);
+//			
+//			equivMapEntryClass = ef.createEClass();
+//			equivMapEntryClass.setName("equivMapEntryClass");
+//			equivMapEntryClass.getEStructuralFeatures().add(equivMapEntryKeyReference);
+//			equivMapEntryClass.getEStructuralFeatures().add(equivMapEntryValueReference);
+//			
+//			equivMapContainment = ef.createEReference();
+//			equivMapContainment.setName("equivMapContainment");
+//			equivMapContainment.setEType(equivMapEntryClass);
+//			equivMapContainment.setContainment(true);
+//			equivMapContainment.setUpperBound(-1);
+//			
+//			equivMapClass = ef.createEClass();
+//			equivMapClass.setName("equivMapClass");
+//			equivMapClass.getEStructuralFeatures().add(equivMapContainment);
+//			
+//			equivMapPackage = ef.createEPackage();
+//			equivMapPackage.setName("equivMapPackage");
+//			equivMapPackage.setNsPrefix("equivMapPackage");
+//			equivMapPackage.setNsURI(equivalenceMapNsURI);
+//			equivMapPackage.getEClassifiers().add(equivMapClass);
+//			equivMapPackage.getEClassifiers().add(equivMapEntryClass);
+//		
+//			registry.put(equivalenceMapNsURI, equivMapPackage);
+//		}
+//		equivMapPackage = registry.getEPackage(equivalenceMapNsURI);
+//		equivMapClass = (EClass) equivMapPackage.getEClassifier("equivMapClass");
+//		equivMapContainment = (EReference) equivMapClass.getEStructuralFeature("equivMapContainment");
+//		equivMapEntryClass =  (EClass) equivMapPackage.getEClassifier("equivMapEntryClass");
+//		equivMapEntryKeyReference = (EReference) equivMapEntryClass.getEStructuralFeature("equivMapEntryKeyReference");
+//		equivMapEntryValueReference = (EReference) equivMapEntryClass.getEStructuralFeature("equivMapEntryValueReference");
+//	}
+//	
+//	
+//	public EObject convertEQMToEMF(Map<EObject, EObject> equivMap) {
+//		EFactory equivMapFactory = equivMapPackage.getEFactoryInstance();
+//		EObject equivMapObject = equivMapFactory.create(equivMapClass);
+//		@SuppressWarnings("unchecked")
+//		EList<EObject>  entries = (EList<EObject>) equivMapObject.eGet(equivMapContainment);
+//		for (Entry<EObject, EObject> entry : equivMap.entrySet()){
+//			EObject equivMapEntryObject = equivMapFactory.create(equivMapEntryClass);
+//			equivMapEntryObject.eSet(equivMapEntryKeyReference, entry.getKey());
+//			equivMapEntryObject.eSet(equivMapEntryValueReference, entry.getValue());			
+//			entries.add(equivMapEntryObject);
+//		}		
+//		return equivMapObject;
+//	}
+//
+//	public Map<EObject, EObject> convertEMFToEQM(EObject equivMapObject) {
+//		Map<EObject, EObject> map = new HashMap<EObject, EObject>();
+//		if (equivMapObject.eClass() == equivMapClass){
+//			@SuppressWarnings("unchecked")
+//			EList<EObject> entries = (EList<EObject>) equivMapObject.eGet(equivMapContainment);
+//			for (EObject entry : entries){
+//				map.put((EObject)entry.eGet(equivMapEntryKeyReference), (EObject)entry.eGet(equivMapEntryValueReference));
+//			}
+//		}
+//		return map;
+//	}
 	
-	/**
-	 * This dynamically constructs an ecore package for storing the map from objects in the changed model
-	 * to equivalent objects in a copy of the model before change
-	 */
-	private void getEquivalenceMapPackage(){
-		Registry registry = EPackage.Registry.INSTANCE;		
-		if (!registry.containsKey(equivalenceMapNsURI)){
-			//set up dynamic EMF EClass for storing the equivalenceMap
-			EcoreFactory ef =  EcoreFactory.eINSTANCE;
-
-			equivMapEntryKeyReference = ef.createEReference();
-			equivMapEntryKeyReference.setName("equivMapEntryKeyReference");
-			equivMapEntryKeyReference.setEType(EcorePackage.Literals.EOBJECT);
-			equivMapEntryKeyReference.setContainment(false);
-			equivMapEntryKeyReference.setUpperBound(1);
-			
-			equivMapEntryValueReference = ef.createEReference();
-			equivMapEntryValueReference.setName("equivMapEntryValueReference");
-			equivMapEntryValueReference.setEType(EcorePackage.Literals.EOBJECT);
-			equivMapEntryValueReference.setContainment(false);
-			equivMapEntryValueReference.setUpperBound(1);
-			
-			equivMapEntryClass = ef.createEClass();
-			equivMapEntryClass.setName("equivMapEntryClass");
-			equivMapEntryClass.getEStructuralFeatures().add(equivMapEntryKeyReference);
-			equivMapEntryClass.getEStructuralFeatures().add(equivMapEntryValueReference);
-			
-			equivMapContainment = ef.createEReference();
-			equivMapContainment.setName("equivMapContainment");
-			equivMapContainment.setEType(equivMapEntryClass);
-			equivMapContainment.setContainment(true);
-			equivMapContainment.setUpperBound(-1);
-			
-			equivMapClass = ef.createEClass();
-			equivMapClass.setName("equivMapClass");
-			equivMapClass.getEStructuralFeatures().add(equivMapContainment);
-			
-			equivMapPackage = ef.createEPackage();
-			equivMapPackage.setName("equivMapPackage");
-			equivMapPackage.setNsPrefix("equivMapPackage");
-			equivMapPackage.setNsURI(equivalenceMapNsURI);
-			equivMapPackage.getEClassifiers().add(equivMapClass);
-			equivMapPackage.getEClassifiers().add(equivMapEntryClass);
+	public Map<EObject, EObject> getEquivalenceMap(Resource res) {
+		IProject project = WorkspaceSynchronizer.getFile(res).getProject();
+		URI equivMapUri = RefactorPersistence.INSTANCE.getRelatedURI(res, changesFolder, null, "equivmap");
+		MapFile equivalenceMapRes = new MapFile(); 
+		equivalenceMapRes.load(project, equivMapUri, null);
+		Map<EObject, EObject> equivalenceMap = equivalenceMapRes.getMap(res.getResourceSet());  //RefactorPersistence.INSTANCE.getEquivalenceMap(res);
+		return equivalenceMap;
 		
-			registry.put(equivalenceMapNsURI, equivMapPackage);
-		}
-		equivMapPackage = registry.getEPackage(equivalenceMapNsURI);
-		equivMapClass = (EClass) equivMapPackage.getEClassifier("equivMapClass");
-		equivMapContainment = (EReference) equivMapClass.getEStructuralFeature("equivMapContainment");
-		equivMapEntryClass =  (EClass) equivMapPackage.getEClassifier("equivMapEntryClass");
-		equivMapEntryKeyReference = (EReference) equivMapEntryClass.getEStructuralFeature("equivMapEntryKeyReference");
-		equivMapEntryValueReference = (EReference) equivMapEntryClass.getEStructuralFeature("equivMapEntryValueReference");
+//		Resource equivMapResource;
+//		if ("equivMap".equals(res.getURI().fileExtension())){
+//			equivMapResource = res;
+//		}else{
+//			equivMapResource = getEquivMapResource(res);
+//		}
+//		if (equivMapResource.getContents().size()>0){
+//			return convertEMFToEQM(equivMapResource.getContents().get(0));
+//		}else{
+//			return new HashMap<EObject,EObject>();
+//		}
 	}
 	
+	public void saveEquivalenceMap(Resource res, Map<EObject,EObject> map) {
+		IProject project = WorkspaceSynchronizer.getFile(res).getProject();
+		URI equivMapUri = RefactorPersistence.INSTANCE.getRelatedURI(res, changesFolder, null, "equivmap");
+		MapFile equivalenceMapRes = new MapFile(); 
+
+		equivalenceMapRes.setMap(map);
+		equivalenceMapRes.save(project, equivMapUri, null);
+	}
 	
-	public EObject convertEMToEMF(Map<EObject, EObject> equivMap) {
-		EFactory equivMapFactory = equivMapPackage.getEFactoryInstance();
-		EObject equivMapObject = equivMapFactory.create(equivMapClass);
-		@SuppressWarnings("unchecked")
-		EList<EObject>  entries = (EList<EObject>) equivMapObject.eGet(equivMapContainment);
-		for (Entry<EObject, EObject> entry : equivMap.entrySet()){
-			EObject equivMapEntryObject = equivMapFactory.create(equivMapEntryClass);
-			equivMapEntryObject.eSet(equivMapEntryKeyReference, entry.getKey());
-			equivMapEntryObject.eSet(equivMapEntryValueReference, entry.getValue());			
-			entries.add(equivMapEntryObject);
-		}		
-		return equivMapObject;
+	public void deleteEquivalenceMap(Resource res) {
+		IProject project = WorkspaceSynchronizer.getFile(res).getProject();
+		URI equivMapUri = RefactorPersistence.INSTANCE.getRelatedURI(res, changesFolder, null, "equivmap");
+		MapFile equivalenceMapRes = new MapFile(); 
+
+		equivalenceMapRes.delete(project, equivMapUri, null);
 	}
 
-	public Map<EObject, EObject> convertEMFromEMF(EObject equivMapObject) {
-		Map<EObject, EObject> map = new HashMap<EObject, EObject>();
-		if (equivMapObject.eClass() == equivMapClass){
-			@SuppressWarnings("unchecked")
-			EList<EObject> entries = (EList<EObject>) equivMapObject.eGet(equivMapContainment);
-			for (EObject entry : entries){
-				map.put((EObject)entry.eGet(equivMapEntryKeyReference), (EObject)entry.eGet(equivMapEntryValueReference));
-			}
-		}
-		return map;
-	}
 	
-	public Map<EObject, EObject> getEquivalenceMap(Resource res) throws IOException {
-		Resource equivMapResource;
-		if ("equivMap".equals(res.getURI().fileExtension())){
-			equivMapResource = res;
-		}else{
-			equivMapResource = getEquivMapResource(res);
-		}
-		if (equivMapResource.getContents().size()>0){
-			return convertEMFromEMF(equivMapResource.getContents().get(0));
-		}else{
-			return new HashMap<EObject,EObject>();
-		}
-	}
-		
-	public Map<EObject, EObject> getEquivalenceMap(ResourceSet rs, URI componentUri) throws IOException {
-		Resource equivMapResource = getEquivMapResource(rs, componentUri);
-		if (equivMapResource.getContents().size()>0){
-			return convertEMFromEMF(equivMapResource.getContents().get(0));
-		}else{
-			return new HashMap<EObject,EObject>();
-		}
-	}
+//	public Map<EObject, EObject> getEquivalenceMap(ResourceSet rs, URI componentUri) throws IOException {
+//		Resource equivMapResource = getEquivMapResource(rs, componentUri);
+//		if (equivMapResource.getContents().size()>0){
+//			return  convertEMFToEQM(equivMapResource.getContents().get(0));
+//		}else{
+//			return new HashMap<EObject,EObject>();
+//		}
+//	}
 	
 	public EventBNamedCommentedComponentElement getPreComponent(Resource res) throws IOException {
 		Resource preRes = getPreStateResource(res);
@@ -374,14 +391,18 @@ public class RefactorPersistence {
 //	public Resource getProxyMapResource(ResourceSet rs, URI comp_uri) throws IOException{
 //		return getResourceInChangesFolder(rs, comp_uri, "proxymap");
 //	}
-	
-	public Resource getEquivMapResource(Resource res) throws IOException{
-		return getEquivMapResource(res.getResourceSet(),res.getURI());
-	}
-	
-	public Resource getEquivMapResource(ResourceSet rs, URI comp_uri) throws IOException{
-		return getResourceInChangesFolder(rs, comp_uri, "equivmap");
-	}
+//	
+//	public Resource getEquivMapResource(Resource res) throws IOException{
+//		return getEquivMapResource(res.getResourceSet(),res.getURI());
+//	}
+//	
+//	public Resource getEquivMapResource(Resource res) throws IOException{
+//		return getEquivMapResource(res.getResourceSet(),res.getURI());
+//	}
+//	
+//	public Resource getEquivMapResource(ResourceSet rs, URI comp_uri) throws IOException{
+//		return getResourceInChangesFolder(rs, comp_uri, "equivmap");
+//	}
 
 	/**
 	 * gets the resource using the uri comp_uri but with the alternative extension and
@@ -489,32 +510,43 @@ public class RefactorPersistence {
 	public void checkPreState(EventBNamedCommentedComponentElement component) throws IOException {
 		Resource res = component.eResource();
 		//ResourceSet rs = res.getResourceSet();
+		
 		RodinResource preComponentRes = (RodinResource) RefactorPersistence.INSTANCE.getPreStateResource(res);
-		Resource equivalenceMapRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
-		preComponentRes.eSetDeliver(false);
-		equivalenceMapRes.eSetDeliver(false);
+		preComponentRes.eSetDeliver(false);		
 		EventBNamedCommentedComponentElement preComponent = RefactorPersistence.INSTANCE.getPreComponent(res);
-		Map<EObject, EObject> equivalenceMap = RefactorPersistence.INSTANCE.getEquivalenceMap(res);
+		
+//		Resource equivalenceMapRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
+//		equivalenceMapRes.eSetDeliver(false);
+//		Map<EObject, EObject> equivalenceMap RefactorPersistence.INSTANCE.getEquivalenceMap(res);
+		
+//		IProject project = WorkspaceSynchronizer.getFile(res).getProject();
+//		URI equivMapUri = RefactorPersistence.INSTANCE.getRelatedURI(res, changesFolder, null, "equivmap");
+//
+//		MapFile equivalenceMapRes = new MapFile(); 
+//		equivalenceMapRes.load(project, equivMapUri, null);
+		Map<EObject, EObject> equivalenceMap = getEquivalenceMap(res);  //RefactorPersistence.INSTANCE.getEquivalenceMap(res);
 		
 		if (preComponent==null || equivalenceMap==null){
 			//EcoreUtil.copy(component);
 			Copier copier = new Copier();
 			preComponent = (EventBNamedCommentedComponentElement) copier.copy(component);
-			equivalenceMapRes.getContents().clear();
+//			equivalenceMapRes.getContents().clear();
 			preComponentRes.getContents().add(0, preComponent);
 			//preComponentRes.getContents().add(0, preComponent);
 			//URIConverter uc = rs.getURIConverter();
 			//preComponentRes.save(Collections.EMPTY_MAP);
 			copier.copyReferences();
 			preComponentRes.save(Collections.EMPTY_MAP);
+
+			saveEquivalenceMap(res, copier);
 			
-			equivalenceMapRes.getContents().clear();
-			equivalenceMapRes.getContents().add(0,RefactorPersistence.INSTANCE.convertEMToEMF(copier));
-			equivalenceMapRes.save(Collections.EMPTY_MAP);
+//			equivalenceMapRes.getContents().clear();
+//			equivalenceMapRes.getContents().add(0,RefactorPersistence.INSTANCE.convertEQMToEMF(copier));
+//			equivalenceMapRes.save(Collections.EMPTY_MAP);
+			
 		}
 		preComponentRes.unload();
-		equivalenceMapRes.unload();
+//		equivalenceMapRes.unload();
 	}
-
 
 }
