@@ -14,6 +14,8 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersistence;
+
 public class RefactorAssistant {
 
 	protected ChangeDescription changes;
@@ -91,8 +93,8 @@ public class RefactorAssistant {
 //						RefactorPersistence.INSTANCE.getProxyMapResource(res));
 				rs.getResources().remove(
 						RefactorPersistence.INSTANCE.getPreStateResource(res));	
-				rs.getResources().remove(
-						RefactorPersistence.INSTANCE.getEquivMapResource(res));		
+//				rs.getResources().remove(
+//						RefactorPersistence.INSTANCE.getEquivMapResource(res));		
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -121,9 +123,11 @@ public class RefactorAssistant {
 			pre.eSetDeliver(false);
 			pre.delete(Collections.EMPTY_MAP);
 			
-			Resource eqv = RefactorPersistence.INSTANCE.getEquivMapResource(res);
-			eqv.eSetDeliver(false);
-			eqv.delete(Collections.EMPTY_MAP);
+//			Resource eqv = RefactorPersistence.INSTANCE.getEquivMapResource(res);
+//			eqv.eSetDeliver(false);
+//			eqv.delete(Collections.EMPTY_MAP);
+			
+			RefactorPersistence.INSTANCE.deleteEquivalenceMap(res);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

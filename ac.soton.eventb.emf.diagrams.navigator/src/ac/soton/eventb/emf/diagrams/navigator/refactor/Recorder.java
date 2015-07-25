@@ -24,6 +24,7 @@ import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersistence;
 
 
 public class Recorder {
@@ -34,8 +35,8 @@ public class Recorder {
 	protected ResourceSet rs;
 	protected Resource chRes;
 //	protected Resource pmRes;
-	protected Resource preCompRes;
-	protected Resource eqmRes;
+//	protected Resource preCompRes;
+//	protected Resource eqmRes;
 	protected boolean recordingInProgress;
 	
 	protected static Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
@@ -61,9 +62,9 @@ public class Recorder {
 //			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
 			
 			RefactorPersistence.INSTANCE.checkPreState(component);
-			preCompRes = RefactorPersistence.INSTANCE.getPreStateResource(res);
+			//preCompRes = RefactorPersistence.INSTANCE.getPreStateResource(res);
 			//preCompRes.eSetDeliver(false);
-			eqmRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
+			//eqmRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
 			//eqmRes.eSetDeliver(false);
 			
 //			// 
@@ -211,8 +212,8 @@ public class Recorder {
 		try {
 			chRes.save(Collections.EMPTY_MAP);
 //			pmRes.save(Collections.EMPTY_MAP);
-			preCompRes.save(Collections.EMPTY_MAP);
-			eqmRes.save(Collections.EMPTY_MAP);
+//			preCompRes.save(Collections.EMPTY_MAP);
+//			eqmRes.save(Collections.EMPTY_MAP);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -291,8 +292,9 @@ public class Recorder {
 //				if (m!=null){
 //					pmRes.getContents().add(m);
 //				}
-			}else{
-				int i=0;
+//				refreshMap();
+//			}else{
+//				int i=0;
 			}
 
 		}
@@ -351,6 +353,23 @@ public class Recorder {
 		
 		public ChangeDescription getChanges() { return changes; }
 	}
+
+//	private void refreshMap() {
+//		EObject map = eqmRes.getContents().get(0);
+//		if (map.eClass() == RefactorPersistence.equivMapClass){
+//			for (Object mapEntry : (EList<Object>)map.eGet(RefactorPersistence.equivMapContainment)){
+//				 if (mapEntry instanceof EObject && ((EObject)mapEntry).eClass() == RefactorPersistence.equivMapEntryClass){
+//					Object key = ((EObject)mapEntry).eGet(RefactorPersistence.equivMapEntryKeyReference);
+//					Object val = ((EObject)mapEntry).eGet(RefactorPersistence.equivMapEntryValueReference);
+//					if (key instanceof EObject && ((EObject)key).eClass().getName().equals("State")){
+//						int k=0;
+//					}
+//				 }
+//			}
+//		}
+//		int i=0;
+//		
+//	}
 	
 
 }
