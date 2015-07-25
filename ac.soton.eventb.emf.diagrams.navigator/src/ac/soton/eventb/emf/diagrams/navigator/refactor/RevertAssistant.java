@@ -24,10 +24,6 @@ public class RevertAssistant extends RefactorAssistant {
 		command.dispose();
 		try {
 			res.save(Collections.EMPTY_MAP);
-			//chRes.eSetDeliver(false);
-//			List<Object> dels = new ArrayList<Object>();
-//			dels.add(chRes);
-//			DeleteCommand del = new DeleteCommand(ed, dels); 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

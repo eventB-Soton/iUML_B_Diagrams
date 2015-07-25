@@ -19,7 +19,6 @@ import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersi
 public class RefactorAssistant {
 
 	protected ChangeDescription changes;
-//	protected Map<EObject,URI> proxyMap;
 	protected Resource res;
 	protected ResourceSet rs;
 	protected Resource chRes;
@@ -33,19 +32,14 @@ public class RefactorAssistant {
 		res = component.eResource();
 		rs = res.getResourceSet();
 		ed = TransactionUtil.getEditingDomain(rs);
-//		if (ed!= EMFRodinDB.INSTANCE.getEditingDomain()){
-//			int i=0;
-//		}
 		try {
 			chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-//			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
 			EObject content = chRes.getContents().size()>0? chRes.getContents().get(0) : null;
 			changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
 	
 	/**
@@ -58,13 +52,9 @@ public class RefactorAssistant {
 		this.component=null;
 		res = null;
 		rs = ed.getResourceSet();
-		this.ed = ed; //TransactionUtil.getEditingDomain(rs);
-//		if (ed!= EMFRodinDB.INSTANCE.getEditingDomain()){
-//			int i=0;
-//		}
+		this.ed = ed;
 		try {
 			chRes = RefactorPersistence.INSTANCE.getChangesResource(rs, componentUri);
-//			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(rs, componentUri);		
 			EObject content = chRes.getContents().size()>0? chRes.getContents().get(0) : null;
 			changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
 		} catch (IOException e) {
@@ -89,12 +79,8 @@ public class RefactorAssistant {
 		if (chRes!=null){
 			rs.getResources().remove(chRes);
 			try {
-//				rs.getResources().remove(
-//						RefactorPersistence.INSTANCE.getProxyMapResource(res));
 				rs.getResources().remove(
-						RefactorPersistence.INSTANCE.getPreStateResource(res));	
-//				rs.getResources().remove(
-//						RefactorPersistence.INSTANCE.getEquivMapResource(res));		
+						RefactorPersistence.INSTANCE.getPreStateResource(res));			
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -109,23 +95,13 @@ public class RefactorAssistant {
 	 */
 	public void deleteChangeRecords() {
 		try {
-			
 			disposeChangeRecords();
-			
 			chRes.eSetDeliver(false);
 			chRes.delete(Collections.EMPTY_MAP);
-			
-//			Resource pmr = RefactorPersistence.INSTANCE.getProxyMapResource(res);
-//			pmr.eSetDeliver(false);
-//			pmr.delete(Collections.EMPTY_MAP);
 			
 			Resource pre = RefactorPersistence.INSTANCE.getPreStateResource(res);
 			pre.eSetDeliver(false);
 			pre.delete(Collections.EMPTY_MAP);
-			
-//			Resource eqv = RefactorPersistence.INSTANCE.getEquivMapResource(res);
-//			eqv.eSetDeliver(false);
-//			eqv.delete(Collections.EMPTY_MAP);
 			
 			RefactorPersistence.INSTANCE.deleteEquivalenceMap(res);
 			
@@ -134,17 +110,7 @@ public class RefactorAssistant {
 			e.printStackTrace();
 		}
 	}
-	
-	////////////////////////////// PROTECTED //////////////////////////////////
-	
-//	/**
-//	 * 
-//	 * @return
-//	 */
-//	protected ChangeDescription getChangeDescription(){
-//		return changes;
-//	}
-	
+		
 	////////////////////////////// COMMANDS //////////////////////////////////
 	
 	protected class ApplyReverseCommand extends ChangeCommand {
@@ -158,25 +124,5 @@ public class RefactorAssistant {
 			changes.applyAndReverse();
 		}
 	}
-	
-//	protected class CopyReverseCommand extends ChangeCommand {
-//		private ChangeDescription changes;
-//		private Map<EObject, URI> proxyMap;
-//		CopyReverseCommand(Resource chRes, ChangeDescription changes, Map<EObject, URI> proxyMap){
-//			super(new ChangeRecorder(chRes).endRecording()); 	//!!! can't find a way to avoid this.. a change recorder to record what the change recorder does!
-//			
-////			Copier copier = new Copier();
-////			copier.copy(changes);
-////			this.changes = copier.clone();
-//			
-//			this.changes = changes;
-//			this.proxyMap = proxyMap;
-//		}
-//		@Override
-//		public void doExecute(){
-//			changes.copyAndReverse(proxyMap);
-//		}
-//		public ChangeDescription getChanges() { return changes; }
-//	}
 
 }

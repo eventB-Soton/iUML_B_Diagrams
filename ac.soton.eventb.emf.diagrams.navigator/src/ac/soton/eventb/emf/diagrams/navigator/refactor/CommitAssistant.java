@@ -43,7 +43,11 @@ public class CommitAssistant extends RefactorAssistant {
 	private final static String[] reportsFolder = {"iumlb","reports"};
 	
 	private Map<EObject,URI> oldNameMap = new HashMap<EObject,URI>();
-	private TextFile report = new TextFile();;
+	private TextFile report = new TextFile();
+	EObject oldComponent;
+	Map<EObject, EObject> equivMap;
+	
+	
 	public CommitAssistant(EventBNamedCommentedComponentElement component) {
 		super(component);
 	}
@@ -61,21 +65,17 @@ public class CommitAssistant extends RefactorAssistant {
 		
 		String timeStamp = getTimeStamp();
 		oldNameMap.clear();
-
+		oldComponent = null;
+		equivMap = null;
 		report.setText("");
 		report.addLine("Propagation report for "+newComponent.eResource().getURI().toPlatformString(true)+" :: "+timeStamp+"\n");
 		
 		try {
-			//ChangeDescriptionImpl cdi = (ChangeDescriptionImpl) changes;
-				//((ChangeDescriptionImpl)changes). ;
 				if (changes==null || newComponent.eResource().getResourceSet() != rs) return;
 				CompoundCommand cc = new CompoundCommand();
 
 				preApply();
 				
-//				EList<EObject> detaches = changes.getObjectsToDetach();
-//				EList<EObject> attaches = changes.getObjectsToAttach();
-
 				//first check for name changes which will break vertical references as well as the equivalence map used later
 				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
 					EObject abstractObject = change.getKey();
@@ -99,8 +99,7 @@ public class CommitAssistant extends RefactorAssistant {
 				}
 				
 				//fix vertical references to account for name changes
-				//cc.append(
-				updateVerticalReferences(cc, newComponent); //);
+				updateVerticalReferences(cc, newComponent);
 				ed.getCommandStack().execute(cc);
 				cc.dispose();
 				cc = new CompoundCommand();
@@ -113,12 +112,6 @@ public class CommitAssistant extends RefactorAssistant {
 					EList<FeatureChange> abstractFeatureChanges = change.getValue();
 					
 					// get a refiner for the ePackage containing this abstract object
-//					EClass ec = abstractObject.eClass();
-//					EPackage ep = ec==null ? null : ec.getEPackage();
-//					if (ec==null||ep==null){
-//						int i = 0;
-//					}
-					
 					String nsURI = abstractObject.eClass().getEPackage().getNsURI();
 					AbstractElementRefiner refiner = ElementRefinerRegistry.getRegistry().getRefiner(nsURI);
 					if (refiner==null) continue;
@@ -136,7 +129,6 @@ public class CommitAssistant extends RefactorAssistant {
 							makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
 						}
 					}
-					
 					ed.getCommandStack().execute(cc);
 					cc.dispose();
 					cc = new CompoundCommand();
@@ -168,17 +160,9 @@ public class CommitAssistant extends RefactorAssistant {
 						}
 					}
 				}
-
 				ed.getCommandStack().execute(cc);
 				cc.dispose();
-
-//				TransactionalEditingDomain ed2 = EMFRodinDB.INSTANCE.getEditingDomain();
-//				Map<String, ?> atts = rs.getURIConverter().getAttributes(refinedRes.getURI(), null);
-//				if (ed.isReadOnly(refinedRes)){
-//					Map<Resource, Boolean> r2romap = ((AdapterFactoryEditingDomain)ed).getResourceToReadOnlyMap();
-//					r2romap.remove(refinedRes);
-//				}
-			
+	
 		} finally{
 			IProject project = WorkspaceSynchronizer.getFile(res).getProject();
 			URI commitReportURI = RefactorPersistence.INSTANCE.getRelatedURI(newComponent.eResource(), reportsFolder, timeStamp, "report");
@@ -262,7 +246,6 @@ public class CommitAssistant extends RefactorAssistant {
 								indexMap.get(eObject).containsKey(feature)) {
 							 indexOffset = indexMap.get(eObject).get(feature);
 							 int newIndex = lc.getIndex()+indexOffset;
-							 //lc.setIndex(newIndex); //changing the index can cause problems
 							 listChangeIndex.put(lc,newIndex);
 						}
 						if (!indexMap.containsKey(eObject)){
@@ -350,18 +333,6 @@ public class CommitAssistant extends RefactorAssistant {
 				EList<ListChange> listChanges = reverseFeatureChange.getListChanges();
 				for (ListChange lc : listChanges){
 					ChangeKind kind = lc.getKind();
-	//				EList<Object> values = lc.getValues();
-	//				EList<?> abstractList = ((EList<?>)abstractParent.eGet(feature));
-	//				
-	//				@SuppressWarnings("unchecked")
-	//				EList<Object> refinedList = ((EList<Object>)refinedParent.eGet(feature));			
-	//				EObject dummyParent = EcoreUtil.copy(abstractParent);
-	//				@SuppressWarnings("unchecked")
-	//				EList<Object> dummyList = ((EList<Object>)dummyParent.eGet(feature));
-	//				
-	//				lc.reverse(dummyList);
-	//				lc.apply(refinedList);
-	//				int i=0;
 					switch (kind){
 					case REMOVE_LITERAL:	//I.E. ADD values to the list in the refinement
 						List<Object> newValues = new ArrayList<Object>();
@@ -397,7 +368,6 @@ public class CommitAssistant extends RefactorAssistant {
 								newValues.add(v);
 							}
 						}
-	
 //						int index = lc.getIndex();
 //						int max = ((List<?>)refinedParent.eGet(feature)).size(); 
 						report.addLine("Add "+getURIsAsCSL(newValues)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
@@ -455,23 +425,8 @@ public class CommitAssistant extends RefactorAssistant {
 	private EObject makeRefinedElement(EObject abstractParent,
 			AbstractElementRefiner refiner,
 			EventBNamedCommentedComponentElement concreteComponent, EObject abstractElement) {
-		
 		EObject refinedObject;
-		
 		if (abstractElement instanceof EventBObject) {
-			
-			//not sure what this was trying to do!
-//			URI uri = EcoreUtil.getURI(abstractParent);
-//			URI uri2 = EcoreUtil.getURI(abstractElement);
-//			String fragment = EcoreUtil.getID(abstractElement);
-//			int i = fragment.lastIndexOf("::")+2;
-//			String tail = fragment.substring(i);
-//			fragment=fragment.substring(0,i);
-//			//fragment=fragment+ //uri.fragment().substring(i);
-//			fragment=fragment+"."+tail;
-//			uri = uri.trimFragment().appendFragment(fragment); int k=0;
-			
-			
 			URI uri = EcoreUtil.getURI(abstractElement);
 			refinedObject =  refiner.refine(uri, (EventBObject)abstractElement, concreteComponent);
 		} else {
@@ -480,10 +435,6 @@ public class CommitAssistant extends RefactorAssistant {
 		}
 		return refinedObject;
 	}
-
-	
-	EObject oldComponent;
-	Map<EObject, EObject> equivMap;
 	
 	/**
 	 * gets the old (pre-changes) eObject that is equivalent to the given one.

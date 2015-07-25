@@ -30,23 +30,15 @@ import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersi
 public class Recorder {
 	
 	protected ChangeRecorder cr;
-//	protected Map<EObject,URI> proxyMap;
 	protected Resource res;
 	protected ResourceSet rs;
 	protected Resource chRes;
-//	protected Resource pmRes;
-//	protected Resource preCompRes;
-//	protected Resource eqmRes;
 	protected boolean recordingInProgress;
 	
 	protected static Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
 	
 	protected EventBNamedCommentedComponentElement component;
-//	protected EventBNamedCommentedComponentElement preComponent;
-//	protected Copier copier;
-//	protected Map<EObject, EObject> equivalenceMap;
 	private TransactionalEditingDomain ed;
-//	private Resource equivalenceMapRes;
 	
 	protected Recorder(EventBNamedCommentedComponentElement component) throws IOException {
 		super();
@@ -55,44 +47,10 @@ public class Recorder {
 		rs = res.getResourceSet();
 		ed = TransactionUtil.getEditingDomain(rs);
 		recordingInProgress = false;
-		
-
-			chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-//			pmRes = RefactorPersistence.INSTANCE.getProxyMapResource(res);
-//			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
-			
-			RefactorPersistence.INSTANCE.checkPreState(component);
-			//preCompRes = RefactorPersistence.INSTANCE.getPreStateResource(res);
-			//preCompRes.eSetDeliver(false);
-			//eqmRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
-			//eqmRes.eSetDeliver(false);
-			
-//			// 
-//			//preComponentRes = (RodinResource) RefactorPersistence.INSTANCE.getPreStateResource(res);
-//			
-//			preComponent = RefactorPersistence.INSTANCE.getPreComponent(res);
-//			equivalenceMapRes = RefactorPersistence.INSTANCE.getEquivMapResource(res);
-//			equivalenceMap = RefactorPersistence.INSTANCE.getEquivalenceMap(res);
-//			
-//			if (preComponent==null || equivalenceMap==null){
-//				//EcoreUtil.copy(component);
-//				copier = new Copier();
-//				preComponent = (EventBNamedCommentedComponentElement) copier.copy(component); 
-//				copier.copyReferences();
-//				preComponentRes.getContents().add(0, preComponent);	
-//
-//				//equivalenceMap = new HashMap<EObject,EObject>(copier);
-//				EObject xx = RefactorPersistence.INSTANCE.convertEMToEMF(copier); //equivalenceMap);
-//				equivalenceMapRes.getContents().add(0,xx);
-//				
-//				equivalenceMapRes.save(Collections.EMPTY_MAP);
-//				preComponentRes.save(Collections.EMPTY_MAP);
-//				RefactorPersistence.INSTANCE.storePreState()
-//			}
-	
+		chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
+		RefactorPersistence.INSTANCE.checkPreState(component);
 	}
 	
-
 	/** 
 	 * if re-factoring is enabled 
 	 * 	gets a new change recorder 
@@ -113,14 +71,6 @@ public class Recorder {
 		}
 	}
 	
-//	/**
-//	 * tests whether there are any changes yet
-//	 * @return true if the changes resource is not empty
-//	 */
-//	public boolean hasChanges() {
-//		return chRes!=null &&  !chRes.getContents().isEmpty();
-//	}
-	
 	/**
 	 * Resume recording.
 	 * If no previous recording is found a new recording is started. 
@@ -139,15 +89,8 @@ public class Recorder {
 		}
 		if (recordingInProgress) return 2;
 		ChangeDescription changes = getChangeDescription();
-//		try {
-////			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 		if (cr==null) 		
 			cr = new ChangeRecorder();
-//		cr.setEObjectToProxyURIMap(proxyMap);
 		BeginRecordingCommand command = new BeginRecordingCommand(changes);
 		ed.getCommandStack().execute(command);
 		boolean reset = command.resetChanges;
@@ -176,26 +119,8 @@ public class Recorder {
 		if (cr!=null) cr.dispose();
 		if (chRes!=null){
 			rs.getResources().remove(chRes);
-//			rs.getResources().remove(pmRes);
-					//RefactorPersistence.INSTANCE.getProxyMapResource(res));
 		}
-	}
-	
-//	/**
-//	 * Deletes the Change Records from the file system
-//	 * 
-//	 * 
-//	 */
-//	public void deleteChangeRecords() {
-//		try {
-//			chRes.delete(Collections.EMPTY_MAP);
-//			RefactorPersistence.INSTANCE.getProxyMapResource(res).delete(Collections.EMPTY_MAP);
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-//	
+	}	
 	
 	/**
 	 * Convenience method that saves (persists)  the changes in the current recorder and proxyMap
@@ -211,9 +136,6 @@ public class Recorder {
 		}
 		try {
 			chRes.save(Collections.EMPTY_MAP);
-//			pmRes.save(Collections.EMPTY_MAP);
-//			preCompRes.save(Collections.EMPTY_MAP);
-//			eqmRes.save(Collections.EMPTY_MAP);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -232,7 +154,6 @@ public class Recorder {
 		}
 		try {
 			chRes = RefactorPersistence.INSTANCE.getChangesResource(res);
-//			proxyMap = RefactorPersistence.INSTANCE.getProxyMap(res);		
 			EList<EObject> contents = chRes.getContents();
 			EObject content = contents.size()>0? chRes.getContents().get(0) : null;
 			ChangeDescription changes = content instanceof ChangeDescription? (ChangeDescription)content : null;
@@ -247,15 +168,11 @@ public class Recorder {
 	////////////////////////////// COMMANDS //////////////////////////////////
 	
 	protected class BeginRecordingCommand extends ChangeCommand {
-//		ChangeRecorder cr;
 		ChangeDescription changes;
 		boolean resetChanges;
-//		EventBNamedCommentedComponentElement component;
 		 BeginRecordingCommand(ChangeDescription changes){
 			super(new ChangeRecorder(chRes).endRecording());
-//			this.cr = cr;
 			this.changes = changes;
-//			this.component = component;
 			resetChanges = false;
 		}
 		@Override
@@ -273,13 +190,11 @@ public class Recorder {
 	
 	protected class EndRecordingCommand extends ChangeCommand {
 		ChangeDescription changes;
-//		ChangeRecorder cr;
-//		Resource chRes;
-		 EndRecordingCommand(){
+		
+		EndRecordingCommand(){
 			super(new ChangeRecorder(chRes).endRecording());
-//			this.cr = cr;
-//			this.chRes = chRes;
 		}
+		
 		@Override
 		public void doExecute(){
 			changes = cr.endRecording();
@@ -287,16 +202,7 @@ public class Recorder {
 				fixRefs();
 				chRes.getContents().clear();
 				chRes.getContents().add(0, changes);
-//				pmRes.getContents().clear();
-//				EObject m = RefactorPersistence.INSTANCE.convertPMToEMF(proxyMap);
-//				if (m!=null){
-//					pmRes.getContents().add(m);
-//				}
-//				refreshMap();
-//			}else{
-//				int i=0;
 			}
-
 		}
 		
 		private void fixRefs() {
@@ -339,37 +245,10 @@ public class Recorder {
 					return fixedURI;
 				}
 			}
-//		NOT SURE IF THIS IS ALSO NEEDED - THESE ARE REFERENCES NOT CONTAINMENTS AND SEEM TO BE OK
-//		EList<EObject> detach = changes.getObjectsToDetach();
-//			for (EObject o : detach){
-//				URI ouri = EcoreUtil.getURI(o);
-//				if (ouri.equals(uri)){
-//					URI fixedURI = URI.createURI("//@objectsToDetach."+detach.indexOf(o));
-//					return fixedURI;
-//				}
-//			}
 			return uri;
 		}
 		
 		public ChangeDescription getChanges() { return changes; }
 	}
-
-//	private void refreshMap() {
-//		EObject map = eqmRes.getContents().get(0);
-//		if (map.eClass() == RefactorPersistence.equivMapClass){
-//			for (Object mapEntry : (EList<Object>)map.eGet(RefactorPersistence.equivMapContainment)){
-//				 if (mapEntry instanceof EObject && ((EObject)mapEntry).eClass() == RefactorPersistence.equivMapEntryClass){
-//					Object key = ((EObject)mapEntry).eGet(RefactorPersistence.equivMapEntryKeyReference);
-//					Object val = ((EObject)mapEntry).eGet(RefactorPersistence.equivMapEntryValueReference);
-//					if (key instanceof EObject && ((EObject)key).eClass().getName().equals("State")){
-//						int k=0;
-//					}
-//				 }
-//			}
-//		}
-//		int i=0;
-//		
-//	}
-	
 
 }

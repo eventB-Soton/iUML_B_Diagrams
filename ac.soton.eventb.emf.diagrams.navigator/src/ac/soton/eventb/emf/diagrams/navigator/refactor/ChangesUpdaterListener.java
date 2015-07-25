@@ -27,8 +27,6 @@ public class ChangesUpdaterListener implements IElementChangedListener, IStartup
 	private final static EMFRodinDB emfRodinDB = new EMFRodinDB();
 	
 	private static final String QUALIFIER = "ac.soton.eventb.emf.diagrams.navigator";
-//	private static final QualifiedName RODIN_PROJECT = new QualifiedName(QUALIFIER, "PROJECT");
-//	private static final QualifiedName OLD_PROJECT_NAME = new QualifiedName(QUALIFIER, "OLD_PROJECT_NAME");
 	private static final QualifiedName RODIN_COMPONENT = new QualifiedName(QUALIFIER, "COMPONENT");
 	private static final QualifiedName OLD_COMPONENT_NAME = new QualifiedName(QUALIFIER, "OLD_COMPONENT_NAME");
 	
@@ -60,12 +58,9 @@ public class ChangesUpdaterListener implements IElementChangedListener, IStartup
     					}else if (affectedComponent.getKind() == IRodinElementDelta.REMOVED){
     						Job diagramUpdaterJob = new Job("Updating diagram references for new component name") {
     						      public IStatus run(IProgressMonitor monitor) {
-    						     	//String oldComponentName = (String)getProperty(OLD_COMPONENT_NAME);
     								EventBElement eventBElement = emfRodinDB.loadEventBComponent((IEventBRoot)getProperty(RODIN_COMPONENT));
     						    	if (eventBElement  instanceof EventBNamedCommentedComponentElement){
     						    		URI uri = EcoreUtil.getURI(eventBElement);
-    						    		//String fileExtension = uri.fileExtension();
-    						    		//uri = uri.trimSegments(1).appendSegment(oldComponentName).appendFileExtension(fileExtension);
     						    		RefactorAssistant refactor = new RefactorAssistant(uri, emfRodinDB.getEditingDomain());	
     						    		refactor.deleteChangeRecords();
     						    	}
@@ -81,7 +76,7 @@ public class ChangesUpdaterListener implements IElementChangedListener, IStartup
     						IRodinElementDelta ac = affectedComponent;
     						IRodinFile mfe = (IRodinFile) (ac==null? null : ac.getMovedFromElement());
     						String bn = mfe==null? "" : mfe.getBareName();
-    						diagramUpdaterJob.setProperty(OLD_COMPONENT_NAME, bn); //((IRodinFile) affectedComponent.getMovedFromElement()).getBareName());				
+    						diagramUpdaterJob.setProperty(OLD_COMPONENT_NAME, bn);				
     						diagramUpdaterJob.schedule();
     					}else if (affectedComponent.getKind() == IRodinElementDelta.ADDED){
     						//Do nothing
