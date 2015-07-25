@@ -57,16 +57,14 @@ public class ChangesUpdaterListener implements IElementChangedListener, IStartup
     				if (rodinFile.getRoot() instanceof IEventBRoot){
     					if ((affectedComponent.getFlags() & IRodinElementDelta.F_MOVED_FROM) != 0){	
     						//FIXME: The following 'if' is a workaround as the Rodin builder copies files and is stopped if we schedule a job
-int i=0;
     					}else if (affectedComponent.getKind() == IRodinElementDelta.REMOVED){
     						Job diagramUpdaterJob = new Job("Updating diagram references for new component name") {
     						      public IStatus run(IProgressMonitor monitor) {
-
-    						     	String oldComponentName = (String)getProperty(OLD_COMPONENT_NAME);
+    						     	//String oldComponentName = (String)getProperty(OLD_COMPONENT_NAME);
     								EventBElement eventBElement = emfRodinDB.loadEventBComponent((IEventBRoot)getProperty(RODIN_COMPONENT));
     						    	if (eventBElement  instanceof EventBNamedCommentedComponentElement){
     						    		URI uri = EcoreUtil.getURI(eventBElement);
-    						    		String fileExtension = uri.fileExtension();
+    						    		//String fileExtension = uri.fileExtension();
     						    		//uri = uri.trimSegments(1).appendSegment(oldComponentName).appendFileExtension(fileExtension);
     						    		RefactorAssistant refactor = new RefactorAssistant(uri, emfRodinDB.getEditingDomain());	
     						    		refactor.deleteChangeRecords();
