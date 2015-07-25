@@ -27,6 +27,7 @@ import org.rodinp.core.IElementType;
 import org.rodinp.core.IRodinElement;
 
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersistence;
 import fr.systerel.explorer.IElementNode;
 
 /**
