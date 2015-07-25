@@ -1,8 +1,6 @@
 package ac.soton.eventb.emf.diagrams.navigator.refactor;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -10,25 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.CompoundCommand;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.change.ChangeKind;
 import org.eclipse.emf.ecore.change.FeatureChange;
 import org.eclipse.emf.ecore.change.ListChange;
-import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EContentsEList;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.AddCommand;
 import org.eclipse.emf.edit.command.RemoveCommand;
@@ -40,10 +34,16 @@ import org.eventb.emf.core.EventBObject;
 
 import ac.soton.eventb.emf.core.extension.navigator.refiner.AbstractElementRefiner;
 import ac.soton.eventb.emf.core.extension.navigator.refiner.ElementRefinerRegistry;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersistence;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.TextFile;
 
 
 public class CommitAssistant extends RefactorAssistant {
 	
+	private final static String[] reportsFolder = {"iumlb","reports"};
+	
+	private Map<EObject,URI> oldNameMap = new HashMap<EObject,URI>();
+	private TextFile report = new TextFile();;
 	public CommitAssistant(EventBNamedCommentedComponentElement component) {
 		super(component);
 	}
@@ -60,8 +60,10 @@ public class CommitAssistant extends RefactorAssistant {
 	public void applyChangesTo(EventBNamedCommentedComponentElement newComponent){
 		
 		String timeStamp = getTimeStamp();
+		oldNameMap.clear();
 
-		report = "\nPropagation report for "+newComponent.eResource().getURI().toPlatformString(true)+" :: "+timeStamp+"\n";
+		report.setText("");
+		report.addLine("Propagation report for "+newComponent.eResource().getURI().toPlatformString(true)+" :: "+timeStamp+"\n");
 		
 		try {
 			//ChangeDescriptionImpl cdi = (ChangeDescriptionImpl) changes;
@@ -73,14 +75,43 @@ public class CommitAssistant extends RefactorAssistant {
 				
 //				EList<EObject> detaches = changes.getObjectsToDetach();
 //				EList<EObject> attaches = changes.getObjectsToAttach();
+
+				//first check for name changes which will break vertical references as well as the equivalence map used later
+				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
+					EObject abstractObject = change.getKey();
+					if (abstractObject==null) continue;
+					EList<FeatureChange> abstractFeatureChanges = change.getValue();
+					// check for name changes 
+					for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
+						EStructuralFeature feature = reverseFeatureChange.getFeature();
+						if (feature instanceof EAttribute && ((EAttribute)feature).getName().equals("name")){
+							Object v = reverseFeatureChange.getValue();
+							if (v instanceof String){
+								URI uri = EcoreUtil.getURI(abstractObject);
+								String fragment = uri.fragment();
+								fragment=fragment.substring(0,fragment.lastIndexOf((String)abstractObject.eGet(feature)));
+								fragment=fragment+v;
+								uri = uri.trimFragment().appendFragment(fragment);
+								oldNameMap.put(abstractObject, uri);
+							}
+						}
+					}		
+				}
 				
-				//first do containments so that references will work
+				//fix vertical references to account for name changes
+				//cc.append(
+				updateVerticalReferences(cc, newComponent); //);
+				ed.getCommandStack().execute(cc);
+				cc.dispose();
+				cc = new CompoundCommand();
+				
+				//now do containments so that references to new elements will work
 				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
 
 					EObject abstractObject = change.getKey();
 					if (abstractObject==null) continue;
 					EList<FeatureChange> abstractFeatureChanges = change.getValue();
-
+					
 					// get a refiner for the ePackage containing this abstract object
 //					EClass ec = abstractObject.eClass();
 //					EPackage ep = ec==null ? null : ec.getEPackage();
@@ -102,7 +133,7 @@ public class CommitAssistant extends RefactorAssistant {
 						//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
 						if (feature instanceof EReference && ((EReference)feature).isContainment() &&
 							canApplyFeatureChange(newComponent, refinedObject, reverseFeatureChange, refiner)){
-							cc.append(makeFeatureChangeCommand(abstractObject, refinedObject, reverseFeatureChange, refiner));	
+							makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
 						}
 					}
 					
@@ -111,7 +142,7 @@ public class CommitAssistant extends RefactorAssistant {
 					cc = new CompoundCommand();
 				}
 				
-				//now do references etc
+				//now do references and attributes etc
 				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
 					
 					EObject abstractObject = change.getKey();
@@ -126,7 +157,6 @@ public class CommitAssistant extends RefactorAssistant {
 					if (refinedObject==null) {
 						continue;
 					}
-
 					// create commands to make corresponding changes to the refined object 
 					for (FeatureChange reverseFeatureChange : change.getValue()){
 						//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
@@ -134,7 +164,7 @@ public class CommitAssistant extends RefactorAssistant {
 						if (!(feature instanceof EReference && ((EReference)feature).isContainment()) &&
 								!(feature instanceof EReference && ((EReference)feature).getEOpposite()!=null && ((EReference)feature).isMany()) &&
 							canApplyFeatureChange(newComponent, refinedObject, reverseFeatureChange, refiner)){
-							cc.append(makeFeatureChangeCommand(abstractObject, refinedObject, reverseFeatureChange, refiner));	
+							makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
 						}
 					}
 				}
@@ -150,12 +180,43 @@ public class CommitAssistant extends RefactorAssistant {
 //				}
 			
 		} finally{
+			IProject project = WorkspaceSynchronizer.getFile(res).getProject();
 			URI commitReportURI = RefactorPersistence.INSTANCE.getRelatedURI(newComponent.eResource(), reportsFolder, timeStamp, "report");
-			writeTextFile(commitReportURI, report, null);
+			report.save(project, commitReportURI, null);
 		}
 		return;
 	}
 
+	private void updateVerticalReferences(CompoundCommand cc, EObject parent) {
+		for (@SuppressWarnings("rawtypes")
+		EContentsEList.FeatureIterator featureIterator =  (EContentsEList.FeatureIterator)parent.eCrossReferences().iterator(); featureIterator.hasNext(); )
+		{
+			EObject target = (EObject)featureIterator.next();
+			EReference feature = (EReference)featureIterator.feature();
+			if (target.eIsProxy() &&
+				oldNameMap.containsValue(((InternalEObject)target).eProxyURI())) {
+				//command to set feature to the renamed abstract object corresponding to the old reference URI
+				Object newValue = getKeyByValue(oldNameMap, ((InternalEObject)target).eProxyURI());
+				if (newValue!=null){
+					report.addLine("\nSet "+feature.getName()+" of "+EcoreUtil.getURI(parent).fragment()+" to \""+newValue.toString()+"\"");
+					cc.append(SetCommand.create(ed, parent, feature, newValue));
+				}
+			}
+		}
+		for (EObject child : parent.eContents()){
+			updateVerticalReferences(cc, child);
+		}
+	}
+
+	private static <T, E> T getKeyByValue(Map<T, E> map, E value) {
+	    for (Entry<T, E> entry : map.entrySet()) {
+	        if (value.equals(entry.getValue())) {
+	            return entry.getKey();
+	        }
+	    }
+	    return null;
+	}
+	
 	/**
 	 * @param newComponent
 	 * @param abstractObject
@@ -167,8 +228,10 @@ public class CommitAssistant extends RefactorAssistant {
 			EObject abstractObject, AbstractElementRefiner refiner) {
 		// get the equivalent refined object
 		EventBObject refinedObject = refiner.getEquivalentObject(newComponent, abstractObject);
-		EObject oldObj = getOldObject(abstractObject);
-		if (refinedObject==null) refinedObject = oldObj instanceof EObject? refiner.getEquivalentObject(newComponent, oldObj) : null;
+		if (refinedObject==null) {
+			EObject oldObj = getOldObject(abstractObject);
+			refinedObject = oldObj instanceof EObject? refiner.getEquivalentObject(newComponent, oldObj) : null;
+		}
 		return refinedObject;
 	}
 	
@@ -219,6 +282,7 @@ public class CommitAssistant extends RefactorAssistant {
 	 * The current (new) valaue must be obtained by reading the feature in the abstract Parent. 
 	 * The given refiner is used to generate new refined elements for additions aas well as to find corresponding elements 
 	 * to be changed.
+	 * @param cc2 
 	 * 
 	 * @param abstractParent
 	 * @param refinedParent
@@ -226,23 +290,23 @@ public class CommitAssistant extends RefactorAssistant {
 	 * @param refiner
 	 * @return
 	 */
-	private Command makeFeatureChangeCommand(EObject abstractParent, EventBObject refinedParent, FeatureChange reverseFeatureChange, AbstractElementRefiner refiner) {
+	private Command makeFeatureChangeCommand(CompoundCommand cc, EObject abstractParent, EventBObject refinedParent, FeatureChange reverseFeatureChange, AbstractElementRefiner refiner) {
 		EventBNamedCommentedComponentElement concreteComponent = (EventBNamedCommentedComponentElement) refinedParent.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
 		EStructuralFeature feature = reverseFeatureChange.getFeature();
 		Object value = reverseFeatureChange.getValue();
-		CompoundCommand cc = new CompoundCommand();
 		if (feature.isMany()){
 			if (value instanceof EList<?>){
 				//in some cases undo is specified as a resulting value even for a list feature
 				// in this case we need to add the equivalent of everything in the current model except 
 				// the items in this final value.
 
+				@SuppressWarnings("unchecked")
 				EList<Object> newList =  (EList<Object>)abstractParent.eGet(feature);	//get the referenced target/value from the current model
 				List<Object> addValues = new ArrayList<Object>();
 				for (Object abstractItem : newList){
 					if (feature instanceof EReference &&
 							abstractItem instanceof EObject &&
-							!((EList)value).contains(abstractItem)
+							!((EList<?>)value).contains(abstractItem)
 							){
 						Object newValue = null;
 						if (((EReference)feature).isContainment()){
@@ -260,11 +324,11 @@ public class CommitAssistant extends RefactorAssistant {
 					}
 				}
 				if (!addValues.isEmpty()) {
-					report = report+"\nAdd "+getURIsAsCSL(addValues)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment();
+					report.addLine("Add "+getURIsAsCSL(addValues)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
 					cc.append(AddCommand.create(ed, refinedParent, feature, addValues));
 				}
 				List<Object> remValues = new ArrayList<Object>();
-				for (Object abstractItem : (EList)value){
+				for (Object abstractItem : (EList<?>)value){
 					if (feature instanceof EReference &&
 							abstractItem instanceof EObject &&
 							!newList.contains(abstractItem) &&
@@ -276,7 +340,7 @@ public class CommitAssistant extends RefactorAssistant {
 					}
 				}
 				if (!remValues.isEmpty()) {
-					report = report+"\nRemove "+getURIsAsCSL(remValues)+" from "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment();
+					report.addLine("Remove "+getURIsAsCSL(remValues)+" from "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
 					cc.append(RemoveCommand.create(ed, refinedParent, feature, remValues));
 				}
 				
@@ -334,9 +398,9 @@ public class CommitAssistant extends RefactorAssistant {
 							}
 						}
 	
-						int index = lc.getIndex();
-						int max = ((List<?>)refinedParent.eGet(feature)).size(); 
-						report = report+"\nAdd "+getURIsAsCSL(newValues)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment();
+//						int index = lc.getIndex();
+//						int max = ((List<?>)refinedParent.eGet(feature)).size(); 
+						report.addLine("Add "+getURIsAsCSL(newValues)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
 						cc.append(AddCommand.create(ed, refinedParent, feature, newValues)); //, index>max? max : index ));
 						break;
 					case MOVE_LITERAL:
@@ -353,12 +417,11 @@ public class CommitAssistant extends RefactorAssistant {
 								}
 							}
 						}else {
-							EList<Object> v = lc.getValues();
+							//EList<Object> v = lc.getValues();
 							//SHOULD NOT GET HERE AS ADD ALWAYS SETS VALUES 
-							int I=0;
 						}
 						if (removeValues.size()>0){
-							report = report+"\nRemove "+getURIsAsCSL(removeValues)+" from "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment();
+							report.addLine("Remove "+getURIsAsCSL(removeValues)+" from "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
 							cc.append(RemoveCommand.create(ed, refinedParent, feature, removeValues));
 						}
 						break;
@@ -375,7 +438,7 @@ public class CommitAssistant extends RefactorAssistant {
 			}
 			if (newValue == null && refinedParent.eGet(feature)!= null) newValue = SetCommand.UNSET_VALUE;
 			if (newValue!= null){
-				report = report+"\nSet "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment()+" to \""+newValue.toString()+"\"";
+				report.addLine("Set "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment()+" to \""+newValue.toString()+"\"");
 				cc.append(SetCommand.create(ed, refinedParent, feature, newValue));
 			}
 		}
@@ -419,8 +482,16 @@ public class CommitAssistant extends RefactorAssistant {
 	}
 
 	
-	EObject oldComponent = null;
-	Map equivMap = null;
+	EObject oldComponent;
+	Map<EObject, EObject> equivMap;
+	
+	/**
+	 * gets the old (pre-changes) eObject that is equivalent to the given one.
+	 * however, where names have been changed this would fail because the proxy URI is changed by the new name,
+	 * therefore it checks the prepared name changes map and updates the equivalence map with a similar old but renamed eObject
+	 * before retrieving it. Once the equivalence map has been updated for the name change the name change entry is removed from the 
+	 * name changes map so that next time this key object is retrieved, the equivalence map is used directly.
+	 **/
 	private EObject getOldObject(EObject v)  {
 		try {
 			if (oldComponent == null){
@@ -429,20 +500,22 @@ public class CommitAssistant extends RefactorAssistant {
 			if (equivMap == null){
 				equivMap = RefactorPersistence.INSTANCE.getEquivalenceMap(res);
 			}
-			for (Object es : equivMap.entrySet()){
-				if (es instanceof Entry){
-					Entry en = (Entry)es;
-					Object k = en.getKey();
-					Object vl = en.getValue();
-					if (k instanceof EObject && v.eClass().equals(((EObject)k).eClass())){
-						Resource r1 = ((EObject)k).eResource();
-						Resource r2 = ((EObject)vl).eResource();
-						int z=0;
+			if (oldNameMap.containsKey(v)){
+				EObject value = null;
+				for (Entry<EObject, EObject> en : equivMap.entrySet()){
+					EObject k = en.getKey();
+					String uri1 = EcoreUtil.getURI(k).toString();
+					String uri2 = oldNameMap.get(v).toString();
+					if (uri1.equals(uri2)){
+						value = (EObject)en.getValue();
+						continue;
 					}
 				}
-				
+				if (value != null) {
+					equivMap.put(v, value);
+					oldNameMap.remove(v);
+				}
 			}
-			EObject ret = (EObject) equivMap.get(v);
 			return (EObject) equivMap.get(v);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -548,50 +621,7 @@ public class CommitAssistant extends RefactorAssistant {
 		return s1r.equals(s2r);
 	}
 	
-	//////////////////////// Text reporting /////////////////////////////////
-	private final static String[] reportsFolder = {"iumlb","reports"};
-	protected String report = "";
-	
-	/**
-	 * This writes the given text string out to a text file at the given uri
-	 * 
-	 * @param uri
-	 * @param text
-	 * @param monitor
-	 */
-	private void writeTextFile(URI uri, String text, IProgressMonitor monitor){
-		IProject project = WorkspaceSynchronizer.getFile(res).getProject();
-		try {
-			String folderPath = "";
-			for (int i=2; i<uri.segmentCount()-1; i++){
-				folderPath = folderPath +"/"+ uri.segment(i);
-				IFolder folder = project.getFolder(folderPath);
-				if (!folder.exists()){
-					folder.create(true, true, monitor);
-				}
-			}
 
-			IPath filePath = new Path(uri.toPlatformString(true));
-			filePath = filePath.makeRelativeTo(project.getFullPath());
-			final IFile targetFile = project.getFile(filePath);
-			InputStream stream = new ByteArrayInputStream(text.getBytes());
-			if (targetFile.exists()) {
-				try {
-					targetFile.setContents(stream, true, true, monitor);
-				} catch (CoreException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} else {
-				targetFile.create(stream, true, monitor);
-			}
-			stream.close();
-		} catch (IOException e) {
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * generates a string from the current time
