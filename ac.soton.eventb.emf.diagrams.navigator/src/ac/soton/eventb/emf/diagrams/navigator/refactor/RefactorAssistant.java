@@ -6,10 +6,8 @@ import java.util.Collections;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.change.ChangeDescription;
-import org.eclipse.emf.ecore.change.util.ChangeRecorder;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
@@ -108,20 +106,6 @@ public class RefactorAssistant {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-	}
-		
-	////////////////////////////// COMMANDS //////////////////////////////////
-	
-	protected class ApplyReverseCommand extends ChangeCommand {
-		ChangeDescription changes;
-		ApplyReverseCommand(Resource chRes, ChangeDescription changes){
-			super(new ChangeRecorder(chRes).endRecording()); 	//!!! can't find a way to avoid this.. a change recorder to record what the change recorder does!
-			this.changes = changes;
-		}
-		@Override
-		public void doExecute(){
-			changes.applyAndReverse();
 		}
 	}
 

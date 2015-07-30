@@ -3,6 +3,10 @@ package ac.soton.eventb.emf.diagrams.navigator.refactor;
 import java.io.IOException;
 import java.util.Collections;
 
+import org.eclipse.emf.ecore.change.ChangeDescription;
+import org.eclipse.emf.ecore.change.util.ChangeRecorder;
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 
 public class RevertAssistant extends RefactorAssistant {
@@ -30,4 +34,18 @@ public class RevertAssistant extends RefactorAssistant {
 		}
 	}
 
+	////////////////////////////// COMMANDS //////////////////////////////////
+	
+	protected class ApplyReverseCommand extends ChangeCommand {
+		ChangeDescription changes;
+		ApplyReverseCommand(Resource chRes, ChangeDescription changes){
+			super(new ChangeRecorder(chRes).endRecording()); 	//a change recorder to record what the change recorder does!
+			this.changes = changes;
+		}
+		@Override
+		public void doExecute(){
+			changes.applyAndReverse();
+		}
+	}
+	
 }
