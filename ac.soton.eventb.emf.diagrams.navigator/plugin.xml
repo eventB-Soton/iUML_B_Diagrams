@@ -193,27 +193,21 @@
             class="org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl"
             type="changes">
       </parser>
-      <parser
-            class="org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl"
-            type="proxymap">
-      </parser>
    </extension>
    <extension
          point="org.eclipse.core.contenttype.contentTypes">
       <content-type
             base-type="org.eclipse.emf.ecore.xmi"
+            default-charset="UTF-8"
             file-extensions="changes"
             id="eventBChangeDescription"
             name="Event-B Change Description"
             priority="normal">
       </content-type>
-      <content-type
-            base-type="org.eclipse.emf.ecore.xmi"
-            file-extensions="proxymap"
-            id="eventBChangeProxyMap"
-            name="Event-B Change Description Proxy Map"
-            priority="normal">
-      </content-type>
+      <file-association
+            content-type="org.eclipse.emf.compare.content.type"
+            file-extensions="changes">
+      </file-association>
   </extension>
   <extension
          point="org.eclipse.ui.decorators">
