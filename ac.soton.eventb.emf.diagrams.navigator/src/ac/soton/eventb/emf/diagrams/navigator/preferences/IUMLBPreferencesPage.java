@@ -35,7 +35,7 @@ public class IUMLBPreferencesPage extends FieldEditorPreferencePage implements
 	 */
 	@Override
 	public void createFieldEditors() {
-		addField(new BooleanFieldEditor("RefactoringEnabled",
+		addField(new BooleanFieldEditor(DiagramsNavigatorExtensionPlugin.PREFERENCES_REFACTORING_ENABLED,
 			        "&Enable Refactoring Support (make sure there are no outstanding changes before changing this setting)", getFieldEditorParent()));
 //		addField(new BooleanFieldEditor("LockingEnabled",
 //		        "&Refinement Locking (one refinement level can be edited at a time - needs refactoring to be enabled)", getFieldEditorParent()));

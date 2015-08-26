@@ -34,9 +34,7 @@ public class Recorder {
 	protected ResourceSet rs;
 	protected Resource chRes;
 	protected boolean recordingInProgress;
-	
-	protected static Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
-	
+		
 	protected EventBNamedCommentedComponentElement component;
 	private TransactionalEditingDomain ed;
 	
@@ -58,7 +56,7 @@ public class Recorder {
 	 * 
 	 */
 	public static Recorder getNewRecorder(EventBNamedCommentedComponentElement component){
-		if (refactoringEnabled){
+		if (DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean(DiagramsNavigatorExtensionPlugin.PREFERENCES_REFACTORING_ENABLED)){
 			try {
 				return new Recorder(component);
 			} catch (IOException e) {

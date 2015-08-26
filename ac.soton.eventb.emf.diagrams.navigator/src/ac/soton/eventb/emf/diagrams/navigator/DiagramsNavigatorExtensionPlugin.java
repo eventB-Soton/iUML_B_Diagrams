@@ -14,6 +14,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.rodinp.core.IElementChangedListener;
@@ -41,6 +43,8 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	
 	private static final IElementChangedListener diagramUpdater = new DiagramUpdaterListener();
 	private static final IElementChangedListener changesUpdater = new ChangesUpdaterListener();
+
+	public static final String PREFERENCES_REFACTORING_ENABLED = "RefactoringEnabled";
 	
 	/**
 	 * The constructor
@@ -59,6 +63,15 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		//this listener will update diagrams when components in Rodin database are renamed or deleted
 		RodinCore.addElementChangedListener(diagramUpdater);
 		RodinCore.addElementChangedListener(changesUpdater);
+		
+		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+		    @Override
+		    public void propertyChange(PropertyChangeEvent event) {
+		      if (event.getProperty() == PREFERENCES_REFACTORING_ENABLED) {
+		    	  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setValue(event.getProperty(), (Boolean)event.getNewValue());;
+		      }
+		    }
+		  });
 	}
 
 	/**
@@ -107,4 +120,5 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		return diagramProviderRegistry;
 	}
 
+	
 }

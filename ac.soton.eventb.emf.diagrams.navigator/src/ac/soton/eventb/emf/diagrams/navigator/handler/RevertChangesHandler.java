@@ -56,7 +56,7 @@ public class RevertChangesHandler extends AbstractHandler {
 		Shell shell = HandlerUtil.getActiveShell(event);
 		
 		//check refactoring preference is enabled
-		Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean("RefactoringEnabled");
+		Boolean refactoringEnabled =  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getBoolean(DiagramsNavigatorExtensionPlugin.PREFERENCES_REFACTORING_ENABLED);
 		if (!refactoringEnabled) {
 			MessageDialog.open(MessageDialog.INFORMATION, shell,
 		    		  "Refactoring is switched off", 
