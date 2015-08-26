@@ -89,7 +89,7 @@ public class CommitChangesHandler extends AbstractHandler {
 				List<EventBNamedCommentedComponentElement> components = emfRodinDB.loadAllComponents(projectName);
 		
 				// Check that there is a change record for this refinement level
-				if (RefactorPersistence.INSTANCE.hasChangesResource(EcoreUtil.getURI(component))){
+				if (RefactorPersistence.INSTANCE.hasChanges(EcoreUtil.getURI(component), emfRodinDB.getResourceSet())){
 					
 					if (!hasLowerLevelChanges(component,components)){
 					
@@ -213,7 +213,7 @@ public class CommitChangesHandler extends AbstractHandler {
 	
 	private boolean hasLowerLevelChanges(EventBNamedCommentedComponentElement abs, List<EventBNamedCommentedComponentElement> components){	
 		for (EventBNamedCommentedComponentElement cp : components){
-			if (isRefinementOf(abs,cp) && RefactorPersistence.INSTANCE.hasChangesResource(EcoreUtil.getURI(cp))) {
+			if (isRefinementOf(abs,cp) && RefactorPersistence.INSTANCE.hasChanges(EcoreUtil.getURI(cp),emfRodinDB.getResourceSet())) {
 				return true;
 			}
 		}

@@ -69,7 +69,7 @@ public class ChangesStatusDec implements ILightweightLabelDecorator {
 			EventBElement eventBElement = emfRodinDB.loadEventBComponent((IEventBRoot)obj);
 		    if (eventBElement  instanceof EventBNamedCommentedComponentElement){
 		    	URI uri = EcoreUtil.getURI(eventBElement);
-		    	if (RefactorPersistence.INSTANCE.hasChangesResource(uri)){
+		    	if (RefactorPersistence.INSTANCE.hasChanges(uri, emfRodinDB.getResourceSet())){
 		    		return CHANGES_ICON_PATH;		    		
 		    	};
 		    }
