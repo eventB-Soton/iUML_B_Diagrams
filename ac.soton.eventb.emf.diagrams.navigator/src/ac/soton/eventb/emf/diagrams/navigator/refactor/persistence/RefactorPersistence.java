@@ -7,8 +7,10 @@ import java.util.Map;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.change.ChangeDescription;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.util.EcoreUtil.Copier;
@@ -130,12 +132,39 @@ public class RefactorPersistence {
 	
 	/**
 	 * This checks whether a changes file exists for an arbitrary component
+	 * and has some contents (other than an empty change description)
 	 * 
 	 */
-	public boolean hasChangesResource(URI componentUri){
+	public boolean hasChanges(URI componentUri, ResourceSet rs){
 		URI	uri = getRelatedURI(componentUri, changesFolder, null, "changes");
 		Path path = new Path(uri.toPlatformString(true));
-		return ResourcesPlugin.getWorkspace().getRoot().exists(path);
+		if (!ResourcesPlugin.getWorkspace().getRoot().exists(path)){
+			return false;
+		}else{
+			try {
+				Resource chRes = getResource(rs, uri);
+				if (chRes==null) return false;
+				EList<EObject> c = chRes.getContents();
+				if (c==null || c.isEmpty()) return false;
+				for (EObject eo : c){
+					if (eo instanceof ChangeDescription){
+						ChangeDescription cd = (ChangeDescription)eo;
+						if (	cd.getObjectChanges()!=null && !cd.getObjectChanges().isEmpty() ||
+								cd.getObjectsToAttach()!=null && !cd.getObjectsToAttach().isEmpty() ||
+								cd.getObjectsToDetach()!=null && !cd.getObjectsToDetach().isEmpty() ||
+								cd.getResourceChanges()!=null && !cd.getResourceChanges().isEmpty()
+								){
+							return true;
+						}
+					}
+				}
+				return false;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+		}
 	}
 	
 	
