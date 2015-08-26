@@ -316,7 +316,7 @@ public class CommitAssistant extends RefactorAssistant {
 								newRefinedValue = makeRefinedElement(
 									abstractParent, refiner,
 									concreteComponent, (EObject)newAbstractValue);
-								newObjects.put(newAbstractValue, newRefinedValue);
+								//newObjects.put(newAbstractValue, newRefinedValue);
 							}else if (isIn(component,(EObject)newAbstractValue)){	//for now we only support intra-component references here
 								newRefinedValue = getEquivalentObjectInRefinement(concreteComponent, (EObject)newAbstractValue, refiner);
 							}else{
@@ -340,9 +340,13 @@ public class CommitAssistant extends RefactorAssistant {
 				for (Object oldAbstractValue : (EList<?>)oldAbstractFeatureValue){
 					Object refinedValueToRemove;
 					if (!newAbstractValuesList.contains(oldAbstractValue)){
-						if (feature instanceof EReference && oldAbstractValue instanceof EObject && isIn(component,(EObject)oldAbstractValue)){
-							refinedValueToRemove = getEquivalentObjectInRefinement(concreteComponent, (EObject)oldAbstractValue, refiner);
+						//for containments the object has been deleted so we need to be more specific about where to look for the equivalent
+						if (((EReference)feature).isContainment()) {
+							refinedValueToRemove = refiner.getEquivalentObject(getOldObject(refinedParent), feature, (EObject) oldAbstractValue);
 						}else{
+							refinedValueToRemove = getEquivalentObjectInRefinement(concreteComponent, (EObject)oldAbstractValue, refiner);
+						}
+						if (refinedValueToRemove == null){
 							refinedValueToRemove = oldAbstractValue;
 						}
 						if (((EList<Object>)refinedParent.eGet(feature)).contains(refinedValueToRemove)){
@@ -357,7 +361,9 @@ public class CommitAssistant extends RefactorAssistant {
 					cc.append(RemoveCommand.create(ed, refinedParent, feature, refinedValuesToRemove));
 				}
 				
-			}else{
+			}
+			
+			else{
 				//FIXME: LOOKS LIKE THIS BRANCH IS NEVER TAKEN!!
 				//when undo is specified as a collection of list changes we need to iterate through the changes 
 				// and reverse each individual change
@@ -472,6 +478,9 @@ public class CommitAssistant extends RefactorAssistant {
 	}
 
 	/**
+	 * Makes a refined version of the given abstract element including all its transitive contents and references
+	 * Has the side effect of adding to the newObjects map for all the objects copied including the contents.
+	 * 
 	 * @param abstractParent
 	 * @param refiner
 	 * @param concreteComponent
@@ -481,15 +490,24 @@ public class CommitAssistant extends RefactorAssistant {
 	private EObject makeRefinedElement(EObject abstractParent,
 			AbstractElementRefiner refiner,
 			EventBNamedCommentedComponentElement concreteComponent, EObject abstractElement) {
+		
 		EObject refinedObject;
-		if (abstractElement instanceof EventBObject) {
-			URI uri = EcoreUtil.getURI(abstractElement);
-			//FIXME: eOpposite references may be a problem: the reference in the refined element is  populated but its eOpposite elsewhere may not be.
-			//FIXME: e.g. for a new transition, source and target are set but the referenced states do not have incoming/outgoing set to the new transition 
-			refinedObject =  refiner.refine(uri, (EventBObject)abstractElement, concreteComponent);
-		} else {
-			// for non-Event-B elements the best we can do is to return a copy
-			refinedObject = EcoreUtil.copy(abstractElement);
+		if (newObjects.containsKey(abstractElement)){
+			//already done (probably a child of another added element)
+			//get the already created refined object so that the report will record this as a 'n.b.'
+			refinedObject = (EObject) newObjects.get(abstractElement);
+		}else{
+			if (abstractElement instanceof EventBObject) {
+				URI uri = EcoreUtil.getURI(abstractElement);
+				//eOpposite references may be a problem: the reference in the refined element is  populated but its eOpposite elsewhere may not be.
+				//e.g. for a new transition, source and target are set but the referenced states do not have incoming/outgoing set to the new transition 
+				Map<EObject,EObject> copy = refiner.refine(uri, (EventBObject)abstractElement, concreteComponent);
+				this.newObjects.putAll(copy);
+				return copy.get(abstractElement);
+			} else {
+				// for non-Event-B elements the best we can do is to return a copy
+				refinedObject = EcoreUtil.copy(abstractElement);
+			}
 		}
 		return refinedObject;
 	}
@@ -525,7 +543,7 @@ public class CommitAssistant extends RefactorAssistant {
 					oldNameMap.remove(v);
 				}
 			}
-			return (EObject) equivMap.get(v);
+			return equivMap.containsKey(v) ? (EObject) equivMap.get(v) : v;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
