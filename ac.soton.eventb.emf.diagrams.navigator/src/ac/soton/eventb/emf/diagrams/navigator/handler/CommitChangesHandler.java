@@ -9,13 +9,20 @@
 package ac.soton.eventb.emf.diagrams.navigator.handler;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -36,17 +43,19 @@ import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.CommitAssistant;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.Recorder;
 import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersistence;
+import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.TextFile;
 
 
 /**
  * Commit changes handler.
  * This handler commits the recorded changes made to the selected machine.
  * This consists of:
- * a) propagating the changes made in the current selected component to each lower refinement
- * b) delete the change record for the current selected component
- * c) generate all diagrams in the current selected component and all lower level refinements
+ * a) archiving the project
+ * b) propagating the changes made in the current selected component to each lower refinement
+ * c) delete the change record for the current selected component
+ * d) generate all diagrams in the current selected component and all lower level refinements
  * 
- * Committing is NOT enabled if 
+ * Committing is NOT enabled if ...
  * There is no change record for this refinement level OR
  * ANY of the lower refinement levels have outstanding change records.
  * 
@@ -55,17 +64,21 @@ import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.RefactorPersi
  */
 public class CommitChangesHandler extends AbstractHandler {
 	
+	public static final String[] reportsFolder = {"iumlb","reports"};
+	
 	/**
 	 * Create an EMFRodinDB for loading extensions into EMF
 	 */
-	private final static EMFRodinDB emfRodinDB = new EMFRodinDB();
-	
+	private static final EMFRodinDB emfRodinDB = new EMFRodinDB();
 	
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {	
+		
+		IProgressMonitor monitor = new NullProgressMonitor(); // for now no progress shown
+		
 		Shell shell = HandlerUtil.getActiveShell(event);
 		
 		//check refactoring preference is enabled
@@ -85,9 +98,11 @@ public class CommitChangesHandler extends AbstractHandler {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
 			if (element instanceof IMachineRoot) {
 				EventBNamedCommentedComponentElement component = (EventBNamedCommentedComponentElement) emfRodinDB.loadEventBComponent((IMachineRoot)element);
-				String projectName = emfRodinDB.getProjectName(component); 
+				Resource res = component.eResource();
+				IProject project = WorkspaceSynchronizer.getFile(res).getProject();
+				String projectName = project.getName(); //emfRodinDB.getProjectName(component); 
 				List<EventBNamedCommentedComponentElement> components = emfRodinDB.loadAllComponents(projectName);
-		
+
 				// Check that there is a change record for this refinement level
 				if (RefactorPersistence.INSTANCE.hasChanges(EcoreUtil.getURI(component), emfRodinDB.getResourceSet())){
 					
@@ -97,9 +112,10 @@ public class CommitChangesHandler extends AbstractHandler {
 					    		  "Confirm Commit", 
 					    		  "The Commit operation will propagate the changes accumulated for this refinement level.\n"+
 					    		  "This consists of:\n"+
-					    			  "* propagating the changes made in the current selected component to each lower refinement\n"+
-					    			  "* delete the change record for the current selected component\n"+
-					    			  "* generate all diagrams in the current selected component and all lower level refinements.\n"+
+				    			  	  "* the containing project will be archived as a tar file\n"+
+					    			  "* the changes made in the current selected component will be propagated to each lower refinement\n"+
+					    			  "* the change record for the current selected component will be deleted\n"+
+					    			  "* all iUML-B diagrams in the current selected component and all lower level refinements will be re-generated as Event-B.\n"+
 					    			  "(all editors will be closed automatically before commit begins)"
 					    			);
 						if (ok){
@@ -127,20 +143,28 @@ public class CommitChangesHandler extends AbstractHandler {
 					    	    	}
 						    	}
 							}
-
-							GenerateAllHandler genAll = new GenerateAllHandler();
 							
-							//propagate the changes made in the current selected component to each lower refinement (TBD)
-							//ecr.createForwardChangeRecords();
+							//make an archive of the project just in case
+							ArchiveProjectHandler.archiveProject(project, monitor);
+
+							//propagate the changes made in the current selected component to each lower refinement
+							GenerateAllHandler genAll = new GenerateAllHandler();
 							EventBNamedCommentedComponentElement cp = component;
 							EventBNamedCommentedComponentElement rcp = null;
+							TextFile report = new TextFile();
+							String timeStamp = getTimeStamp();
+							report.addLine("Propagation report for commit of changes to "+res.getURI().toPlatformString(true)+" :: "+timeStamp+"\n");
+
 							do {														
 								CommitAssistant commitAssistant = new CommitAssistant(cp);			
 								if ((rcp=getRefinement(cp, components))!=null 
 									&& commitAssistant.hasChanges()){
 									Recorder ecr = Recorder.getNewRecorder(rcp);
 									ecr.resumeRecording();
-									commitAssistant.applyChangesTo(rcp);
+									report.addLine("------------------------------");
+									report.addText(
+											commitAssistant.applyChangesTo(rcp)
+											);
 									ecr.endRecording();
 									ecr.saveChanges();
 									ecr.disposeChangeRecorder();
@@ -148,8 +172,14 @@ public class CommitChangesHandler extends AbstractHandler {
 								//delete the change record for the current selected component
 								commitAssistant.deleteChangeRecords();
 								
-								genAll.generateAllDiagrams(cp, shell, emfRodinDB.getEditingDomain(), null);
-
+								//now generate diagrams in the abstract machine (needs to be done after propagation of its changes)
+								report.addLine("");
+								report.addLine("------------------------------");
+								report.addLine("Generating diagrams for "+cp.getReference());
+								report.addText(
+									genAll.generateAllDiagrams(cp, shell, emfRodinDB.getEditingDomain(), null)
+								);
+								//save generated
 								try {
 									if (!cp.eIsProxy()){
 										cp.eResource().save(Collections.EMPTY_MAP);
@@ -157,28 +187,18 @@ public class CommitChangesHandler extends AbstractHandler {
 								} catch (IOException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
+									report.addLine("");
+									report.addLine(e.getLocalizedMessage());
+									report.addText(e.getStackTrace().toString());
+									report.addLine("");
 								}
+								
 							}while ((cp=rcp)!=null);
 							
-//							 //propagate the changes made in the current selected component to each lower refinement (TBD)
-//							//ecr.createForwardChangeRecords();
-//							EventBNamedCommentedComponentElement cp = component;
-//							while ((cp=getRefinement(cp, components))!=null){
-//								commitAssistant.applyChangesTo(cp);
-//							}
-//							
-//							//delete the change record for the current selected component
-//							commitAssistant.deleteChangeRecords();
-//							
-//							//generate all diagrams in the current selected component and all lower level refinements
-//							GenerateAllHandler genAll = new GenerateAllHandler();
-//							cp = component;
-//							do {
-//								genAll.generateAllDiagrams(cp, shell, EMFRodinDB.INSTANCE.getEditingDomain(), null);
-//							}while ((cp=getRefinement(cp, components))!=null);
-//							
-//							//tidyup
-//							commitAssistant.disposeChangeRecords();
+							//save the report
+							URI commitReportURI = RefactorPersistence.INSTANCE.getRelatedURI(res, reportsFolder, timeStamp, "report");
+							report.save(project, commitReportURI, null);
+
 						}
 					}else{
 						MessageDialog.openError(shell,
@@ -197,13 +217,11 @@ public class CommitChangesHandler extends AbstractHandler {
 		return null;
 	}
 
-
-
 	private EventBNamedCommentedComponentElement getRefinement(EventBNamedCommentedComponentElement abs, List<EventBNamedCommentedComponentElement> components){
 		for (EventBNamedCommentedComponentElement cp : components){
 			if (isDirectRefinementOf(abs,cp)) {
 				if (cp.eIsProxy()){		 //FIXME: needed because commit assistant unloads components in 'components'
-					cp = (EventBNamedCommentedComponentElement) emfRodinDB.loadElement(cp.getURI());
+					cp = (EventBNamedCommentedComponentElement) emfRodinDB.loadElement(EcoreUtil.getURI(cp));
 				}
 				return cp;
 			}
@@ -236,5 +254,21 @@ public class CommitChangesHandler extends AbstractHandler {
 		}
 		return false;
 	}
-	
+
+	/**
+	 * generates a string from the current time
+	 * @return
+	 */
+	public static String getTimeStamp() {
+		Calendar cal = Calendar.getInstance();
+		String m = ""+(cal.get(Calendar.MONTH)+1);
+		m=m.length()<2? "0"+m : m;
+		String d = ""+(cal.get(Calendar.DAY_OF_MONTH));
+		d=d.length()<2? "0"+d : d;
+		String h = ""+(cal.get(Calendar.HOUR_OF_DAY));
+		h=h.length()<2? "0"+h : h;
+		String n = ""+(cal.get(Calendar.MINUTE));
+		n=n.length()<2? "0"+n : n;
+		return ""+cal.get(Calendar.YEAR)+m+d+h+n;
+	}
 }

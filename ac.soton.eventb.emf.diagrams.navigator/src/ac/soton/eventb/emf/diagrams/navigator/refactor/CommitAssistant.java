@@ -2,14 +2,12 @@ package ac.soton.eventb.emf.diagrams.navigator.refactor;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.common.command.CompoundCommand;
 import org.eclipse.emf.common.command.UnexecutableCommand;
@@ -29,7 +27,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.AddCommand;
 import org.eclipse.emf.edit.command.RemoveCommand;
 import org.eclipse.emf.edit.command.SetCommand;
-import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBObject;
@@ -41,9 +38,7 @@ import ac.soton.eventb.emf.diagrams.navigator.refactor.persistence.TextFile;
 
 
 public class CommitAssistant extends RefactorAssistant {
-	
-	private final static String[] reportsFolder = {"iumlb","reports"};
-	
+
 	private Map<EObject,URI> oldNameMap = new HashMap<EObject,URI>();
 	private TextFile report = new TextFile();
 	EObject oldComponent;
@@ -63,110 +58,104 @@ public class CommitAssistant extends RefactorAssistant {
 	 * and the corresponding feature has an equivalent value in the refinement.
 	 * 
 	 */
-	public void applyChangesTo(EventBNamedCommentedComponentElement newComponent){
-		
-		String timeStamp = getTimeStamp();
+	public String applyChangesTo(EventBNamedCommentedComponentElement newComponent){
 		oldNameMap.clear();
 		oldComponent = null;
 		equivMap = null;
 		newObjects.clear();
 		report.setText("");
-		report.addLine("Propagation report for "+newComponent.eResource().getURI().toPlatformString(true)+" :: "+timeStamp+"\n");
+		report.addLine("Propagating Changes into "+newComponent.eResource().getURI().toPlatformString(true));
+		report.addLine("");
+
+		if (changes==null || newComponent.eResource().getResourceSet() != rs) return "";
+		CompoundCommand cc = new CompoundCommand();
+
+		preApply();
 		
-		try {
-				if (changes==null || newComponent.eResource().getResourceSet() != rs) return;
-				CompoundCommand cc = new CompoundCommand();
-
-				preApply();
-				
-				//first check for name changes which will break vertical references as well as the equivalence map used later
-				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
-					EObject abstractObject = change.getKey();
-					if (abstractObject==null) continue;
-					EList<FeatureChange> abstractFeatureChanges = change.getValue();
-					// check for name changes 
-					for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
-						EStructuralFeature feature = reverseFeatureChange.getFeature();
-						if (feature instanceof EAttribute && ((EAttribute)feature).getName().equals("name")){
-							Object v = reverseFeatureChange.getValue();
-							if (v instanceof String){
-								URI uri = EcoreUtil.getURI(abstractObject);
-								String fragment = uri.fragment();
-								fragment=fragment.substring(0,fragment.lastIndexOf((String)abstractObject.eGet(feature)));
-								fragment=fragment+v;
-								uri = uri.trimFragment().appendFragment(fragment);
-								oldNameMap.put(abstractObject, uri);
-							}
-						}
-					}		
-				}
-				
-				//fix vertical references to account for name changes
-				updateVerticalReferences(cc, newComponent);
-				cc = executeAndResetCommand(cc);
-				
-				//now do containments so that references to new elements will work
-				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
-
-					EObject abstractObject = change.getKey();
-					if (abstractObject==null) continue;
-					EList<FeatureChange> abstractFeatureChanges = change.getValue();
-					
-					// get a refiner for the ePackage containing this abstract object
-					String nsURI = abstractObject.eClass().getEPackage().getNsURI();
-					AbstractElementRefiner refiner = ElementRefinerRegistry.getRegistry().getRefiner(nsURI);
-					if (refiner==null) continue;
-					
-					// get the equivalent refined object
-					EObject refinedObject = getEquivalentObjectInRefinement(newComponent, abstractObject, refiner);
-					if (refinedObject==null) continue;
-					
-					// create commands to make corresponding changes to the refined object 
-					for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
-						EStructuralFeature feature = reverseFeatureChange.getFeature();
-						//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
-						if (feature instanceof EReference && ((EReference)feature).isContainment() &&
-							canApplyFeatureChange(newComponent, refinedObject, reverseFeatureChange, refiner)){
-							makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
-						}
-					}
-					cc = executeAndResetCommand(cc);
-				}
-				
-				//now do references and attributes etc
-				for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
-					
-					EObject abstractObject = change.getKey();
-					if (abstractObject==null) continue;
-
-					// get a refiner for the ePackage containing this abstract object
-					String nsURI = abstractObject.eClass().getEPackage().getNsURI();
-					AbstractElementRefiner refiner = ElementRefinerRegistry.getRegistry().getRefiner(nsURI);
-					if (refiner==null) continue;
-
-					EObject refinedObject = getEquivalentObjectInRefinement(newComponent, abstractObject, refiner);
-					if (refinedObject==null) {
-						continue;
-					}
-					// create commands to make corresponding changes to the refined object 
-					for (FeatureChange reverseFeatureChange : change.getValue()){
-						//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
-						EStructuralFeature feature = (EStructuralFeature)reverseFeatureChange.getFeature();
-						if (!(feature instanceof EReference && ((EReference)feature).isContainment()) &&
-								!(feature instanceof EReference && ((EReference)feature).getEOpposite()!=null && !((EReference)feature).isMany()) &&
-							canApplyFeatureChange(newComponent, refinedObject, reverseFeatureChange, refiner)){
-							makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
-						}
+		//first check for name changes which will break vertical references as well as the equivalence map used later
+		for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
+			EObject abstractObject = change.getKey();
+			if (abstractObject==null) continue;
+			EList<FeatureChange> abstractFeatureChanges = change.getValue();
+			// check for name changes 
+			for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
+				EStructuralFeature feature = reverseFeatureChange.getFeature();
+				if (feature instanceof EAttribute && ((EAttribute)feature).getName().equals("name")){
+					Object v = reverseFeatureChange.getValue();
+					if (v instanceof String){
+						URI uri = EcoreUtil.getURI(abstractObject);
+						String fragment = uri.fragment();
+						fragment=fragment.substring(0,fragment.lastIndexOf((String)abstractObject.eGet(feature)));
+						fragment=fragment+v;
+						uri = uri.trimFragment().appendFragment(fragment);
+						oldNameMap.put(abstractObject, uri);
 					}
 				}
-				cc = executeAndResetCommand(cc);
-	
-		} finally{
-			IProject project = WorkspaceSynchronizer.getFile(res).getProject();
-			URI commitReportURI = RefactorPersistence.INSTANCE.getRelatedURI(newComponent.eResource(), reportsFolder, timeStamp, "report");
-			report.save(project, commitReportURI, null);
+			}		
 		}
-		return;
+		
+		//fix vertical references to account for name changes
+		updateVerticalReferences(cc, newComponent);
+		cc = executeAndResetCommand(cc);
+		
+		//now do containments so that references to new elements will work
+		for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
+
+			EObject abstractObject = change.getKey();
+			if (abstractObject==null) continue;
+			EList<FeatureChange> abstractFeatureChanges = change.getValue();
+			
+			// get a refiner for the ePackage containing this abstract object
+			String nsURI = abstractObject.eClass().getEPackage().getNsURI();
+			AbstractElementRefiner refiner = ElementRefinerRegistry.getRegistry().getRefiner(nsURI);
+			if (refiner==null) continue;
+			
+			// get the equivalent refined object
+			EObject refinedObject = getEquivalentObjectInRefinement(newComponent, abstractObject, refiner);
+			if (refinedObject==null) continue;
+			
+			// create commands to make corresponding changes to the refined object 
+			for (FeatureChange reverseFeatureChange : abstractFeatureChanges){
+				EStructuralFeature feature = reverseFeatureChange.getFeature();
+				//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
+				if (feature instanceof EReference && ((EReference)feature).isContainment() &&
+					canApplyFeatureChange(newComponent, refinedObject, reverseFeatureChange, refiner)){
+					makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
+				}
+			}
+			cc = executeAndResetCommand(cc);
+		}
+		
+		//now do references and attributes etc
+		for (Entry<EObject, EList<FeatureChange>> change : changes.getObjectChanges()){
+			
+			EObject abstractObject = change.getKey();
+			if (abstractObject==null) continue;
+
+			// get a refiner for the ePackage containing this abstract object
+			String nsURI = abstractObject.eClass().getEPackage().getNsURI();
+			AbstractElementRefiner refiner = ElementRefinerRegistry.getRegistry().getRefiner(nsURI);
+			if (refiner==null) continue;
+
+			EObject refinedObject = getEquivalentObjectInRefinement(newComponent, abstractObject, refiner);
+			if (refinedObject==null) {
+				continue;
+			}
+			// create commands to make corresponding changes to the refined object 
+			for (FeatureChange reverseFeatureChange : change.getValue()){
+				//FeatureChange reverseFeatureChange = findReverseFeatureChange(reverseFeatureChanges,featureChange);
+				EStructuralFeature feature = (EStructuralFeature)reverseFeatureChange.getFeature();
+				if (!(feature instanceof EReference && ((EReference)feature).isContainment()) &&
+						!(feature instanceof EReference && ((EReference)feature).getEOpposite()!=null && !((EReference)feature).isMany()) &&
+					canApplyFeatureChange(newComponent, refinedObject, reverseFeatureChange, refiner)){
+					makeFeatureChangeCommand(cc, abstractObject, refinedObject, reverseFeatureChange, refiner);	
+				}
+			}
+		}
+		
+		cc = executeAndResetCommand(cc);
+
+		return report.getText();
 	}
 
 	/**
@@ -300,12 +289,12 @@ public class CommitAssistant extends RefactorAssistant {
 		EventBNamedCommentedComponentElement concreteComponent = (EventBNamedCommentedComponentElement) ((EventBObject)refinedParent).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
 		EStructuralFeature feature = reverseFeatureChange.getFeature();
 		Object oldAbstractFeatureValue = reverseFeatureChange.getValue();
+		
 		if (feature.isMany()){
-			if (oldAbstractFeatureValue instanceof EList<?>){
-				//in some cases undo is specified as a resulting value even for a list feature
+				// feature changes are specified as a resulting value even for a list feature
 				// in this case we need to add the equivalent of everything in the current model except 
-				// the items in this final value.
-
+				// the items in this final value and visa versa remove the equivalent of things
+				// in the final value that are not in the current model.
 				EList<Object> newAbstractValuesList =  (EList<Object>)abstractParent.eGet(feature);	//get the referenced target/value from the current model
 				List<Object> newRefinedValuesList = new ArrayList<Object>();
 				for (Object newAbstractValue : newAbstractValuesList){
@@ -326,7 +315,11 @@ public class CommitAssistant extends RefactorAssistant {
 							newRefinedValue = newAbstractValue;
 						}
 						if (!((EList<Object>)refinedParent.eGet(feature)).contains(newRefinedValue)){
-							newRefinedValuesList.add(newRefinedValue);
+							if (feature.isMany() && newRefinedValue==null){
+								report.addLine("    (n.b. ignored attempt to add null to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
+							}else{
+								newRefinedValuesList.add(newRefinedValue);
+							}
 						}else{
 							report.addLine("    (n.b. "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment()+" already contains \""+newRefinedValue+"\")");
 						}
@@ -361,95 +354,8 @@ public class CommitAssistant extends RefactorAssistant {
 					cc.append(RemoveCommand.create(ed, refinedParent, feature, refinedValuesToRemove));
 				}
 				
-			}
-			
-			else{
-				//FIXME: LOOKS LIKE THIS BRANCH IS NEVER TAKEN!!
-				//when undo is specified as a collection of list changes we need to iterate through the changes 
-				// and reverse each individual change
-				EList<ListChange> listChanges = reverseFeatureChange.getListChanges();
-				for (ListChange lc : listChanges){
-					ChangeKind kind = lc.getKind();
-					switch (kind){
-					case REMOVE_LITERAL:	//I.E. ADD values to the list in the refinement
-						List<Object> newRefinedValuesList = new ArrayList<Object>();
-						List<Object> newAbstractValuesList = new ArrayList<Object>();
-						if (lc.getValues()!=null && lc.getValues().size()>0){
-							newAbstractValuesList.addAll(lc.getValues());
-						} else if (lc.getReferenceValues()!=null && lc.getReferenceValues().size()>0) {
-							newAbstractValuesList.addAll(lc.getReferenceValues());
-						} else {
-							//Single Value to be added - get it from current model using index
-							// (note lc index assumes that other changes to this feature have been applied
-							int i = listChangeIndex.containsKey(lc) ? listChangeIndex.get(lc) : lc.getIndex();
-							Object v = ((EList<?>)abstractParent.eGet(feature)).get(i);
-							if (v!=null){
-								newAbstractValuesList.add(v);							
-							}
-						}
-						for (Object newAbstractValue : newAbstractValuesList){
-							Object newRefinedValue;
-							if (newAbstractValue instanceof EObject){
-								if (feature instanceof EReference && ((EReference)feature).isContainment()){
-									newRefinedValue = makeRefinedElement(
-											abstractParent, refiner,
-											concreteComponent, (EObject)newAbstractValue);
-									newObjects.put(newAbstractValue, newRefinedValue);
-								}else if(isIn(component,(EObject)newAbstractValue)){
-									newRefinedValue = getEquivalentObjectInRefinement(concreteComponent, (EventBObject) newAbstractValue, refiner);
-								}else{
-									newRefinedValue = newAbstractValue;
-								}
-							}else{
-								newRefinedValue = newAbstractValue;
-							}
-							if (!((EList<Object>)refinedParent.eGet(feature)).contains(newRefinedValue)){
-								newRefinedValuesList.add(newRefinedValue);
-							}else{
-								report.addLine("    (n.b. "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment()+" already contains \""+newRefinedValue+"\")");
-							}
-						}
-//						int index = lc.getIndex();
-//						int max = ((List<?>)refinedParent.eGet(feature)).size(); 
-						if (!newRefinedValuesList.isEmpty()) {
-							report.addLine("Add "+getURIsAsCSL(newRefinedValuesList)+" to "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
-							cc.append(AddCommand.create(ed, refinedParent, feature, newRefinedValuesList)); //, index>max? max : index ));
-						}
-						break;
-					case MOVE_LITERAL:
-						break;
-					case ADD_LITERAL:	//I.E. REMOVE Values from the list in the refinement
-						List<Object> refinedValuesToRemove = new ArrayList<Object>();
-						if (lc.getDataValues()!=null && lc.getDataValues().size()>0){
-							//FIXME: should this include the check that the value is there to be removed?
-							refinedValuesToRemove.addAll(lc.getValues());
-						}else if (lc.getReferenceValues()!=null && lc.getReferenceValues().size()>0){
-							for (Object v : lc.getValues()){
-								Object refinedValueToRemove = getEquivalentObjectInRefinement(concreteComponent, (EventBObject) v, refiner);
-								if (((EList<Object>)refinedParent.eGet(feature)).contains(refinedValueToRemove)){
-									refinedValuesToRemove.add(refinedValueToRemove);
-								}else{
-									report.addLine("    (n.b. "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment()+" already doesn't contain \""+refinedValueToRemove+"\")");
-								}
-							}
-						}else {
-							@SuppressWarnings("unused")
-							int i =0;
-							//EList<Object> v = lc.getValues();
-							//SHOULD NOT GET HERE AS ADD ALWAYS SETS VALUES 
-						}
-						if (refinedValuesToRemove.size()>0){
-							report.addLine("Remove "+getURIsAsCSL(refinedValuesToRemove)+" from "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment());
-							cc.append(RemoveCommand.create(ed, refinedParent, feature, refinedValuesToRemove));
-						}
-						break;
-					default:
-						break;
-					}
-				}
-
-			}
 		}else {
+			
 			Object newAbstractValue =  abstractParent.eGet(feature);	//get the referenced target/value from the current model
 			Object newRefinedValue = null;
 			if (feature instanceof EReference){
@@ -473,7 +379,9 @@ public class CommitAssistant extends RefactorAssistant {
 				report.addLine("Set "+feature.getName()+" of "+EcoreUtil.getURI(refinedParent).fragment()+" to \""+newRefinedValue.toString()+"\"");
 				cc.append(SetCommand.create(ed, refinedParent, feature, newRefinedValue));
 			}
+			
 		}
+		
 		return cc;
 	}
 
@@ -499,8 +407,6 @@ public class CommitAssistant extends RefactorAssistant {
 		}else{
 			if (abstractElement instanceof EventBObject) {
 				URI uri = EcoreUtil.getURI(abstractElement);
-				//eOpposite references may be a problem: the reference in the refined element is  populated but its eOpposite elsewhere may not be.
-				//e.g. for a new transition, source and target are set but the referenced states do not have incoming/outgoing set to the new transition 
 				Map<EObject,EObject> copy = refiner.refine(uri, (EventBObject)abstractElement, concreteComponent);
 				this.newObjects.putAll(copy);
 				return copy.get(abstractElement);
@@ -573,11 +479,11 @@ public class CommitAssistant extends RefactorAssistant {
 	private String getURIsAsCSL(Collection<Object> collection) {
 		String ret = "";
 		for (Object o : collection){
-			if (ret.length()>0) ret=ret+", /n/t";
+			if (ret.length()>0) ret=ret+" & \n\t";
 			if (o instanceof EventBObject){
 				ret = ret + EcoreUtil.getURI((EventBObject)o).fragment();
-			}else{
-				ret = ret + o.toString();
+			}else {
+				ret = ret + (o==null? null : o.toString());
 			}
 		}
 		return ret.length()>0? ret : "FAILED";
@@ -652,23 +558,4 @@ public class CommitAssistant extends RefactorAssistant {
 		return s1r.equals(s2r);
 	}
 	
-
-
-	/**
-	 * generates a string from the current time
-	 * @return
-	 */
-	private String getTimeStamp() {
-		Calendar cal = Calendar.getInstance();
-		String m = ""+(cal.get(Calendar.MONTH)+1);
-		m=m.length()<2? "0"+m : m;
-		String d = ""+(cal.get(Calendar.DAY_OF_MONTH));
-		d=d.length()<2? "0"+d : d;
-		String h = ""+(cal.get(Calendar.HOUR_OF_DAY));
-		h=h.length()<2? "0"+h : h;
-		String n = ""+(cal.get(Calendar.MINUTE));
-		n=n.length()<2? "0"+n : n;
-		return ""+cal.get(Calendar.YEAR)+m+d+h+n;
-	}
-
 }
