@@ -10,6 +10,7 @@ package ac.soton.eventb.emf.diagrams.navigator;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.Platform;
@@ -45,6 +46,8 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	private static final IElementChangedListener changesUpdater = new ChangesUpdaterListener();
 
 	public static final String PREFERENCES_REFACTORING_ENABLED = "RefactoringEnabled";
+	public static final String PREFERENCES_ARCHIVE_PATH = "ArchivePath";
+	public static final String PREFERENCES_ARCHIVE_PATH_DEFAULT = ResourcesPlugin.getWorkspace().getRoot().getLocation().append("_archives").toOSString();
 	
 	/**
 	 * The constructor
@@ -63,12 +66,14 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		//this listener will update diagrams when components in Rodin database are renamed or deleted
 		RodinCore.addElementChangedListener(diagramUpdater);
 		RodinCore.addElementChangedListener(changesUpdater);
-		
+		DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setDefault(PREFERENCES_ARCHIVE_PATH, PREFERENCES_ARCHIVE_PATH_DEFAULT);
 		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 		    @Override
 		    public void propertyChange(PropertyChangeEvent event) {
 		      if (event.getProperty() == PREFERENCES_REFACTORING_ENABLED) {
-		    	  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setValue(event.getProperty(), (Boolean)event.getNewValue());;
+		    	  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setValue(event.getProperty(), (Boolean)event.getNewValue());
+		      }else if (event.getProperty() == PREFERENCES_ARCHIVE_PATH) {
+		    	  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setValue(event.getProperty(), (String)event.getNewValue());
 		      }
 		    }
 		  });

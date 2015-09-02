@@ -67,8 +67,10 @@
             locationURI="popup:fr.systerel.explorer.navigator.view">
          <command
                commandId="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
+               icon="icons/Delete.png"
                label="Delete"
-               style="push">
+               style="push"
+               tooltip="Delete the selected iUML-B diagram">
             <visibleWhen
                   checkEnabled="false">
                <with
@@ -91,15 +93,38 @@
                </with>
             </visibleWhen>
          </command>
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.archiveProject"
+               icon="icons/Archive.png"
+               label="Archive Project"
+               style="push"
+               tooltip="Archive the project using iUML-B preference settings">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <or>
+                       <instanceof
+                             value="org.eclipse.core.resources.IProject">
+                       </instanceof>
+                     </or>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
          <menu
                icon="icons/ChangeDescription.gif"
                id="ac.soton.eventb.emf.diagrams.navigator.menus.refactoring"
-               label="iUML-B Refactoring ">
+               label="iUML-B Refactoring "
+               tooltip="iUML-B change propagation menu">
             <command
                   commandId="ac.soton.eventb.emf.diagrams.navigator.commands.commit"
                   icon="icons/Commit.png"
                   label="Commit Changes"
-                  style="push">
+                  style="push"
+                  tooltip="Commit all iUML-B diagram changes at this refinement level">
                <visibleWhen
                      checkEnabled="false">
                   <with
@@ -122,7 +147,8 @@
                   commandId="ac.soton.eventb.emf.diagrams.navigator.commands.revert"
                   icon="icons/Revert.png"
                   label="Revert Changes"
-                  style="push">
+                  style="push"
+                  tooltip="Revert all iUML-B diagram changes at this refinement level">
                <visibleWhen
                      checkEnabled="false">
                   <with
@@ -155,6 +181,18 @@
    </extension>
    <extension
          point="org.eclipse.ui.commands">
+     <category
+        description="Commands associated with iUML-B Diagrams"
+        id="ac.soton.eventb.emf.diagrams.iUMLB"
+        name="iUML-B Commands">
+      </category>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.ArchiveProjectHandler"
+            description="Archive the project using iUML-B preference settings"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.archiveProject"
+            name="Archive Project">
+      </command>
       <command
             categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.CommitChangesHandler"
@@ -165,20 +203,17 @@
       <command
             categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.RevertChangesHandler"
+            description="Revert all iUML-B changes at this refinement level"
             id="ac.soton.eventb.emf.diagrams.navigator.commands.revert"
             name="Revert Changes">
       </command>
       <command
             categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.DeleteDiagramElementHandler"
+            description="Delete the selected iUML-B diagram"
             id="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
             name="Delete">
       </command>
-      <category
-        description="Commands associated with iUML-B Diagrams"
-        id="ac.soton.eventb.emf.diagrams.iUMLB"
-        name="iUML-B Commands">
-      </category>
    </extension>
    
    <extension
