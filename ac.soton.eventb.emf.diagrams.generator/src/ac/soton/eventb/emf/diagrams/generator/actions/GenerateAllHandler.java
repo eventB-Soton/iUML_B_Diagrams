@@ -78,14 +78,16 @@ public class GenerateAllHandler extends AbstractHandler {
 	 * @param editingDomain  - The editing domain
 	 * @param info           -  THIS IS NOT USED.. pass null
 	 */
-	public void generateAllDiagrams(EObject element, Shell shell, TransactionalEditingDomain editingDomain, final IAdaptable info ) {
+	public String generateAllDiagrams(EObject element, Shell shell, TransactionalEditingDomain editingDomain, final IAdaptable info ) {
+		String report = "";
 		if (element instanceof EventBElement){
 			EObject component = ((EventBElement)element).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
 			if (component==null ){
 				Activator.getDefault().getLog().log(new Status(Status.WARNING, Activator.PLUGIN_ID, 
 						"Attempt to Generate All diagrams was ignored because element is not in a component\n"+
 						"Element: "+element, null));
-				return;
+				report = report+ "\nGeneration ABORTED - see Error Log";
+				return report;
 			}
 			if (component.eIsProxy()){
 				component =  EcoreUtil.resolve(component, editingDomain.getResourceSet()); // EMFRodinDB.INSTANCE.loadElement(component.getURI());
@@ -104,7 +106,8 @@ public class GenerateAllHandler extends AbstractHandler {
 						"Could not delete generated elements, generation aborted "+
 								"(component = "+((EventBNamed)component).getName()+")"
 								, e));
-				return;
+				report = report+ "\nGeneration ABORTED - see Error Log";
+				return report;
 			}
 
 			// now re-generate from all root diagram elements
@@ -135,22 +138,32 @@ public class GenerateAllHandler extends AbstractHandler {
 							 });
 						} catch (InvocationTargetException e) {
 							Activator.logError(Messages.GENERATOR_MSG_07, e);
-							return;
+							report = report+ "\nGeneration ABORTED - see Error Log";
+							return report;
 						} catch (InterruptedException e) {
 							Activator.logError(Messages.GENERATOR_MSG_08, e);
-							return;
+							report = report+ "\nGeneration ABORTED - see Error Log";
+							return report;
 						} 
 	
 						// error feedback
-						if (false == generateCommand.getCommandResult().getStatus().isOK())
+						if (false == generateCommand.getCommandResult().getStatus().isOK()) {
+
 							MessageDialog
 									.openError(shell,
 											Messages.GENERATOR_MSG_09,
 											Messages.GENERATOR_MSG_10);
+							report = report+"\nGeneration FAILED for "+eventBElement.getReference();
+						}else{
+							report = report+"\nGeneration SUCCEEDED for "+eventBElement.getReference();							
+						}
 					}
+				}else{
+					report = report+"\nValidation FAILED for "+eventBElement.getReference();
 				}
 			}
 		}
+		return report;
 	}
 
 	private static boolean validateElement(EventBElement eventBElement, Shell shell){
