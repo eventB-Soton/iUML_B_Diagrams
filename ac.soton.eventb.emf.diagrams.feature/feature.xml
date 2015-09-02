@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="%featureName"
-      version="5.4.0"
+      version="5.5.0"
       provider-name="%providerName"
       plugin="ac.soton.iumlb.branding">
 
@@ -28,17 +28,16 @@
       <import plugin="org.eclipse.ui" version="3.7.0" match="compatible"/>
       <import plugin="org.eclipse.ui.navigator" version="3.5.0" match="compatible"/>
       <import plugin="org.eclipse.ui.ide" version="3.7.0" match="compatible"/>
-      <import plugin="org.eclipse.gmf.runtime.diagram.core" version="1.4.0" match="compatible"/>
       <import plugin="org.eclipse.emf.common.ui" version="2.6.0" match="compatible"/>
       <import plugin="org.rodinp.core" version="1.6.0" match="compatible"/>
       <import plugin="fr.systerel.explorer" version="2.0.0" match="compatible"/>
       <import plugin="org.eventb.core" version="3.1.0" match="compatible"/>
       <import plugin="org.eventb.emf.core" version="4.2.1" match="compatible"/>
-      <import plugin="org.eventb.emf.persistence" version="3.3.0" match="compatible"/>
+      <import plugin="org.eventb.emf.persistence" version="3.4.1" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.core.extension.persistence" version="2.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams" version="4.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.generator" version="3.1.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="4.0.1" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="4.1.1" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.8.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.4.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.5.0" match="compatible"/>
@@ -52,6 +51,8 @@
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.0.0" match="compatible"/>
       <import plugin="org.rodinp.keyboard.ui" version="2.0.0" match="compatible"/>
       <import plugin="org.eventb.emf.persistence" version="3.1.0" match="compatible"/>
+      <import feature="org.eventb.emf.feature" version="5.3.1" match="compatible"/>
+      <import feature="ac.soton.eventb.emf.core.extension.feature" version="5.1.1" match="compatible"/>
    </requires>
 
    <plugin
