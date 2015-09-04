@@ -94,7 +94,8 @@ public class ArchiveProjectHandler extends AbstractHandler {
 	//if this is in the workspace the projects and folders are created if necessary and the project is opened
 	private static IPath getArchivePath() throws CoreException{
 		String pathString = DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().getString(DiagramsNavigatorExtensionPlugin.PREFERENCES_ARCHIVE_PATH);
-		pathString = pathString.substring(0, pathString.indexOf(':'));
+		int sep = pathString.indexOf(':');
+		if (sep > -1) pathString = pathString.substring(0, sep);
 		IPath path = Path.fromOSString(pathString);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IPath workspacePath = root.getLocation();
