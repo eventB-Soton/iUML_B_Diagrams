@@ -16,8 +16,9 @@ import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBObject;
+import org.eventb.emf.persistence.AttributeIdentifiers;
 import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
-import ac.soton.eventb.emf.diagrams.generator.impl.Identifiers;
+
 
 /**
  * Convenience methods for testing things in Generator Rules
@@ -54,7 +55,7 @@ public class Is {
 	
 	public static boolean generatedBy(Object object, String id){
 		if (object instanceof EventBElement){
-			Attribute generatedBy = ((EventBElement)object).getAttributes().get(Identifiers.GENERATOR_ID_KEY);
+			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
 			if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
 				return true;
 			}
@@ -64,7 +65,7 @@ public class Is {
 	
 	public static boolean generated(Object object){
 		if (object instanceof EventBElement){
-			Attribute generatedBy = ((EventBElement)object).getAttributes().get(Identifiers.GENERATOR_ID_KEY);
+			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
 			if (generatedBy!= null){
 				return true;
 			}
