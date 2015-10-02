@@ -36,8 +36,8 @@ public class IUMLBPreferencesPage extends FieldEditorPreferencePage implements
 	 */
 	@Override
 	public void createFieldEditors() {
-		addField(new BooleanFieldEditor(DiagramsNavigatorExtensionPlugin.PREFERENCES_REFACTORING_ENABLED,
-			        "&Enable Refactoring Support (make sure there are no outstanding changes before changing this setting)", getFieldEditorParent()));
+//		addField(new BooleanFieldEditor(DiagramsNavigatorExtensionPlugin.PREFERENCES_REFACTORING_ENABLED,
+//			        "&Enable Refactoring Support (make sure there are no outstanding changes before changing this setting)", getFieldEditorParent()));
 		addField(new PathEditor(DiagramsNavigatorExtensionPlugin.PREFERENCES_ARCHIVE_PATH,
 		        "&Path to store automatic archives of projects (top path will be used)", "Choose a folder for project archives", getFieldEditorParent()));
 //		addField(new BooleanFieldEditor("LockingEnabled",

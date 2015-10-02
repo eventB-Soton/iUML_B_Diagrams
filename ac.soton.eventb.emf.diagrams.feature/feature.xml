@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="%featureName"
-      version="5.5.0"
+      version="5.5.1"
       provider-name="%providerName"
       plugin="ac.soton.iumlb.branding">
 
