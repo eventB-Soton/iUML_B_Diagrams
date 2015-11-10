@@ -42,8 +42,12 @@ public class Make {
 		return sourceElement.getExtensionId();
 	}
 	
+	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority, boolean editable){
+		return new GenerationDescriptor(parent,feature,value, Integer.valueOf(priority), editable);
+	}
+	
 	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value, int priority){
-		return new GenerationDescriptor(parent,feature,value,Integer.valueOf(priority));
+		return new GenerationDescriptor(parent,feature,value,Integer.valueOf(priority), false);
 	}
 	
 	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value , Boolean remove) {

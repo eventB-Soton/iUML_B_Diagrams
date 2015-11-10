@@ -31,6 +31,14 @@ import org.eventb.emf.core.EventBElement;
 	 *    0 must come after user entered items
 	 *    -10 must come last
 	 *    
+	 *    editable - this affects read-only status of the generated element and whether or not it will be
+	 *    preserved or re-generated in a subsequent generation.
+	 *    	false - the element is set as read-only (the user cannot change its attributes nor add/remove children),
+	 *    			any existing copy of the element will be deleted and re-generated at each re-generation
+	 *    	true  - the element is not read-only and will not be deleted before re-generation. 
+	 *    			(N.B It is the responsibility of the client rules to check whether this element already exists and 
+	 *    				only only generate a new one if it does not)
+	 *    
 	 *  If remove is true:
 	 * 1) If the feature is a containment and the value is an element of the correct kind, the 
 	 *    value will be deleted from the containment
@@ -48,25 +56,16 @@ public class GenerationDescriptor{
 	public EStructuralFeature feature;
 	public Object value;
 	public Integer priority;
+	public Boolean editable;
 	public Boolean remove;
 	
-	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Integer priority){
-		this.parent = parent; this.feature = feature; this.value = value; this.priority = priority; this.remove = false;
+	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Integer priority, Boolean editable){
+		this.parent = parent; this.feature = feature; this.value = value; this.priority = priority; this.editable = editable; this.remove = false;
 	}
 	
-	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value){
-		this.parent = parent; this.feature = feature; this.value = value; this.priority = 0; this.remove = false;
-	}
-
-	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Integer priority, Boolean remove){
-		this(parent, feature, value, priority);
-		this.remove = remove;  
-	}
-	
+	//remove
 	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Boolean remove){
-		this(parent, feature, value);
-		this.remove = remove;
-		
+		this.parent = parent; this.feature = feature; this.value = value; this.priority = 0; this.editable = false; this.remove = remove;		
 	}
 	
 }
