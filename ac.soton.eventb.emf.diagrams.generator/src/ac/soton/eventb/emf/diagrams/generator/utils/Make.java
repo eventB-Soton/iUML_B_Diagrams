@@ -46,8 +46,8 @@ public class Make {
 		return new GenerationDescriptor(parent,feature,value,Integer.valueOf(priority));
 	}
 	
-	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value , int priority, Boolean remove) {
-		return new GenerationDescriptor(parent, feature,value,Integer.valueOf(priority), remove);
+	public static GenerationDescriptor descriptor(EventBElement parent, EStructuralFeature feature, Object value , Boolean remove) {
+		return new GenerationDescriptor(parent, feature, value, remove);
 	}
 	
 	
