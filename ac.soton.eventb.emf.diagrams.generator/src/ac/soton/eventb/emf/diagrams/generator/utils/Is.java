@@ -72,4 +72,12 @@ public class Is {
 		}
 		return false;
 	}
+	
+	public static boolean readOnly(Object object){
+		if (object instanceof EventBElement){
+			return ((EventBElement)object).isLocalGenerated();
+		}
+		return false;
+	}
+	
 }

@@ -67,7 +67,7 @@ public class GeneratedRemover {
 //					if(!ctx.getName().equals(((Machine)eObject).getName() + "_implicitContext"))	
 //						continue;
 					for(EObject ieObject : ctx.eContents()){
-						if(Is.generatedBy(ieObject, generatedByID)){
+						if(Is.generatedBy(ieObject, generatedByID) && Is.readOnly(ieObject)){
 							remove.add(ieObject);
 							if(!modifiedResources.contains(ctx))
 								modifiedResources.add(ctx.eResource());
@@ -79,7 +79,7 @@ public class GeneratedRemover {
 				}
 
 			}
-			if (Is.generatedBy(eObject,generatedByID)){
+			if (Is.generatedBy(eObject,generatedByID) && Is.readOnly(eObject)){
 				remove.add(eObject);						
 			}
 			
