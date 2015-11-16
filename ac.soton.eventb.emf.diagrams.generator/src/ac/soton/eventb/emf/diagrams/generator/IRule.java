@@ -26,7 +26,6 @@ public interface IRule {
 	 * This should return a boolean to indicate whether or not the rule is applicable for the given source element
 	 * 
 	 * @param sourceElement
-	 * @param generatedElements			(already generated so far)
 	 * @return
 	 */
 	public boolean enabled (final EventBElement sourceElement) throws Exception;
