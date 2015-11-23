@@ -32,6 +32,7 @@ import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
+import org.eventb.emf.core.EventBNamedCommentedActionElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
 import org.eventb.emf.core.EventBNamedCommentedPredicateElement;
@@ -415,6 +416,11 @@ private void setGeneratedBy(String generatedByID, Integer priority, boolean edit
 			return stringEquivalent(
 					((EventBNamedCommentedPredicateElement)el1).getPredicate(),
 					((EventBNamedCommentedPredicateElement)el2).getPredicate()
+					);
+		}else if (el1 instanceof EventBNamedCommentedActionElement){	
+			return stringEquivalent(
+					((EventBNamedCommentedActionElement)el1).getAction(),
+					((EventBNamedCommentedActionElement)el2).getAction()
 					);
 		} else if (el1 instanceof EventBNamedCommentedElement){
 			String s1 = ((EventBNamedCommentedElement)el1).getName();
