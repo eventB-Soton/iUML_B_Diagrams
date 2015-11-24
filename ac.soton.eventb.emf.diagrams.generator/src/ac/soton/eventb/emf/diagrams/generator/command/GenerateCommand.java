@@ -1,6 +1,18 @@
+/**
+ * Copyright (c) 2012, 2015 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ * 	University of Southampton - Initial implementation
+ *  
+ */
 package ac.soton.eventb.emf.diagrams.generator.command;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -107,15 +119,19 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 						modifiedResources.add(element.eResource());
 						//try to save all the modified resources
 				        monitor.subTask(Messages.GENERATOR_MSG_16);
+				        List<Resource> savedResources = new ArrayList<Resource>();
 						for (Resource resource : modifiedResources){
-							try {
-								resource.save(Collections.emptyMap());
-								monitor.worked(1);
-							} catch (IOException e) {
-								//throw this as a CoreException
-								throw new CoreException(
-										new Status(Status.ERROR, Activator.PLUGIN_ID, Messages.GENERATOR_MSG_18(resource), e));
-							}					
+							if (!savedResources.contains(resource)){
+								savedResources.add(resource);
+								try {
+									resource.save(Collections.emptyMap());
+									monitor.worked(1);
+								} catch (IOException e) {
+									//throw this as a CoreException
+									throw new CoreException(
+											new Status(Status.ERROR, Activator.PLUGIN_ID, Messages.GENERATOR_MSG_18(resource), e));
+								}		
+							}
 						}
 						
 
