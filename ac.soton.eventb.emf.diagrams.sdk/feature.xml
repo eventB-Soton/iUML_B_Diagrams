@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.sdk"
       label="%featureName"
-      version="5.6.0"
+      version="6.0.0"
       provider-name="%featureVendor">
 
    <description>
@@ -20,5 +20,44 @@
    <url>
       <update label="%updateSiteName" url="http://rodin-b-sharp.sourceforge.net/updates"/>
    </url>
+
+   <includes
+         id="ac.soton.eventb.emf.diagrams.feature"
+         version="0.0.0"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.edit.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.generator.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.navigator.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.refactor.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
 </feature>
