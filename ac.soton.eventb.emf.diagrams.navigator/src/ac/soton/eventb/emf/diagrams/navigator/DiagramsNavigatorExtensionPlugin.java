@@ -23,7 +23,6 @@ import org.rodinp.core.IElementChangedListener;
 import org.rodinp.core.RodinCore;
 
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
-import ac.soton.eventb.emf.diagrams.navigator.refactor.ChangesUpdaterListener;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -43,9 +42,7 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	private static final Map<String, IDiagramProvider> diagramProviderRegistry = new HashMap<String, IDiagramProvider>();
 	
 	private static final IElementChangedListener diagramUpdater = new DiagramUpdaterListener();
-	private static final IElementChangedListener changesUpdater = new ChangesUpdaterListener();
-
-	public static final String PREFERENCES_REFACTORING_ENABLED = "RefactoringEnabled";
+	
 	public static final String PREFERENCES_ARCHIVE_PATH = "ArchivePath";
 	public static final String PREFERENCES_ARCHIVE_PATH_DEFAULT = ResourcesPlugin.getWorkspace().getRoot().getLocation().append("_archives").toOSString();
 	
@@ -65,14 +62,11 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		registerDiagramProviders();
 		//this listener will update diagrams when components in Rodin database are renamed or deleted
 		RodinCore.addElementChangedListener(diagramUpdater);
-		RodinCore.addElementChangedListener(changesUpdater);
 		DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setDefault(PREFERENCES_ARCHIVE_PATH, PREFERENCES_ARCHIVE_PATH_DEFAULT);
 		getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 		    @Override
 		    public void propertyChange(PropertyChangeEvent event) {
-		      if (event.getProperty() == PREFERENCES_REFACTORING_ENABLED) {
-		    	  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setValue(event.getProperty(), (Boolean)event.getNewValue());
-		      }else if (event.getProperty() == PREFERENCES_ARCHIVE_PATH) {
+		       if (event.getProperty() == PREFERENCES_ARCHIVE_PATH) {
 		    	  DiagramsNavigatorExtensionPlugin.getDefault().getPreferenceStore().setValue(event.getProperty(), (String)event.getNewValue());
 		      }
 		    }
@@ -103,7 +97,6 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		RodinCore.removeElementChangedListener(diagramUpdater);
-		RodinCore.removeElementChangedListener(changesUpdater);
 		diagramProviderRegistry.clear();
 		plugin = null;
 		super.stop(context);
