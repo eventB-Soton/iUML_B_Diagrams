@@ -86,7 +86,7 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 					TransactionalEditingDomain editingDomain = getEditingDomain();
 					final List<Resource> modifiedResources;
 					
-					monitor.beginTask(Messages.GENERATOR_MSG_12,10);		
+					monitor.beginTask(Messages.GENERATOR_MSG_11,10);		
 					monitor.setTaskName(Messages.GENERATOR_MSG_13(element)); 
 
 					// flush the command stack as this is unprotected and has no undo/redo
