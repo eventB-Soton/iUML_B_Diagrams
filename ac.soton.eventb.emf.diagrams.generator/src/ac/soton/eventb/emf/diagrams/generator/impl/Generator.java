@@ -290,7 +290,7 @@ public class Generator {
 										Integer pr = (Integer) (at==null? null : at.getValue());
 										if (pr==null) pr = 0; // no priority => user stuff at priority 0
 										//priority order = highest 1..10,0,-1..-10
-										if ((pr>0 && pr < pri) || (pr < 1 && pr > pri) || (pr==pri && od<=extensionOrder.get(generatedByID))){
+										if ((pr>0 && (pri<=0 || pr < pri)) || (pr < 1 && pr > pri) || (pr==pri && od<=extensionOrder.get(generatedByID))){
 											pos = i+1;
 										};
 										
