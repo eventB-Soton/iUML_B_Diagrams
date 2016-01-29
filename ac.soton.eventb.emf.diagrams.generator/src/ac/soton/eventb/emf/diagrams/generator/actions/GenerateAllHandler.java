@@ -147,13 +147,14 @@ public class GenerateAllHandler extends AbstractHandler {
 				try {
 					dialog.run(true, true, new IRunnableWithProgress(){
 					     public void run(IProgressMonitor monitor) { 
-					    	 monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
 					         try {
+						    	 monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
 					        	 generateCommand.execute(monitor, null);
 					         } catch (ExecutionException e) {
 								Activator.logError(Messages.GENERATOR_MSG_06, e);
+					         }finally{
+					        	 monitor.done(); 
 					         }
-					         monitor.done();
 					     }
 					 });
 				} catch (InvocationTargetException e) {
