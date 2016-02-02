@@ -121,7 +121,7 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 				        monitor.subTask(Messages.GENERATOR_MSG_16);
 				        List<Resource> savedResources = new ArrayList<Resource>();
 						for (Resource resource : modifiedResources){
-							if (!savedResources.contains(resource)){
+							if (resource != null && !savedResources.contains(resource)){
 								savedResources.add(resource);
 								try {
 									resource.save(Collections.emptyMap());
