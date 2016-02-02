@@ -44,11 +44,8 @@ public class GeneratedRemover {
 		for (EObject eObject : previouslyGeneratedElements){
 			EcoreUtil.delete(eObject, true);	//this deletes the object from its containment and removes all references to it and its content
 		}
-		
 		return modifiedResources;
-
 	}
-	
 	
 	/*
 	 * finds all elements that have previously been generated with this generators generatorByID
@@ -59,7 +56,7 @@ public class GeneratedRemover {
 		EList<EObject> contents = component.getAllContained(CorePackage.eINSTANCE.getEventBElement(),false);
 		contents.remove(null);
 		contents.add(0,component);
-		modifiedResources.add(component.eResource());
+
 		ArrayList<EObject> remove = new ArrayList<EObject>();
 		for(EObject eObject : contents){
 			if(eObject instanceof Machine){
@@ -69,26 +66,20 @@ public class GeneratedRemover {
 					for(EObject ieObject : ctx.eContents()){
 						if(Is.generatedBy(ieObject, generatedByID) && Is.readOnly(ieObject)){
 							remove.add(ieObject);
-							if(!modifiedResources.contains(ctx))
+							if(!modifiedResources.contains(ctx.eResource()))
 								modifiedResources.add(ctx.eResource());
 						}
 					}
-					
-
-
 				}
 
 			}
 			if (Is.generatedBy(eObject,generatedByID) && Is.readOnly(eObject)){
-				remove.add(eObject);						
+				remove.add(eObject);
+				if(!modifiedResources.contains(component.eResource()))
+					modifiedResources.add(component.eResource());
 			}
-			
 		}
 		return remove;
 	}
-
-	
-	
-	
 	
 }
