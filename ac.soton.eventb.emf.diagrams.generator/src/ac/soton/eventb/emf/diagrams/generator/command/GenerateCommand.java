@@ -86,7 +86,7 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 					TransactionalEditingDomain editingDomain = getEditingDomain();
 					final List<Resource> modifiedResources;
 					
-					monitor.beginTask(Messages.GENERATOR_MSG_12,10);		
+					monitor.beginTask(Messages.GENERATOR_MSG_11,10);		
 					monitor.setTaskName(Messages.GENERATOR_MSG_13(element)); 
 
 					// flush the command stack as this is unprotected and has no undo/redo
@@ -121,7 +121,7 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 				        monitor.subTask(Messages.GENERATOR_MSG_16);
 				        List<Resource> savedResources = new ArrayList<Resource>();
 						for (Resource resource : modifiedResources){
-							if (!savedResources.contains(resource)){
+							if (resource != null && !savedResources.contains(resource)){
 								savedResources.add(resource);
 								try {
 									resource.save(Collections.emptyMap());
