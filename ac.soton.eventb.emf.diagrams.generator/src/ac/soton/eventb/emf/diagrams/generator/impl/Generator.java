@@ -174,7 +174,8 @@ public class Generator {
 			return null;
 		}
 		
-		modifiedResources.add(sourceElement.eContainer().eResource());
+		if (!modifiedResources.contains(sourceElement.eContainer().eResource()))
+			modifiedResources.add(sourceElement.eContainer().eResource());
 		return modifiedResources;	
 	}
 	
@@ -208,6 +209,7 @@ public class Generator {
 /*
  * If any generated elements are a new EventB component (e.g. machine, context) this creates a new resource
  * for them in the editing domains resource set and attaches the new element as the content of the resource.
+ * (if a suitable one is already there it is used but cleared of its content)
  * Note that we do not save the resource yet in case the generation process does not complete. 
  * 
  * N.B. CURRENTLY ALL RESOURCES ARE ASSUMED TO BE WITHIN THE SAME PROJECT AS THE SOURCE ELEMENT. 
@@ -230,9 +232,12 @@ public class Generator {
 					String ext = generationDescriptor.value instanceof Context? "buc" :  "bum";
 					URI fileUri = projectUri.appendSegment(fileName).appendFileExtension(ext); //$NON-NLS-1$
 					setGeneratedBy(generatedByID, 0, generationDescriptor.editable, (EventBElement)generationDescriptor.value);
-					Resource newResource = editingDomain.createResource(fileUri.toString());
+					Resource newResource = editingDomain.getResourceSet().getResource(fileUri, true);
+					if (newResource == null) 
+						newResource = editingDomain.createResource(fileUri.toString());
+					newResource.getContents().clear();
 					newResource.getContents().add((EObject)generationDescriptor.value);
-					newResources.add(newResource);
+					if (!newResources.contains(newResource)) newResources.add(newResource);
 			}
 		}
 		return newResources;
