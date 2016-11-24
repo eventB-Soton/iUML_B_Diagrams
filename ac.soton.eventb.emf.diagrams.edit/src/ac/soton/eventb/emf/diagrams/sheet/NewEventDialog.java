@@ -28,13 +28,9 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eventb.emf.core.Annotation;
-import org.eventb.emf.core.CoreFactory;
-import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.core.machine.MachineFactory;
-import org.eventb.emf.persistence.PersistencePlugin;
 
 
 /**
@@ -204,15 +200,16 @@ public class NewEventDialog extends Dialog {
 		
 		//FIXME: annotating the event here prevents persistence from throwing "Workspace modify operation"
 		// when it's adding annotation in AbstractSynchroniser; this is a temporary solution
-		annotate(event);
+		//UPDATE Nov'16 - this doesn't seem to be needed anymore.. remove dependency on persistence plugin
+		//annotate(event);
 		
 		super.okPressed();
 	}
 	
-	private void annotate(EventBObject element) {
-		Annotation rodinInternals = CoreFactory.eINSTANCE.createAnnotation();
-		rodinInternals.setSource(PersistencePlugin.SOURCE_RODIN_INTERNAL_ANNOTATION);
-		element.getAnnotations().add(rodinInternals);
-	}
+//	private void annotate(EventBObject element) {
+//		Annotation rodinInternals = CoreFactory.eINSTANCE.createAnnotation();
+//		rodinInternals.setSource("http:///org/eventb/core/RodinInternalAnnotations"); //avoid dependency on persistence.. PersistencePlugin.SOURCE_RODIN_INTERNAL_ANNOTATION);
+//		element.getAnnotations().add(rodinInternals);
+//	}
 
 }

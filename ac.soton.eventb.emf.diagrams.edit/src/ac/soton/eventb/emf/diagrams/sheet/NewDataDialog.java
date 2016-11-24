@@ -31,11 +31,8 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eventb.emf.core.Annotation;
-import org.eventb.emf.core.CoreFactory;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBNamedCommentedElement;
-import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.context.CarrierSet;
 import org.eventb.emf.core.context.Constant;
 import org.eventb.emf.core.context.Context;
@@ -45,7 +42,6 @@ import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.core.machine.MachineFactory;
 import org.eventb.emf.core.machine.MachinePackage;
 import org.eventb.emf.core.machine.Variable;
-import org.eventb.emf.persistence.PersistencePlugin;
 
 import ac.soton.eventb.emf.core.extension.coreextension.DataKind;
 
@@ -264,16 +260,17 @@ public class NewDataDialog extends Dialog {
 		
 		//FIXME: annotating the element here prevents persistence from throwing "Workspace modify operation"
 		// when it's adding annotation in AbstractSynchroniser; this is a temporary solution
-		annotate(newElement);
+		//UPDATE Nov'16 - this doesn't seem to be needed anymore.. remove dependency on persistence plugin
+		//annotate(newElement);
 		
 		super.okPressed();
 	}
 	
-	private void annotate(EventBObject element) {
-		Annotation rodinInternals = CoreFactory.eINSTANCE.createAnnotation();
-		rodinInternals.setSource(PersistencePlugin.SOURCE_RODIN_INTERNAL_ANNOTATION);
-		element.getAnnotations().add(rodinInternals);
-	}
+//	private void annotate(EventBObject element) {
+//		Annotation rodinInternals = CoreFactory.eINSTANCE.createAnnotation();
+//		rodinInternals.setSource("http:///org/eventb/core/RodinInternalAnnotations"); //avoid dependency on persistence.. PersistencePlugin.SOURCE_RODIN_INTERNAL_ANNOTATION);
+//		element.getAnnotations().add(rodinInternals);
+//	}
 	
 	private Set<String> getConflictingNames(EventBNamedCommentedComponentElement container) {
 		Set<String> list =  new HashSet<String>() ;
