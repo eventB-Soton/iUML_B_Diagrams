@@ -65,7 +65,7 @@ public class GenerationDescriptor{
 	
 	//remove
 	public GenerationDescriptor(EventBElement parent, EStructuralFeature feature, Object value, Boolean remove){
-		this.parent = parent; this.feature = feature; this.value = value; this.priority = 0; this.editable = false; this.remove = remove;		
+		this.parent = parent; this.feature = feature; this.value = value; this.priority = 1; this.editable = false; this.remove = remove;		
 	}
 	
 }
