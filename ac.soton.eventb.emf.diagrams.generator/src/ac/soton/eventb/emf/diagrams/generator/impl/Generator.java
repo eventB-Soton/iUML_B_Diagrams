@@ -23,6 +23,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -277,7 +278,9 @@ public class Generator {
 	
 						if (featureValue instanceof EList){	
 							if(generationDescriptor.remove == false){
-								if (generationDescriptor.value instanceof EventBElement){						
+								if (
+									!(generationDescriptor.feature instanceof EReference && !((EReference)generationDescriptor.feature).isContainment())  //do not set generated on references
+									&&	generationDescriptor.value instanceof EventBElement){						
 									EventBElement newChild = ((EventBElement)generationDescriptor.value);					
 									setGeneratedBy(generatedByID, pri, generationDescriptor.editable, newChild);
 								}
