@@ -11,7 +11,10 @@ package ac.soton.eventb.emf.diagrams.generator.utils;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EStructuralFeature;
+import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.context.Axiom;
@@ -24,6 +27,7 @@ import org.eventb.emf.core.machine.Convergence;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Guard;
 import org.eventb.emf.core.machine.Invariant;
+import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.core.machine.MachineFactory;
 import org.eventb.emf.core.machine.Parameter;
 import org.eventb.emf.core.machine.Variable;
@@ -181,6 +185,26 @@ public class Make {
 	    g.setLocalGenerated(true);
 	    g.setComment("");
 	    return g;
+	}
+
+	/**
+	 * Constructs a reference to a variable that will exist in the future. 
+	 * The machine is used to construct the USI of the proxy so the machine must 
+	 * already be linked to a resource in the workspace
+	 * 
+	 * @param machine (must be in a resource so that it has a full URI to its final resource)
+	 * @param variableName - the name of a variable that will reside in the variables collection of the machine
+	 * @return
+	 */
+	public static Variable variableProxyReference(Machine machine, String variableName) {
+		Variable proxy = MachineFactory.eINSTANCE.createVariable();
+		URI uri = EcoreUtil.getURI(machine);
+		String fragment = uri.fragment().replace("::Machine::","::Variable::")+"."+variableName;
+		uri = uri.trimFragment();
+		uri = uri.appendFragment(fragment);
+		//set the proxy uri
+		((InternalEObject)proxy).eSetProxyURI(uri);
+		return proxy;
 	}
 
 
