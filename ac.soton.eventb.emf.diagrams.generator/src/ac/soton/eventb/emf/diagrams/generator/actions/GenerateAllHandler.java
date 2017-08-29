@@ -51,8 +51,6 @@ import ac.soton.eventb.emf.diagrams.generator.impl.Messages;
  */
 public class GenerateAllHandler extends AbstractHandler {
 
-	List<EventBElement> generateList = null;
-	
 	/* (non-Javadoc)
 	 * @see org.eclipse.core.commands.IHandler#execute(org.eclipse.core.commands.ExecutionEvent)
 	 */
@@ -71,6 +69,83 @@ public class GenerateAllHandler extends AbstractHandler {
 		return null;
 	}
 
+	/**
+	 * 
+	 * This can be called programmatically to do the same as the Generate All command Handler
+	 * (this version avoids UI interactions)
+	 * 
+	 * @param element        - The root level element that might contain diagrams
+	 * @param editingDomain  - The editing domain
+	 * @param info           -  THIS IS NOT USED.. pass null
+	 * @throws Exception 
+	 */
+	public String generateAllDiagrams(EObject element, TransactionalEditingDomain editingDomain, final IAdaptable info ) throws Exception {
+		String report = "";
+		if (element instanceof EventBElement){
+			EObject component = ((EventBElement)element).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+			if (component==null ){
+				Activator.getDefault().getLog().log(new Status(Status.WARNING, Activator.PLUGIN_ID, 
+						"Attempt to Generate All diagrams was ignored because element is not in a component\n"+
+						"Element: "+element, null));
+				report = report+ "\nGeneration ABORTED - see Error Log";
+				return report;
+			}
+			if (component.eIsProxy()){
+				component =  EcoreUtil.resolve(component, editingDomain.getResourceSet()); // EMFRodinDB.INSTANCE.loadElement(component.getURI());
+			}
+			// now re-generate from all root diagram elements
+			List<EventBElement> generateList = getDiagramRoots(component, null);
+			for (EventBElement eventBElement : generateList){
+				if (eventBElement.eIsProxy()){
+					eventBElement =  (EventBElement) EcoreUtil.resolve(eventBElement, editingDomain.getResourceSet());
+				}
+				report = generateFromElement(editingDomain, report, eventBElement);
+			}
+		}
+		return report;
+	}
+			
+	/**
+	 * 	 This can be called programmatically to generate from a single source element
+	 * 
+	 * @param editingDomain
+	 * @param report
+	 * @param eventBElement
+	 * @return updated report string
+	 * @throws Exception 
+	 */
+	public String generateFromElement(TransactionalEditingDomain editingDomain, String report, EventBElement eventBElement) throws Exception {
+	    Diagnostic diagnostic = Diagnostician.INSTANCE.validate(eventBElement);
+	    if (diagnostic.getSeverity() == Diagnostic.ERROR || diagnostic.getSeverity() == Diagnostic.WARNING){
+			report = report+"\nValidation FAILED for "+eventBElement.getReference();
+	    }else{
+			final GenerateCommand generateCommand = new GenerateCommand(editingDomain, eventBElement); 
+			if (generateCommand.canExecute()) {	
+	        	 try {
+					generateCommand.execute(null, null);
+				} catch (ExecutionException e) {
+					Activator.logError(Messages.GENERATOR_MSG_06, e);
+					e.printStackTrace();
+					report = report+ "\nException during generation - see Error Log";
+					throw e;
+				}
+				// error feedback
+				if (false == generateCommand.getCommandResult().getStatus().isOK()) {
+					report = report+"\nGeneration FAILED for "+eventBElement.getReference();
+					throw new Exception("Generation FAILED for "+eventBElement.getReference());
+				}else{
+					report = report+"\nGeneration SUCCEEDED for "+eventBElement.getReference();							
+				}
+			}
+		}
+		return report;
+	}
+
+	  
+
+	
+	/////////////////// OLD versions that use UI //////////////////////
+	
 	/**
 	 * 
 	 * This can be called programmatically to do the same as the Generate All command Handler
@@ -116,8 +191,7 @@ public class GenerateAllHandler extends AbstractHandler {
 //			}
 
 			// now re-generate from all root diagram elements
-			generateList = new ArrayList<EventBElement>();
-			getDiagramRoots(component, null);
+			List<EventBElement> generateList = getDiagramRoots(component, null);
 			for (EventBElement eventBElement : generateList){
 				if (eventBElement.eIsProxy()){
 					eventBElement =  (EventBElement) EcoreUtil.resolve(eventBElement, editingDomain.getResourceSet());
@@ -129,8 +203,7 @@ public class GenerateAllHandler extends AbstractHandler {
 	}
 
 	/**
-	 * 	 * This can be called programmatically to generate from a single source element
-	 * 
+	 * 	 This can be called programmatically to generate from a single source element
 	 * 
 	 * @param shell
 	 * @param editingDomain
@@ -145,7 +218,7 @@ public class GenerateAllHandler extends AbstractHandler {
 				// run with progress
 				ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
 				try {
-					dialog.run(true, true, new IRunnableWithProgress(){
+					dialog.run(false, true, new IRunnableWithProgress(){
 					     public void run(IProgressMonitor monitor) { 
 					         try {
 						    	 monitor.beginTask(Messages.GENERATOR_MSG_05, IProgressMonitor.UNKNOWN);
@@ -169,11 +242,6 @@ public class GenerateAllHandler extends AbstractHandler {
 
 				// error feedback
 				if (false == generateCommand.getCommandResult().getStatus().isOK()) {
-
-					MessageDialog
-							.openError(shell,
-									Messages.GENERATOR_MSG_09,
-									Messages.GENERATOR_MSG_10);
 					report = report+"\nGeneration FAILED for "+eventBElement.getReference();
 				}else{
 					report = report+"\nGeneration SUCCEEDED for "+eventBElement.getReference();							
@@ -198,17 +266,18 @@ public class GenerateAllHandler extends AbstractHandler {
 	  
 	  
 	/* This recursively traverses the contents tree looking for the root diagram elements that can be generated
-	 * Note that generate-able elements may be nested in others and not these should not be generated unless 
+	 * Note that generate-able elements may be nested in others and these should not be generated unless 
 	 * there is an intermediate generate-able element of another type
 	 */
-	private void getDiagramRoots(EObject element, EClass lastType) {
+	private List<EventBElement> getDiagramRoots(EObject element, EClass lastType) {
+		List<EventBElement> generateList = new ArrayList<EventBElement>();
 		if (element instanceof EventBElement && element.eClass()!=lastType && GeneratorFactory.getFactory().canGenerate(element.eClass())){
 			generateList.add((EventBElement)element);
 			lastType = element.eClass();
 		}
 		for (EObject eObject : element.eContents()){
-			getDiagramRoots(eObject, lastType);
+			generateList.addAll(getDiagramRoots(eObject, lastType));
 		}
-	
+		return generateList;
 	}
 }

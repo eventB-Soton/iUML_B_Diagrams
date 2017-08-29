@@ -81,8 +81,8 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 		
 		try {
 			
-			RodinCore.run(new IWorkspaceRunnable() {
-				public void run(final IProgressMonitor monitor) throws CoreException{
+//			RodinCore.run(new IWorkspaceRunnable() {
+//				public void run(final IProgressMonitor monitor) throws CoreException{
 					TransactionalEditingDomain editingDomain = getEditingDomain();
 					final List<Resource> modifiedResources;
 					
@@ -137,8 +137,8 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 
 					}
 				monitor.done();
-				}
-			},monitor);
+//				}
+//			},monitor);
 			
 			return CommandResult.newOKCommandResult();
 
