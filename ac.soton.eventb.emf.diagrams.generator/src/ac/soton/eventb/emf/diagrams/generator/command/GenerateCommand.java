@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -81,8 +82,9 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 		
 		try {
 			
-//			RodinCore.run(new IWorkspaceRunnable() {
-//				public void run(final IProgressMonitor monitor) throws CoreException{
+			RodinCore.run(new IWorkspaceRunnable() {
+				public void run(final IProgressMonitor monitor) throws CoreException{
+
 					TransactionalEditingDomain editingDomain = getEditingDomain();
 					final List<Resource> modifiedResources;
 					
@@ -137,8 +139,8 @@ public class GenerateCommand extends AbstractTransactionalCommand {
 
 					}
 				monitor.done();
-//				}
-//			},monitor);
+				}
+			},monitor);
 			
 			return CommandResult.newOKCommandResult();
 
