@@ -15,10 +15,6 @@
       %featureCopyright
    </copyright>
 
-   <license url="%licenseURL">
-      %license
-   </license>
-
    <url>
       <update label="%updateSiteName" url="http://rodin-b-sharp.sourceforge.net/updates"/>
    </url>
