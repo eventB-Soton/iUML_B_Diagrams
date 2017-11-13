@@ -2,7 +2,7 @@
 <feature
       id="ac.soton.eventb.emf.diagrams.sdk"
       label="%featureName"
-      version="6.1.0.release"
+      version="6.1.1.qualifier"
       provider-name="%featureVendor"
       license-feature="org.rodinp.license"
       license-feature-version="1.0.0.release">
@@ -14,10 +14,6 @@
    <copyright>
       %featureCopyright
    </copyright>
-
-   <license url="%licenseURL">
-      %license
-   </license>
 
    <url>
       <update label="%updateSiteName" url="http://rodin-b-sharp.sourceforge.net/updates"/>
