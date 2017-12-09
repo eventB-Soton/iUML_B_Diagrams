@@ -151,7 +151,7 @@
    <extension
          point="org.eclipse.ui.startup">
       <startup
-            class="ac.soton.eventb.emf.diagrams.navigator.DiagramUpdaterListener">
+            class="ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUpdaterListener">
       </startup>
    </extension>
 

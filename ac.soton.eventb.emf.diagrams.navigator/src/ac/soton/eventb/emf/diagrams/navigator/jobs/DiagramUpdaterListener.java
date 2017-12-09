@@ -1,4 +1,4 @@
-package ac.soton.eventb.emf.diagrams.navigator;
+package ac.soton.eventb.emf.diagrams.navigator.jobs;
 
 import org.eventb.core.IEventBRoot;
 import org.rodinp.core.ElementChangedEvent;

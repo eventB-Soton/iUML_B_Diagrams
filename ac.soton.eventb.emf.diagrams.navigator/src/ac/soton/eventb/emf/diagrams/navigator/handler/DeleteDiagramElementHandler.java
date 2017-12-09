@@ -28,8 +28,8 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
 import ac.soton.eventb.emf.diagrams.generator.command.DeleteGeneratedCommand;
-import ac.soton.eventb.emf.diagrams.navigator.DiagramUtil;
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
+import ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUtil;
 
 
 /**

@@ -18,8 +18,8 @@ import org.rodinp.core.IInternalElement;
 import org.rodinp.core.IRefinementParticipant;
 import org.rodinp.core.RodinDBException;
 
-import ac.soton.eventb.emf.diagrams.navigator.DiagramUtil;
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
+import ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUtil;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 /**

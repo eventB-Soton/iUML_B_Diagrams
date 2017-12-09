@@ -1,4 +1,4 @@
-package ac.soton.eventb.emf.diagrams.navigator;
+package ac.soton.eventb.emf.diagrams.navigator.jobs;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -32,6 +32,7 @@ import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
 import org.rodinp.core.RodinDBException;
 
+import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 public class DiagramUtil {
