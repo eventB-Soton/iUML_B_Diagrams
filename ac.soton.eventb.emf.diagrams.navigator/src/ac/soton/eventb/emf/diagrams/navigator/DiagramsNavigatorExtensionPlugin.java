@@ -22,10 +22,12 @@ import org.osgi.framework.BundleContext;
 import org.rodinp.core.IElementChangedListener;
 import org.rodinp.core.RodinCore;
 
+import ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUpdaterListener;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 /**
  * The activator class controls the plug-in life cycle
+ * @since 3.1
  */
 public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 
