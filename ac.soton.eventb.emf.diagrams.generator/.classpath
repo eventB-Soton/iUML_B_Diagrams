@@ -2,6 +2,6 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="ac/soton/eventb/emf/diagrams/generator/AbstractRule.java|ac/soton/eventb/emf/diagrams/generator/GenerationDescriptor.java|ac/soton/eventb/emf/diagrams/generator/IRule.java|ac/soton/eventb/emf/diagrams/generator/actions/GenerateAction.java|ac/soton/eventb/emf/diagrams/generator/actions/GenerateAllHandler.java|ac/soton/eventb/emf/diagrams/generator/actions/ValidateAction.java|ac/soton/eventb/emf/diagrams/generator/command/GenerateCommand.java|ac/soton/eventb/emf/diagrams/generator/impl/GeneratedRemover.java|ac/soton/eventb/emf/diagrams/generator/impl/Generator.java|ac/soton/eventb/emf/diagrams/generator/impl/GeneratorConfig.java|ac/soton/eventb/emf/diagrams/generator/impl/GeneratorFactory.java|ac/soton/eventb/emf/diagrams/generator/utils/Find.java|ac/soton/eventb/emf/diagrams/generator/utils/Make.java|ac/soton/eventb/emf/diagrams/generator/impl/Messages.java" kind="src" path="src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

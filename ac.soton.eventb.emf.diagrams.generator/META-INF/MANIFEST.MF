@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: ac.soton.eventb.emf.diagrams.generator;singleton:=true
-Bundle-Version: 3.9.1.qualifier
+Bundle-Version: 4.0.0.qualifier
 Bundle-Activator: ac.soton.eventb.emf.diagrams.generator.Activator
 Bundle-Vendor: %Bundle-Vendor
 Require-Bundle: org.eclipse.ui;bundle-version="[3.7.0,4.0.0)",
@@ -13,11 +13,12 @@ Require-Bundle: org.eclipse.ui;bundle-version="[3.7.0,4.0.0)",
  org.rodinp.core;bundle-version="[1.7.0,2.0.0)",
  org.eventb.emf.core;bundle-version="[5.0.0,6.0.0)",
  org.eventb.emf.persistence;bundle-version="[3.5.0,4.0.0)",
- ac.soton.eventb.emf.core.extension;bundle-version="[4.0.0,5.0.0)"
+ ac.soton.eventb.emf.core.extension;bundle-version="[4.0.0,5.0.0)",
+ ac.soton.emf.translator,
+ ac.soton.emf.translator.eventb
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: ac.soton.eventb.emf.diagrams.generator,
- ac.soton.eventb.emf.diagrams.generator.actions,
- ac.soton.eventb.emf.diagrams.generator.command,
- ac.soton.eventb.emf.diagrams.generator.impl,
+ ac.soton.eventb.emf.diagrams.generator.commands,
+ ac.soton.eventb.emf.diagrams.generator.handlers,
  ac.soton.eventb.emf.diagrams.generator.utils

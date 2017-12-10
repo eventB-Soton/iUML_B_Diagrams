@@ -5,7 +5,7 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-package ac.soton.eventb.emf.diagrams.generator.actions;
+package ac.soton.eventb.emf.diagrams.generator.handlers;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -20,8 +20,9 @@ import ac.soton.eventb.emf.diagrams.generator.impl.ValidatorRegistry;
 /**
  * This provides a generic action for validating diagram extensions.
  *  It is a wrapper for the GMF Validate Action so that we can display messages about the validation.
+ * @since 4.0
  */
-public class ValidateAction extends AbstractHandler {
+public class IUMLBValidateHandler extends AbstractHandler {
 	
 	/**
 	 * 
