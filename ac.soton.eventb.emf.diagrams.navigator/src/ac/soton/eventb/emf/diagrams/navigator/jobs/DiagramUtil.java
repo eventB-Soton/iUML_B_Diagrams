@@ -1,3 +1,10 @@
+/*******************************************************************************
+ * Copyright (c) 2011-2017 University of Southampton.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.navigator.jobs;
 
 import java.io.BufferedReader;
@@ -14,7 +21,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
@@ -22,6 +28,10 @@ import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EObjectEList;
 import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.PlatformUI;
 import org.eventb.core.IEventBRoot;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
@@ -82,31 +92,57 @@ public class DiagramUtil {
 //				file.delete(false,false,new NullProgressMonitor());
 //			}
 //		} catch (CoreException e) {
-//			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed deleting diagram files", e));
+//			DiagramsNavigatorExtensionPlugin.logError("Failed deleting diagram files", e));
 //		}
 //	}
 	
 	/**
-	 * deletes the diagram File associated with a particular element in the given machine
+	 * deletes the diagram layout file associated with a particular element
 	 * 
 	 * @param element
-	 * @param machineName
 	 */
 	public static void deleteDiagramFile(EObject element) {
 		// find diagram provider
 		IDiagramProvider provider = registry.get(element.eClass().getName());
 		if (provider == null) return;
+		//get the diagram file
 		IProject project = WorkspaceSynchronizer.getFile(element.eResource()).getProject();
 		IFile diagramFile = project.getFile(provider.getDiagramFileName(element));
 		if (diagramFile.exists()) {
+			//close any editors for this file name and editor type
+			closeEditor(diagramFile.getName(), provider.getEditorId()); 
 			try {
+				//ok, delete the diagram file
 				diagramFile.delete(false,false,nullProgressMonitor);
 			} catch (CoreException e) {
-				DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed deleting diagram File", e));
+				DiagramsNavigatorExtensionPlugin.logError("Failed deleting diagram File", e);
 			}
 		}
 	}
 	
+	/**
+	 * 
+	 * close any open editors that have the same editor id and the same file name
+	 * 
+	 * @param diagramFileName
+	 * @param editorId
+	 */
+	private static void closeEditor(String fileName,  String editorId) {
+		IEditorReference[] editors = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+		for (IEditorReference editorRef : editors){
+			if (editorId.contentEquals(editorRef.getId())){
+				IEditorPart editor = editorRef.getEditor(false);
+				IEditorInput input = editor.getEditorInput();
+				String name = input.getName();
+				name = name.substring(0, name.indexOf('#'));
+				if (fileName.equals(name)){
+					editor.getEditorSite().getPage().closeEditor(editor, true);
+				}
+			}
+		}
+		
+	}
+
 	/**
 	 * Renames all the diagram files associated with elements in the given (new) Event-B root from the old Event-B component name
 	 * AND updates any references within all the models in the project
@@ -136,7 +172,7 @@ public class DiagramUtil {
 				}
 			}
 		} catch (Exception e) {
-			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
+			DiagramsNavigatorExtensionPlugin.logError("Failed saving updated diagram model", e);
 		}
 	}
 
@@ -204,7 +240,7 @@ public class DiagramUtil {
 				//delete the old diagram
 				diagramFile.delete(false,false,nullProgressMonitor);
 			} catch (CoreException e) {
-				DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed renaming diagram File", e));
+				DiagramsNavigatorExtensionPlugin.logError("Failed renaming diagram File", e);
 			}
 		}
 	}
@@ -270,7 +306,7 @@ public class DiagramUtil {
 				updateDiagramsForNewProjectName((IEventBRoot) rodinFile.getRoot(), project.getElementName(), oldProjectName);
 			}
 		} catch (RodinDBException e) {
-			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed getting files from renamed project", e));
+			DiagramsNavigatorExtensionPlugin.logError("Failed getting files from renamed project", e);
 		}
 		
 	}
@@ -297,7 +333,7 @@ public class DiagramUtil {
 			resource.unload();
 			resource.eSetDeliver(deliver);
 		} catch (IOException e) {
-			DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed saving updated diagram model", e));
+			DiagramsNavigatorExtensionPlugin.logError("Failed saving updated diagram model", e);
 		}
 	}
 
