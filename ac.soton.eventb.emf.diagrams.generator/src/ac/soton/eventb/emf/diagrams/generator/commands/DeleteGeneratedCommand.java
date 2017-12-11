@@ -15,6 +15,7 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.workspace.AbstractEMFOperation;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.CorePackage;
+import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.context.Context;
 import org.eventb.emf.core.machine.Machine;
@@ -52,18 +53,24 @@ public class DeleteGeneratedCommand extends AbstractEMFOperation {
 			//get the resources that might have elements generated from this extension
 			resources = getAffectedResources(abstractExtension);
 			//set up an adapter for the DeTranslate to use
-			adapter = new EventBTranslatorAdapter(abstractExtension);
+			adapter = new EventBTranslatorAdapter();
+			adapter.initialiseAdapter(abstractExtension);
 		}
 		untranslateCommand = new UnTranslateCommand(editingDomain, resources, sourceExtensionID, adapter);
 	}
 	
-	private Collection<Resource> getAffectedResources(AbstractExtension abstractExtension) {
+	private Collection<Resource> getAffectedResources(EventBElement eventBElement) {
 		Collection<Resource> resources = new HashSet<Resource>();
-		EventBNamedCommentedComponentElement component = (EventBNamedCommentedComponentElement) abstractExtension.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);	
+		EventBNamedCommentedComponentElement component =  
+				(EventBNamedCommentedComponentElement) eventBElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);	
 		resources.add(component.eResource());
 		if (component instanceof Machine){
 			for (Context context : ((Machine)component).getSees()){
-				resources.add(context.eResource());
+				resources.addAll(getAffectedResources(context));
+			}
+		}else if (component instanceof Context){
+			for (Context context : ((Context)component).getExtends()){
+				resources.addAll(getAffectedResources(context));
 			}
 		}
 		return resources;
