@@ -96,7 +96,7 @@ public class OpenDiagramAction extends Action implements ISelectionChangedListen
 				if (command.canExecute())
 					command.execute(new NullProgressMonitor(), null);
 			} catch (ExecutionException e) {
-				DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(Status.ERROR, DiagramsNavigatorExtensionPlugin.PLUGIN_ID, "Failed opening an editor", e));
+				DiagramsNavigatorExtensionPlugin.logError("Failed opening an editor", e);
 			}
 		}
 	}
