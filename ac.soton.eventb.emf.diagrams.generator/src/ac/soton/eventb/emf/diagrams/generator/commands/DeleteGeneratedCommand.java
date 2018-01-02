@@ -1,34 +1,39 @@
+/*******************************************************************************
+ *  Copyright (c) 2017 University of Southampton.
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  which accompanies this distribution, and is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *   
+ *  Contributors:
+ *  University of Southampton - Initial implementation
+ *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.generator.commands;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.SubMonitor;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.workspace.AbstractEMFOperation;
-import org.eventb.emf.core.AbstractExtension;
-import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
-import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.core.context.Context;
-import org.eventb.emf.core.machine.Machine;
+import org.eventb.emf.core.EventBNamed;
 
-import ac.soton.emf.translator.UnTranslateCommand;
-import ac.soton.emf.translator.configuration.IAdapter;
-import ac.soton.emf.translator.eventb.adapter.EventBTranslatorAdapter;
+import ac.soton.emf.translator.TranslatorFactory;
+import ac.soton.eventb.emf.diagrams.generator.Activator;
+import ac.soton.eventb.emf.diagrams.generator.impl.Identifiers;
 
 /**
  * Command to delete previously generated elements that have been generated from the given element
  * 
- * Finds the affected resources and sourceExtensionId and then 
- * creates and wraps an unTranslateCommand.
+ * Finds the relevant translator and runs its 'untranslate' method
  * 
  * @author cfs
  * @since 4.0
@@ -36,63 +41,57 @@ import ac.soton.emf.translator.eventb.adapter.EventBTranslatorAdapter;
  */
 public class DeleteGeneratedCommand extends AbstractEMFOperation {
 	
-	private UnTranslateCommand untranslateCommand;
 
-	public DeleteGeneratedCommand(TransactionalEditingDomain editingDomain, EObject element) {
+	TranslatorFactory factory = null;	
+	protected EventBElement sourceElement;
+	
+	public DeleteGeneratedCommand(TransactionalEditingDomain editingDomain, EventBElement sourceElement) {
 		super(editingDomain, "Delete generated elements", null);
 		setOptions(Collections.singletonMap(Transaction.OPTION_UNPROTECTED, Boolean.TRUE));
-
-		String sourceExtensionID=null;
-		Collection<Resource> resources = null;
-		IAdapter adapter = null;
-		
-		if (element instanceof AbstractExtension){
-			AbstractExtension abstractExtension = ( AbstractExtension)element;
-			//Obtain the extension ID from the source abstractExtension
-			sourceExtensionID = abstractExtension.getExtensionId();
-			//get the resources that might have elements generated from this extension
-			resources = getAffectedResources(abstractExtension);
-			//set up an adapter for the DeTranslate to use
-			adapter = new EventBTranslatorAdapter();
-			adapter.initialiseAdapter(abstractExtension);
+		try {
+			factory = TranslatorFactory.getFactory();
+		} catch (CoreException e) {
+			e.printStackTrace();
 		}
-		untranslateCommand = new UnTranslateCommand(editingDomain, resources, sourceExtensionID, adapter);
-	}
-	
-	private Collection<Resource> getAffectedResources(EventBElement eventBElement) {
-		Collection<Resource> resources = new HashSet<Resource>();
-		EventBNamedCommentedComponentElement component =  
-				(EventBNamedCommentedComponentElement) eventBElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);	
-		resources.add(component.eResource());
-		if (component instanceof Machine){
-			for (Context context : ((Machine)component).getSees()){
-				resources.addAll(getAffectedResources(context));
-			}
-		}else if (component instanceof Context){
-			for (Context context : ((Context)component).getExtends()){
-				resources.addAll(getAffectedResources(context));
-			}
-		}
-		return resources;
+		this.sourceElement = sourceElement;
 	}
 
 	@Override
 	public boolean canExecute(){
-		return untranslateCommand.canExecute();
+		return factory!=null && factory.canTranslate(Identifiers.COMMANDID, sourceElement.eClass());
 	}	
 	
 	@Override
 	public boolean canRedo(){
-		return untranslateCommand.canRedo();
+		return false;
 	}
 
 	@Override
 	public boolean canUndo(){
-		return untranslateCommand.canUndo();
+		return false;
 	}
 	
 	@Override
 	protected  IStatus doExecute(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
-		return untranslateCommand.execute(monitor, info);
+		IStatus status = null;
+		
+		SubMonitor submonitor = SubMonitor.convert(monitor, "Delete generated elements", 3);								
+
+		String sourceElementName = sourceElement instanceof EventBNamed?
+				((EventBNamed)sourceElement).getName() :
+				sourceElement.getReference();	
+		EClass sourceClass = sourceElement.eClass();
+		
+		if (factory != null && factory.canTranslate(Identifiers.COMMANDID, sourceElement.eClass())){
+			submonitor.setTaskName("Un-translating "+sourceClass.getName()+" : "+sourceElementName);
+			status = factory.untranslate(getEditingDomain(), sourceElement, Identifiers.COMMANDID, monitor);
+			submonitor.worked(2);
+
+		}else{
+			String CannotUnTranslateMessage = "cannot untranslate";
+			status = new Status(IStatus.CANCEL, Activator.PLUGIN_ID, CannotUnTranslateMessage  );
+		}
+
+		return status;
 	}
 }
