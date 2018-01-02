@@ -68,7 +68,7 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 							//delete the diagram layout file
 							DiagramUtil.deleteDiagramFile(eobject);
 							//delete the elements that have been generated from the diagram
-							deleteGeneratedCommand.execute(null, null);
+							deleteGeneratedCommand.execute(monitor, null);
 							//delete the diagram model element (done last as elements and layout can be re-generated)
 							deleteDiagramCommand.execute();
 							resource.setModified(true);
