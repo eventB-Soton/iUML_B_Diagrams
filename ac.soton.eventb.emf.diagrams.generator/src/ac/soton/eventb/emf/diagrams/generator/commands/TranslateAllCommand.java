@@ -1,3 +1,13 @@
+/*******************************************************************************
+ *  Copyright (c) 2017 University of Southampton.
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  which accompanies this distribution, and is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *   
+ *  Contributors:
+ *  University of Southampton - Initial implementation
+ *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.generator.commands;
 
 import java.util.ArrayList;
@@ -26,6 +36,7 @@ import org.eventb.emf.core.EventBNamedCommentedElement;
 
 import ac.soton.emf.translator.TranslatorFactory;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
+import ac.soton.eventb.emf.diagrams.generator.impl.Identifiers;
 
 /**
  * This command searches the given sourceElement for iUML-B diagrams that can be translated.
@@ -39,8 +50,7 @@ import ac.soton.eventb.emf.diagrams.generator.Activator;
  *
  */
 public class TranslateAllCommand extends AbstractEMFOperation {
-	
-	final static String commandId = "ac.soton.eventb.emf.diagrams.generator.translateToEventB";
+		
 	final static String commandTitle = "Translate All iUML-B Diagrams";
 	final static String ValidationFailedMessage = "Translation cancelled because validation failed with the following errors : \n";
 	final static String CannotTranslateMessage = "Translation cancelled because there is no translator\n";
@@ -94,12 +104,12 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 			IStatus status;
 			report = report +"\n"+sourceClass.getName()+":"+sourceElementName+" - ";
 			
-			if (factory != null && factory.canTranslate(commandId, sourceElement.eClass())){
+			if (factory != null && factory.canTranslate(Identifiers.COMMANDID, sourceElement.eClass())){
 				submonitor.setTaskName("Validating "+sourceClass.getName()+" : "+sourceElementName);
 				status = validate(sourceElement, submonitor.newChild(1));
 				if (status.isOK()){
 					submonitor.setTaskName("Translating "+sourceClass.getName()+" : "+sourceElementName);
-					status = factory.translate(sourceElement, commandId, submonitor.newChild(2));
+					status = factory.translate(sourceElement, Identifiers.COMMANDID, submonitor.newChild(2));
 				}
 				submonitor.worked(2);
 
@@ -148,7 +158,7 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 	private List<EventBElement> getDiagramRoots(EObject element, EClass lastType) throws CoreException {
 		List<EventBElement> generateList = new ArrayList<EventBElement>();
 		if (element instanceof EventBElement && element.eClass()!=lastType && 
-				TranslatorFactory.getFactory().canTranslate(commandId, element.eClass())){
+				TranslatorFactory.getFactory().canTranslate(Identifiers.COMMANDID, element.eClass())){
 			generateList.add((EventBElement)element);
 			lastType = element.eClass();
 		}
