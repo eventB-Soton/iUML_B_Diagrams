@@ -23,6 +23,7 @@ import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.persistence.SaveResourcesCommand;
 
 import ac.soton.eventb.emf.diagrams.generator.commands.DeleteGeneratedCommand;
@@ -49,7 +50,9 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 			if (element instanceof IAdaptable) {
 				final EObject eobject = (EObject) ((IAdaptable) element).getAdapter(EObject.class);
 				final Resource resource = eobject.eResource();
-				if (resource != null && resource.isLoaded()) {
+				if (eobject instanceof EventBElement &&
+						resource != null &&
+						resource.isLoaded()) {
 					TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(resource);
 					if (editingDomain != null) {
 						// command to delete the diagram element from the model
@@ -60,7 +63,7 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 								};
 						//command to delete any model elements that have been generated from the diagram element
 						// (this command is provided by the generator plug-in)
-						DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, eobject);
+						DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, (EventBElement)eobject);
 						if (deleteDiagramCommand.canExecute() && deleteGeneratedCommand.canExecute()){
 							//delete the diagram layout file
 							DiagramUtil.deleteDiagramFile(eobject);
