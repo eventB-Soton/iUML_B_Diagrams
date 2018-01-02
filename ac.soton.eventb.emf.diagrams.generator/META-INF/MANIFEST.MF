@@ -19,6 +19,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="[3.7.0,4.0.0)",
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: ac.soton.eventb.emf.diagrams.generator,
+ ac.soton.eventb.emf.diagrams.generator.adapter,
  ac.soton.eventb.emf.diagrams.generator.commands,
  ac.soton.eventb.emf.diagrams.generator.handlers,
  ac.soton.eventb.emf.diagrams.generator.utils
