@@ -45,7 +45,7 @@ public class IUMLBTranslateHandler extends EventBTranslateHandler {
 
 		if (editor instanceof DiagramDocumentEditor) {
 			final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
-			//if (diagramDocumentEditor.getDiagram().getElement() instanceof EventBElement){
+				
 				// save before transformation
 				if (editor.isDirty())
 					editor.doSave(new NullProgressMonitor());
@@ -58,7 +58,6 @@ public class IUMLBTranslateHandler extends EventBTranslateHandler {
 					status = new Status(IStatus.INFO, Activator.PLUGIN_ID, ValidationFailedMessage+errors );
 				}
 		}
-		
         monitor.done();
         return status;
 	}
