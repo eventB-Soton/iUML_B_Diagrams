@@ -23,7 +23,7 @@
 	    locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=transformations">
 		<command
 	       commandId="ac.soton.eventb.emf.diagrams.generator.translateToEventB"
-	       icon="icons/Translate_iUMLB.png"
+	       icon="icons/Translate_IUMLB.png"
 	       label="generate Event-B"
 	       style="push">
 		</command>
@@ -32,7 +32,7 @@
             locationURI="popup:fr.systerel.explorer.navigator.view">
          <command
                commandId="ac.soton.eventb.emf.diagrams.generator.translateAllToEventB"
-               icon="icons/Translate_iUMLB.png"
+               icon="icons/Translate_IUMLB.png"
                label="Translate All iUML-B Diagrams"
                style="push">
             <visibleWhen
