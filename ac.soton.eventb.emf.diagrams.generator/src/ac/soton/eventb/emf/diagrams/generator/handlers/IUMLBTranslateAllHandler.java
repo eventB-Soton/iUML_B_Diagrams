@@ -20,10 +20,8 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -121,23 +119,6 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 		return status;
 	}
 	
-	protected IStatus validate(EventBElement sourceElement, IProgressMonitor monitor) throws ExecutionException {
-		Diagnostic diagnostic = Diagnostician.INSTANCE.validate(sourceElement);
-		if (diagnostic.getSeverity() == Diagnostic.ERROR || diagnostic.getSeverity() == Diagnostic.WARNING){
-		// didn't validate so show feedback
-			String errors = diagnostic.getMessage()+"\n";
-		    for (Diagnostic ch : diagnostic.getChildren()){
-		    	errors = errors+ch.getMessage()+"\n";
-		    }
-		    status = new Status(IStatus.INFO, Activator.PLUGIN_ID, ValidationFailedMessage+errors );
-		}else{
-		    status = Status.OK_STATUS;
-		}
-		monitor.done();
-		return status;
-	}
-	final static String ValidationFailedMessage = "Translation cancelled because validation failed with the following errors : \n";
-
 	/**
 	 * From the selected object, get an EObject that can be translated.
 	 * @param obj
