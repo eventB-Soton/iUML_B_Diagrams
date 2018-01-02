@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012, 2015 University of Southampton.
+ * Copyright (c) 2012-2017 University of Southampton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -36,6 +36,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.persistence.EMFRodinDB;
+import org.eventb.emf.persistence.SaveResourcesCommand;
 import org.rodinp.core.IInternalElement;
 
 import ac.soton.eventb.emf.diagrams.generator.Activator;
@@ -87,7 +88,6 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 		try {
 			ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
 			dialog.run(true, true, new IRunnableWithProgress(){
-				
 				public void run(IProgressMonitor monitor) throws InvocationTargetException { 
 					try {
 						TransactionalEditingDomain editingDomain = TransactionalEditingDomain.Factory.INSTANCE.getEditingDomain(component.eResource().getResourceSet());
@@ -95,6 +95,11 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 						if (translateAllCmd.canExecute()){
 							status = translateAllCmd.execute(null, null);
 							report = report+status.getMessage();
+							// save all resources that have been modified
+							SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
+							if (saveCommand.canExecute()){
+									saveCommand.execute(monitor, null);
+							}
 						}
 					} catch (Exception e) {
 						throw new InvocationTargetException(e);
@@ -102,6 +107,7 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 				}
 			});
 		} catch (InvocationTargetException e) {
+			e.printStackTrace();
 	    	status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.TRANSLATOR_MSG_07, e);
 			Activator.logError(Messages.TRANSLATOR_MSG_07, e);
 			report = report + "\n"+e.toString();
