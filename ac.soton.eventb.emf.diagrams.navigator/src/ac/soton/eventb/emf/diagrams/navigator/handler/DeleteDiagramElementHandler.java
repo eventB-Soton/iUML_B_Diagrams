@@ -7,13 +7,12 @@
  *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.navigator.handler;
 
-import java.io.IOException;
-import java.util.Collections;
-
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -23,11 +22,8 @@ import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IEditorReference;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
+import org.eventb.emf.persistence.SaveResourcesCommand;
 
 import ac.soton.eventb.emf.diagrams.generator.commands.DeleteGeneratedCommand;
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
@@ -42,6 +38,8 @@ import ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUtil;
  *
  */
 public class DeleteDiagramElementHandler extends AbstractHandler {
+	
+	private final IProgressMonitor monitor = new NullProgressMonitor();
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -72,15 +70,9 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 							deleteDiagramCommand.execute();
 							resource.setModified(true);
 							// save all resources that have been modified
-							for (Resource r : editingDomain.getResourceSet().getResources()){
-								if (r.isModified()){
-									try {
-										r.save(Collections.emptyMap());
-									} catch (IOException e) {
-										e.printStackTrace();
-										DiagramsNavigatorExtensionPlugin.logError("Failed to save resource : "+r.getURI(), e);
-									}
-								}
+							SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
+							if (saveCommand.canExecute()){
+									saveCommand.execute(monitor, null);
 							}
 						}else{
 							DiagramsNavigatorExtensionPlugin.logError("Failed to delete diagram and generated elements - aborted delete of : "+eobject);
