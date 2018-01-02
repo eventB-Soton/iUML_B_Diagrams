@@ -109,7 +109,7 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 				status = validate(sourceElement, submonitor.newChild(1));
 				if (status.isOK()){
 					submonitor.setTaskName("Translating "+sourceClass.getName()+" : "+sourceElementName);
-					status = factory.translate(sourceElement, Identifiers.COMMANDID, submonitor.newChild(2));
+					status = factory.translate(getEditingDomain(), sourceElement, Identifiers.COMMANDID, submonitor.newChild(2));
 				}
 				submonitor.worked(2);
 
