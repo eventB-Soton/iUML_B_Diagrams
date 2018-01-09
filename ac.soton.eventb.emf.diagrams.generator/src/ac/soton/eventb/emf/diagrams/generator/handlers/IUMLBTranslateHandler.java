@@ -46,10 +46,6 @@ public class IUMLBTranslateHandler extends EventBTranslateHandler {
 		if (editor instanceof DiagramDocumentEditor) {
 			final DiagramDocumentEditor diagramDocumentEditor = (DiagramDocumentEditor)editor;
 				
-				// save before transformation
-				if (editor.isDirty())
-					editor.doSave(new NullProgressMonitor());
-				
 				if (ValidatorRegistry.validate(diagramDocumentEditor)){
 					status = Status.OK_STATUS;
 				}else{
