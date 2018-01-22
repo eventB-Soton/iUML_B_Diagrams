@@ -7,7 +7,6 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
 import org.eclipse.ui.IEditorPart;
@@ -51,7 +50,7 @@ public class IUMLBTranslateHandler extends EventBTranslateHandler {
 				}else{
 					// didn't validate so show feedback
 					String errors = ValidatorRegistry.getValidationErrors(diagramDocumentEditor);
-					status = new Status(IStatus.INFO, Activator.PLUGIN_ID, ValidationFailedMessage+errors );
+					status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, ValidationFailedMessage+errors );
 				}
 		}
         monitor.done();
