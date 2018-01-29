@@ -131,7 +131,7 @@ public class DiagramUtil {
 		IEditorReference[] editors = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
 		for (IEditorReference editorRef : editors){
 			if (editorId.contentEquals(editorRef.getId())){
-				IEditorPart editor = editorRef.getEditor(false);
+				IEditorPart editor = editorRef.getEditor(true); //restore in case editor is open but not yet instantiated
 				IEditorInput input = editor.getEditorInput();
 				String name = input.getName();
 				name = name.substring(0, name.indexOf('#'));
