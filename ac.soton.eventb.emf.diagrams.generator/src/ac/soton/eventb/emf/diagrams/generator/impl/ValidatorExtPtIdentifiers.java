@@ -12,19 +12,17 @@ package ac.soton.eventb.emf.diagrams.generator.impl;
 
 import org.eclipse.osgi.util.NLS;
 
-public class Identifiers extends NLS {
-	private static final String BUNDLE_NAME = "ac.soton.eventb.emf.diagrams.generator.impl.identifiers"; //$NON-NLS-1$
+public class ValidatorExtPtIdentifiers extends NLS {
+	private static final String BUNDLE_NAME = "ac.soton.eventb.emf.diagrams.generator.impl.validatorExtPtIdentifiers"; //$NON-NLS-1$
 	public static String EXTPT_VALIDATOR_ID;
 	public static String EXTPT_VALIDATOR_EDITORCLASS;
 	public static String EXTPT_VALIDATOR_VALIDATORCLASS;
-	
-	public static String COMMANDID;
-	
+
 	static {
 		// initialize resource bundle
-		NLS.initializeMessages(BUNDLE_NAME, Identifiers.class);
+		NLS.initializeMessages(BUNDLE_NAME, ValidatorExtPtIdentifiers.class);
 	}
 
-	private Identifiers() {
+	private ValidatorExtPtIdentifiers() {
 	}
 }
