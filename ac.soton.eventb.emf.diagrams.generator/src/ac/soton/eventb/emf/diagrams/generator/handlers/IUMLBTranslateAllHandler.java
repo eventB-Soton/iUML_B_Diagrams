@@ -50,7 +50,6 @@ import ac.soton.eventb.emf.diagrams.generator.commands.TranslateAllCommand;
  */
 public class IUMLBTranslateAllHandler extends AbstractHandler {
 
-	final static String commandId = "ac.soton.eventb.emf.diagrams.generator.translateToEventB";
 	String report = null;
 	IStatus status = null;
 	
