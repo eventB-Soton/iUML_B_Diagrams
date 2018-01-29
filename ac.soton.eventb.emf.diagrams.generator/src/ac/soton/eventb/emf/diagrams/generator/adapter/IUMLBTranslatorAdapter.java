@@ -54,6 +54,9 @@ public class IUMLBTranslatorAdapter extends EventBTranslatorAdapter implements I
 		List<Resource> affectedResources = new ArrayList<Resource>();
 		if (sourceElement instanceof EventBElement){
 			EventBNamedCommentedComponentElement sourceComponent = (EventBNamedCommentedComponentElement) ((EventBElement)sourceElement).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
+			//Resource res = sourceComponent.eResource();
+			//ResourceSet rs = res.getResourceSet();
+			
 			List<EventBNamedCommentedComponentElement> components = getComponentList(sourceComponent);
 			for (EventBNamedCommentedComponentElement component : components){
 				affectedResources.add(component.eResource());

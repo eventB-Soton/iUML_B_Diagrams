@@ -36,7 +36,7 @@ import org.eventb.emf.core.EventBNamedCommentedElement;
 
 import ac.soton.emf.translator.TranslatorFactory;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
-import ac.soton.eventb.emf.diagrams.generator.impl.Identifiers;
+import ac.soton.eventb.emf.diagrams.generator.DiagramsGeneratorIdentifiers;
 
 /**
  * This command searches the given sourceElement for iUML-B diagrams that can be translated.
@@ -104,12 +104,12 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 			IStatus status;
 			report = report +"\n"+sourceClass.getName()+":"+sourceElementName+" - ";
 			
-			if (factory != null && factory.canTranslate(Identifiers.COMMANDID, sourceElement.eClass())){
+			if (factory != null && factory.canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, sourceElement.eClass())){
 				submonitor.setTaskName("Validating "+sourceClass.getName()+" : "+sourceElementName);
 				status = validate(sourceElement, submonitor.newChild(1));
 				if (status.isOK()){
 					submonitor.setTaskName("Translating "+sourceClass.getName()+" : "+sourceElementName);
-					status = factory.translate(getEditingDomain(), sourceElement, Identifiers.COMMANDID, submonitor.newChild(2));
+					status = factory.translate(getEditingDomain(), sourceElement, DiagramsGeneratorIdentifiers.COMMAND_ID, submonitor.newChild(2));
 				}
 				submonitor.worked(2);
 
@@ -158,7 +158,7 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 	private List<EventBElement> getDiagramRoots(EObject element, EClass lastType) throws CoreException {
 		List<EventBElement> generateList = new ArrayList<EventBElement>();
 		if (element instanceof EventBElement && element.eClass()!=lastType && 
-				TranslatorFactory.getFactory().canTranslate(Identifiers.COMMANDID, element.eClass())){
+				TranslatorFactory.getFactory().canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, element.eClass())){
 			generateList.add((EventBElement)element);
 			lastType = element.eClass();
 		}

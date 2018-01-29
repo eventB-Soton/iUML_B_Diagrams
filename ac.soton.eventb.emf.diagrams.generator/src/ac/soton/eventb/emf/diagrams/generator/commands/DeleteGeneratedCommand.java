@@ -28,7 +28,7 @@ import org.eventb.emf.core.EventBNamed;
 
 import ac.soton.emf.translator.TranslatorFactory;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
-import ac.soton.eventb.emf.diagrams.generator.impl.Identifiers;
+import ac.soton.eventb.emf.diagrams.generator.DiagramsGeneratorIdentifiers;
 
 /**
  * Command to delete previously generated elements that have been generated from the given element
@@ -58,7 +58,7 @@ public class DeleteGeneratedCommand extends AbstractEMFOperation {
 
 	@Override
 	public boolean canExecute(){
-		return factory!=null && factory.canTranslate(Identifiers.COMMANDID, sourceElement.eClass());
+		return factory!=null && factory.canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, sourceElement.eClass());
 	}	
 	
 	@Override
@@ -82,9 +82,9 @@ public class DeleteGeneratedCommand extends AbstractEMFOperation {
 				sourceElement.getReference();	
 		EClass sourceClass = sourceElement.eClass();
 		
-		if (factory != null && factory.canTranslate(Identifiers.COMMANDID, sourceElement.eClass())){
+		if (factory != null && factory.canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, sourceElement.eClass())){
 			submonitor.setTaskName("Un-translating "+sourceClass.getName()+" : "+sourceElementName);
-			status = factory.untranslate(getEditingDomain(), sourceElement, Identifiers.COMMANDID, monitor);
+			status = factory.untranslate(getEditingDomain(), sourceElement, DiagramsGeneratorIdentifiers.COMMAND_ID, monitor);
 			submonitor.worked(2);
 
 		}else{
