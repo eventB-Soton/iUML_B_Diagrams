@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension-point id="ac.soton.eventb.emf.diagrams.generator.rule" name="generator rule" schema="schema/ac.soton.eventb.emf.diagrams.generator.rule.exsd"/>
    <extension-point id="ac.soton.eventb.emf.diagrams.validator" name="validator" schema="schema/ac.soton.eventb.emf.diagrams.validator.exsd"/>
 
 
