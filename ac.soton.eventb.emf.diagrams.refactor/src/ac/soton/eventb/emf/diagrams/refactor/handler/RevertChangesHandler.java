@@ -25,11 +25,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.core.IMachineRoot;
-import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.EMFRodinDB;
 
-import ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler;
+import ac.soton.eventb.emf.diagrams.generator.commands.TranslateAllCommand;
 import ac.soton.eventb.emf.diagrams.refactor.Activator;
 import ac.soton.eventb.emf.diagrams.refactor.impl.RevertAssistant;
 
@@ -78,9 +77,9 @@ public class RevertChangesHandler extends AbstractHandler {
 		if (selection instanceof IStructuredSelection) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
 			if (element instanceof IMachineRoot) {
-				EventBElement machine = emfRodinDB.loadEventBComponent((IMachineRoot)element);
+				Machine machine = (Machine)emfRodinDB.loadEventBComponent((IMachineRoot)element);
 
-				RevertAssistant assistant = new RevertAssistant((Machine)machine);		
+				RevertAssistant assistant = new RevertAssistant(machine);		
 				
 				// Check that there is a change record for this refinement level
 				if (assistant.hasChanges()){
@@ -105,8 +104,17 @@ public class RevertChangesHandler extends AbstractHandler {
 				    		  "There are no changes to revert on this refinement.\n"
 				    			  );
 				
-				GenerateAllHandler genAll = new GenerateAllHandler();
-				genAll.generateAllDiagrams(machine, shell, emfRodinDB.getEditingDomain(), null);
+				TranslateAllCommand translateAllCmd = new TranslateAllCommand(emfRodinDB.getEditingDomain(),machine);
+				if (translateAllCmd.canExecute()){
+					//IStatus status = 
+							translateAllCmd.execute(null, null);
+				}else{
+					MessageDialog.openError(shell,
+				    		  "Revert Changes", 
+				    		  "ERROR: Unable to translate diagrams in "+machine.getName()+".\n"
+				    			  );
+				}
+				
 			}
 		}
 		return null;

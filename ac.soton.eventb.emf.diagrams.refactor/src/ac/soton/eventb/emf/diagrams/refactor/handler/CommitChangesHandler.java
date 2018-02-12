@@ -25,6 +25,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -45,7 +46,7 @@ import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.persistence.EMFRodinDB;
 
-import ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler;
+import ac.soton.eventb.emf.diagrams.generator.commands.TranslateAllCommand;
 import ac.soton.eventb.emf.diagrams.navigator.handler.ArchiveProjectHandler;
 import ac.soton.eventb.emf.diagrams.refactor.Activator;
 import ac.soton.eventb.emf.diagrams.refactor.Recorder;
@@ -156,7 +157,6 @@ public class CommitChangesHandler extends AbstractHandler {
 							ArchiveProjectHandler.archiveProject(project, monitor);
 
 							//propagate the changes made in the current selected component to each lower refinement
-							GenerateAllHandler genAll = new GenerateAllHandler();
 							EventBNamedCommentedComponentElement cp = component;
 							EventBNamedCommentedComponentElement rcp = null;
 							TextFile report = new TextFile();
@@ -183,10 +183,16 @@ public class CommitChangesHandler extends AbstractHandler {
 								//now generate diagrams in the abstract machine (needs to be done after propagation of its changes)
 								report.addLine("");
 								report.addLine("------------------------------");
-								report.addLine("Generating diagrams for "+cp.getReference());
-								report.addText(
-									genAll.generateAllDiagrams(cp, shell, emfRodinDB.getEditingDomain(), null)
-								);
+								report.addLine("Generating diagrams for "+cp.getReference());	
+								
+								TranslateAllCommand translateAllCmd = new TranslateAllCommand(emfRodinDB.getEditingDomain(),cp);
+								if (translateAllCmd.canExecute()){
+									IStatus status = translateAllCmd.execute(null, null);
+									report.addLine(status.getMessage());
+								}else{
+									report.addLine("ERROR: Unable to translate diagrams in "+cp.getName());
+								}
+
 								//save generated
 								try {
 									if (!cp.eIsProxy()){
