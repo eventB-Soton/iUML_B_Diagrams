@@ -42,22 +42,22 @@
             second-participant-id="ac.soton.eventb.emf.diagrams.navigator.diagramCopierMachine">
       </Order>
       <Participant
-            class="ac.soton.eventb.emf.diagrams.navigator.refiner.GeneratedCopier"
-            id="generatedCopierMachine"
+            class="ac.soton.eventb.emf.diagrams.navigator.refiner.DiagramRegenerator"
+            id="diagramRegeneratorMachine"
             refinement-id="org.eventb.core.machineRefinement">
       </Participant>
       <Order
             first-participant-id="org.eventb.core.machineRefiner"
-            second-participant-id="ac.soton.eventb.emf.diagrams.navigator.generatedCopierMachine">
+            second-participant-id="ac.soton.eventb.emf.diagrams.navigator.diagramRegeneratorMachine">
       </Order>
       <Participant
-            class="ac.soton.eventb.emf.diagrams.navigator.refiner.GeneratedCopier"
-            id="generatedCopierContext"
+            class="ac.soton.eventb.emf.diagrams.navigator.refiner.DiagramRegenerator"
+            id="diagramRegeneratorContext"
             refinement-id="org.eventb.core.contextRefinement">
       </Participant>
       <Order
             first-participant-id="org.eventb.core.contextRefiner"
-            second-participant-id="ac.soton.eventb.emf.diagrams.navigator.generatedCopierContext">
+            second-participant-id="ac.soton.eventb.emf.diagrams.navigator.diagramRegeneratorContext">
       </Order>
    </extension>
 
@@ -151,7 +151,7 @@
    <extension
          point="org.eclipse.ui.startup">
       <startup
-            class="ac.soton.eventb.emf.diagrams.navigator.DiagramUpdaterListener">
+            class="ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUpdaterListener">
       </startup>
    </extension>
 

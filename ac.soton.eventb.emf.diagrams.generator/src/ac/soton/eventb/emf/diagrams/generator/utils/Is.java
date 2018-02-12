@@ -8,16 +8,13 @@
 
 package ac.soton.eventb.emf.diagrams.generator.utils;
 
-import java.util.List;
-
-import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.persistence.AttributeIdentifiers;
-import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
+
 
 
 /**
@@ -29,25 +26,17 @@ import ac.soton.eventb.emf.diagrams.generator.GenerationDescriptor;
 public class Is {
 	
 	/**
-	 * Convenience method to check whether an element has been generated already in the list of generationDescriptors
-	 * (parent and/or feature may be null if not required to be matched)
-	 * 
-	 * @param generatedElements
-	 * @param parent (or null)
-	 * @param feature (or null)
-	 * @param identifier
-	 * @return
+	 * @since 4.0
 	 */
-	public static boolean generated(List<GenerationDescriptor> generatedElements, EventBElement parent, EStructuralFeature feature, String identifier){
-		return Find.generatedElement(generatedElements, parent, feature, identifier) != null;
+	public static String generatedById(AbstractExtension sourceElement){
+		return sourceElement.getExtensionId();
 	}
-	
 
 	public static boolean generatedBy(Object object, Object sourceElement){
 		if (sourceElement instanceof EventBObject){
 			AbstractExtension ae = (AbstractExtension) ((EventBObject) sourceElement).getContaining(CorePackage.Literals.ABSTRACT_EXTENSION);
 			if (ae instanceof AbstractExtension){
-				return generatedBy(object, Make.generatedById(ae));
+				return generatedBy(object, generatedById(ae));
 			}
 		}
 		return false;

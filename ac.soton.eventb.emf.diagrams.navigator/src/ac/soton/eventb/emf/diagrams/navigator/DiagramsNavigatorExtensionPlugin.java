@@ -13,6 +13,7 @@ import java.util.Map;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -22,10 +23,12 @@ import org.osgi.framework.BundleContext;
 import org.rodinp.core.IElementChangedListener;
 import org.rodinp.core.RodinCore;
 
+import ac.soton.eventb.emf.diagrams.navigator.jobs.DiagramUpdaterListener;
 import ac.soton.eventb.emf.diagrams.navigator.provider.IDiagramProvider;
 
 /**
  * The activator class controls the plug-in life cycle
+ * @since 3.1
  */
 public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 
@@ -118,5 +121,16 @@ public class DiagramsNavigatorExtensionPlugin extends AbstractUIPlugin {
 		return diagramProviderRegistry;
 	}
 
+	public static void logError(String message, Exception e) {
+		DiagramsNavigatorExtensionPlugin.getDefault().getLog().log(new Status(
+				 IStatus.ERROR,
+				 DiagramsNavigatorExtensionPlugin.PLUGIN_ID,
+				 message,
+				 e));
+	}
+	
+	public static void logError(String message) {
+		logError(message,null);
+	}
 	
 }

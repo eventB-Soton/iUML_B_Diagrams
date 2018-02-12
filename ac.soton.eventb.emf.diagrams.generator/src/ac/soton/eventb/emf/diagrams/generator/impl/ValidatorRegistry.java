@@ -30,12 +30,11 @@ public class ValidatorRegistry {
 			// populate validators from registered extensions
 			Class<DiagramDocumentEditor> edClass;
 			IValidator v;
-			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(Identifiers.EXTPT_VALIDATOR_ID).getExtensions()) {
+			for (final IExtension extension : Platform.getExtensionRegistry().getExtensionPoint(ValidatorExtPtIdentifiers.EXTPT_VALIDATOR_ID).getExtensions()) {
 				for (final IConfigurationElement validatorExtensionElement : extension.getConfigurationElements()) {
-					//String eID = validatorExtensionElement.getAttribute(Identifiers.EXTPT_VALIDATORID);
 					try {
-						edClass = (Class<DiagramDocumentEditor>) validatorExtensionElement.createExecutableExtension(Identifiers.EXTPT_VALIDATOR_EDITORCLASS).getClass();
-						v = (IValidator) validatorExtensionElement.createExecutableExtension(Identifiers.EXTPT_VALIDATOR_VALIDATORCLASS);
+						edClass = (Class<DiagramDocumentEditor>) validatorExtensionElement.createExecutableExtension(ValidatorExtPtIdentifiers.EXTPT_VALIDATOR_EDITORCLASS).getClass();
+						v = (IValidator) validatorExtensionElement.createExecutableExtension(ValidatorExtPtIdentifiers.EXTPT_VALIDATOR_VALIDATORCLASS);
 						validators.put(edClass, v);
 					} catch (CoreException e) {
 						// TODO Auto-generated catch block

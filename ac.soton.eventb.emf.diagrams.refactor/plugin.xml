@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<!--
+     (c) Crown owned copyright 2011, 2017 (UK Ministry of Defence)
+     
+     All rights reserved. This program and the accompanying materials  are 
+     made available under the terms of the Eclipse Public License v1.0 which
+     accompanies this distribution, and is available at
+     http://www.eclipse.org/legal/epl-v10.html
+     
+     This is to identify the UK Ministry of Defence as owners along with the
+      license rights provided.
+     
+     Contributors:
+     			University of Southampton - Initial implementation
+ -->
+
+<plugin>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:fr.systerel.explorer.navigator.view">
+         <menu
+               icon="icons/ChangeDescription.gif"
+               id="ac.soton.eventb.emf.diagrams.refactor.menus.refactoring"
+               label="iUML-B Refactoring "
+               tooltip="iUML-B change propagation menu">
+            <command
+                  commandId="ac.soton.eventb.emf.diagrams.refactor.commands.commit"
+                  icon="icons/Commit.png"
+                  label="Commit Changes"
+                  style="push"
+                  tooltip="Commit all iUML-B diagram changes at this refinement level">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false">
+                        <or>
+                           <instanceof
+                                 value="org.eventb.core.IMachineRoot">
+                           </instanceof>
+                           <instanceof
+                                 value="org.eventb.core.IContextRoot">
+                           </instanceof>
+                        </or>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+            <command
+                  commandId="ac.soton.eventb.emf.diagrams.refactor.commands.revert"
+                  icon="icons/Revert.png"
+                  label="Revert Changes"
+                  style="push"
+                  tooltip="Revert all iUML-B diagram changes at this refinement level">
+               <visibleWhen
+                     checkEnabled="false">
+                  <with
+                        variable="selection">
+                     <iterate
+                           ifEmpty="false">
+                        <or>
+                           <instanceof
+                                 value="org.eventb.core.IMachineRoot">
+                           </instanceof>
+                           <instanceof
+                                 value="org.eventb.core.IContextRoot">
+                           </instanceof>
+                        </or>
+                     </iterate>
+                  </with>
+               </visibleWhen>
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.commands">
+     <category
+        description="Commands associated with iUML-B Diagrams"
+        id="ac.soton.eventb.emf.diagrams.iUMLB"
+        name="iUML-B Commands">
+      </category>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.refactor.handler.CommitChangesHandler"
+            description="Commit all iUML-B changes at this refinement level"
+            id="ac.soton.eventb.emf.diagrams.refactor.commands.commit"
+            name="Commit Changes">
+      </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.refactor.handler.RevertChangesHandler"
+            description="Revert all iUML-B changes at this refinement level"
+            id="ac.soton.eventb.emf.diagrams.refactor.commands.revert"
+            name="Revert Changes">
+      </command>
+   </extension>
+   
+
+   <extension
+         point="org.eclipse.emf.ecore.extension_parser">
+      <parser
+            class="org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl"
+            type="changes">
+      </parser>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.emf.ecore.xmi"
+            default-charset="UTF-8"
+            file-extensions="changes"
+            id="eventBChangeDescription"
+            name="Event-B Change Description"
+            priority="normal">
+      </content-type>
+      <file-association
+            content-type="org.eclipse.emf.compare.content.type"
+            file-extensions="changes">
+      </file-association>
+  </extension>
+  
+  <extension
+         point="org.eclipse.ui.decorators">
+      <decorator
+            class="ac.soton.eventb.emf.diagrams.refactor.impl.ChangesStatusDec"
+            id="ac.soton.eventb.emf.diagrams.refactor.changesStatus"
+            label="%decorator.changesStatus.label"
+            lightweight="true"
+            location="TOP_LEFT"
+            state="true">
+         <enablement>
+            <or>
+               <objectClass
+                     name="org.rodinp.core.IRodinElement">
+               </objectClass>
+               <objectClass
+                     name="fr.systerel.explorer.IElementNode">
+               </objectClass>
+            </or>
+         </enablement>
+      </decorator>
+   </extension>
+   <extension point="org.eclipse.ui.preferencePages" id="prefpages">
+      <page
+            id="ac.soton.eventb.iumlb.refactor"
+            category="ac.soton.eventb.iumlb"
+            name="Refactoring"
+            class="ac.soton.eventb.emf.diagrams.refactor.preferences.IUMLBRefactorPreferencesPage">
+      </page>
+   </extension>
+</plugin>

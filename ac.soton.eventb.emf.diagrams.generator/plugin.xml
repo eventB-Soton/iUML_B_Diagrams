@@ -1,129 +1,104 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension-point id="ac.soton.eventb.emf.diagrams.generator.rule" name="generator rule" schema="schema/ac.soton.eventb.emf.diagrams.generator.rule.exsd"/>
    <extension-point id="ac.soton.eventb.emf.diagrams.validator" name="validator" schema="schema/ac.soton.eventb.emf.diagrams.validator.exsd"/>
 
 
 <extension
       name="EventB Diagrams"
       point="org.eclipse.ui.menus">
-  <menuContribution
-        allPopups="true"
-        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=transformations">
-     <command
-           commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB"
-           icon="icons/GenerateOne.png"
-           label="generate"
-           style="push">
-     </command>
-     <command
-           commandId="ac.soton.eventb.emf.diagrams.generator.generateEventBAll"
-           icon="icons/GenerateAll.png"
-           label="generate all"
-           style="push">
-     </command>
-  </menuContribution>
-  <menuContribution
-        allPopups="true"
-        locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=validations">
-     <command
-           commandId="ac.soton.eventb.emf.diagrams.generator.validate"
-           icon="icons/Validate.png"
-           label="validate"
-           style="push">
-     </command>
-  </menuContribution>
+	<menuContribution
+         allPopups="true"
+         locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=validations">
+		<command
+            commandId="ac.soton.eventb.emf.diagrams.generator.validate"
+            icon="icons/Validate.png"
+            label="validate"
+            style="push">
+		</command>
+	</menuContribution>
+	<menuContribution
+	    allPopups="true"
+	    locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=transformations">
+		<command
+	       commandId="ac.soton.eventb.emf.diagrams.generator.translateToEventB"
+	       icon="icons/Translate_IUMLB.png"
+	       label="generate Event-B"
+	       style="push">
+		</command>
+	</menuContribution>
+	<menuContribution
+            locationURI="popup:fr.systerel.explorer.navigator.view">
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.generator.translateAllToEventB"
+               icon="icons/Translate_IUMLB.png"
+               label="Translate All iUML-B Diagrams"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <instanceof
+                           value="org.eventb.core.IMachineRoot">
+                     </instanceof>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+      </menuContribution>
 </extension>
+
 <extension
      point="org.eclipse.ui.commands">
-  <command
-        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
-        description="Generate from all iUML-B diagrams in the current refinement level (this does not commit diagram changes)"
-        id="ac.soton.eventb.emf.diagrams.generator.generateEventBAll"
-        name="Generate from all iUML-B diagrams in the current refinement level ">
-  </command>
-  <command
-        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
-        description="Validate the current diagram model"
-        id="ac.soton.eventb.emf.diagrams.generator.validate"
-        name="Validate the current diagram model">
-  </command>
-  <command
-        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
-        description="Generate from the current diagram (this does not commit diagram changes)"
-        id="ac.soton.eventb.emf.diagrams.generator.generateEventB"
-        name="Generate from the current diagram">
-  </command>
-  <category
+	<category
         description="Commands associated with iUML-B Diagrams"
         id="ac.soton.eventb.emf.diagrams.iUMLB"
         name="iUML-B Commands">
-  </category>
+	</category>
+	<command
+        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+        description="Validate the current iUML-B diagram"
+        id="ac.soton.eventb.emf.diagrams.generator.validate"
+        name="Validate the current iUML-B diagram">
+	</command>
+	<command
+        categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+        description="Translate the current iUML-B diagram into Event-B"
+        id="ac.soton.eventb.emf.diagrams.generator.translateToEventB"
+        name="Translate the current iUML-B diagram into Event-B">
+	</command>
+	<command
+ 		defaultHandler="ac.soton.eventb.emf.diagrams.generator.handlers.IUMLBTranslateAllHandler"
+		id="ac.soton.eventb.emf.diagrams.generator.translateAllToEventB"
+		name="Translate All">
+    </command>
 </extension>
 
-   <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            class="ac.soton.eventb.emf.diagrams.generator.actions.ValidateAction"
-            commandId="ac.soton.eventb.emf.diagrams.generator.validate">
-         <enabledWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </enabledWhen>
-         <activeWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </activeWhen>
-      </handler>
-      <handler
-            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAction"
-            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventB">
-         <enabledWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </enabledWhen>
-         <activeWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </activeWhen>
-      </handler>
-      <handler
-            class="ac.soton.eventb.emf.diagrams.generator.actions.GenerateAllHandler"
-            commandId="ac.soton.eventb.emf.diagrams.generator.generateEventBAll">
-         <enabledWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </enabledWhen>
-         <activeWhen>
-            <with
-                  variable="activeEditor">
-               <instanceof
-                     value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
-               </instanceof>
-            </with>
-         </activeWhen>
-      </handler>
-   </extension>
-  
+<extension
+     point="org.eclipse.ui.handlers">
+     
+    <handler
+        class="ac.soton.eventb.emf.diagrams.generator.handlers.IUMLBValidateHandler"
+        commandId="ac.soton.eventb.emf.diagrams.generator.validate">
+     <enabledWhen>
+        <with
+              variable="activeEditor">
+           <instanceof
+                 value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
+           </instanceof>
+        </with>
+     </enabledWhen>
+     <activeWhen>
+        <with
+              variable="activeEditor">
+           <instanceof
+                 value="org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor">
+           </instanceof>
+        </with>
+     </activeWhen>
+  </handler>
+</extension>
+   
 </plugin>
