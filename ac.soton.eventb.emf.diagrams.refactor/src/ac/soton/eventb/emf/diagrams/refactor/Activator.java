@@ -36,6 +36,9 @@ public class Activator extends AbstractUIPlugin {
 	
 	private static final IElementChangedListener changesUpdater = new ChangesUpdaterListener();
 
+	/**
+	 * @since 0.1
+	 */
 	public static final String PREFERENCES_REFACTORING_ENABLED = "RefactoringEnabled";
 
 	
