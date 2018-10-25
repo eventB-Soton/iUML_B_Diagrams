@@ -24,3 +24,4 @@ Export-Package: ac.soton.eventb.emf.diagrams.generator,
  ac.soton.eventb.emf.diagrams.generator.commands,
  ac.soton.eventb.emf.diagrams.generator.handlers,
  ac.soton.eventb.emf.diagrams.generator.utils
+Automatic-Module-Name: ac.soton.eventb.emf.diagrams.generator
