@@ -15,7 +15,7 @@ Require-Bundle: org.eclipse.emf.common.ui;bundle-version="[2.6.0,3.0.0)",
  ac.soton.eventb.emf.core.extension.navigator;bundle-version="[4.1.1,5.0.0)",
  ac.soton.eventb.emf.diagrams.generator;bundle-version="[4.0.0,5.0.0)",
  ac.soton.eventb.emf.diagrams.navigator;bundle-version="[3.0.0,4.0.0)"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: ac.soton.eventb.emf.diagrams.refactor
 Automatic-Module-Name: ac.soton.eventb.emf.diagrams.refactor
