@@ -12,7 +12,7 @@ import org.eventb.emf.core.EventBNamed;
 import ac.soton.eventb.emf.core.extension.coreextension.EventBLabeled;
 
 /**
- * @since 2.2
+ * @since 2.3
  */
 public class NameUtils {
 
