@@ -48,8 +48,8 @@
       <import plugin="org.rodinp.keyboard.ui" version="2.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams" version="4.0.0" match="compatible"/>
       <import plugin="fr.systerel.explorer" version="2.0.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="4.1.1" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.navigator" version="3.0.0" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.0.0" match="compatible"/>
    </requires>
 
    <plugin
