@@ -43,28 +43,28 @@ import ac.soton.eventb.emf.diagrams.refactor.persistence.RefactorPersistence;
 public class Recorder {
 	
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected ChangeRecorder cr;
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected Resource res;
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected ResourceSet rs;
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected Resource chRes;
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected boolean recordingInProgress;
 		
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected EventBNamedCommentedComponentElement component;
 	private TransactionalEditingDomain ed;
@@ -197,7 +197,7 @@ public class Recorder {
 	////////////////////////////// COMMANDS //////////////////////////////////
 	
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected class BeginRecordingCommand extends ChangeCommand {
 		ChangeDescription changes;
@@ -221,7 +221,7 @@ public class Recorder {
 	}
 	
 	/**
-	 * @since 0.1
+	 * @since 1.0
 	 */
 	protected class EndRecordingCommand extends ChangeCommand {
 		ChangeDescription changes;

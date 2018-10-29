@@ -77,10 +77,10 @@ import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBObject;
-import org.eventb.emf.core.util.NameUtils;
 import org.rodinp.keyboard.ui.RodinKeyboardUIPlugin;
 import org.rodinp.keyboard.ui.preferences.PreferenceConstants;
 
+import ac.soton.eventb.emf.core.extension.coreextension.EventBLabeled;
 
 
 /**
@@ -155,6 +155,8 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 						}
 					}else if (featureValue instanceof EventBNamed){
 						value = ((EventBNamed)featureValue).getName();
+					}else if (featureValue instanceof EventBLabeled){
+						value = ((EventBLabeled)featureValue).getLabel();						
 					}else if (featureValue instanceof Boolean){
 						value = ((Boolean)featureValue).toString();
 					}else if (featureValue instanceof Enumerator){
