@@ -12,3 +12,4 @@ Export-Package: ac.soton.eventb.emf.diagrams,
  ac.soton.eventb.emf.diagrams.util
 Require-Bundle:  org.eclipse.emf.ecore;bundle-version="[2.7.0,3.0.0)"
 Bundle-ActivationPolicy: lazy
+Automatic-Module-Name: ac.soton.eventb.emf.diagrams
