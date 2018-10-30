@@ -4,7 +4,7 @@
       label="%featureName"
       version="7.0.0.qualifier"
       provider-name="%featureVendor"
-      plugin="ac.soton.iumlb.branding"
+      plugin="ac.soton.eventb.emf.diagrams.branding"
       license-feature="org.rodinp.license"
       license-feature-version="1.0.0.release">
 
@@ -81,16 +81,16 @@
          unpack="false"/>
 
    <plugin
-         id="ac.soton.iumlb.branding"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="ac.soton.eventb.emf.diagrams.refactor"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.branding"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>
