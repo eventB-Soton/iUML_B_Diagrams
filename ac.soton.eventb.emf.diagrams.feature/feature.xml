@@ -4,7 +4,7 @@
       label="%featureName"
       version="7.0.0.qualifier"
       provider-name="%featureVendor"
-      plugin="ac.soton.iumlb.branding"
+      plugin="ac.soton.eventb.emf.diagrams.branding"
       license-feature="org.rodinp.license"
       license-feature-version="1.0.0.release">
 
@@ -38,7 +38,6 @@
       <import plugin="org.rodinp.core" version="1.7.0" match="compatible"/>
       <import plugin="org.eventb.emf.persistence" version="3.5.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.core.extension" version="5.0.0" match="compatible"/>
-      <import plugin="ac.soton.emf.translator" version="3.0.0" match="compatible"/>
       <import plugin="ac.soton.emf.translator.eventb" version="0.0.1" match="compatible"/>
       <import plugin="org.eventb.core" version="3.3.0" match="compatible"/>
       <import plugin="org.eclipse.swt" version="3.8.0" match="compatible"/>
@@ -48,8 +47,9 @@
       <import plugin="org.rodinp.keyboard.ui" version="2.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams" version="4.0.0" match="compatible"/>
       <import plugin="fr.systerel.explorer" version="2.0.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.diagrams.navigator" version="3.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.0.0" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.diagrams.navigator" version="3.0.0" match="compatible"/>
+      <import plugin="ac.soton.emf.translator" version="3.0.0" match="compatible"/>
    </requires>
 
    <plugin
@@ -81,16 +81,16 @@
          unpack="false"/>
 
    <plugin
-         id="ac.soton.iumlb.branding"
-         download-size="0"
-         install-size="0"
-         version="0.0.0"/>
-
-   <plugin
          id="ac.soton.eventb.emf.diagrams.refactor"
          download-size="0"
          install-size="0"
          version="0.0.0"
          unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.branding"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
 
 </feature>
