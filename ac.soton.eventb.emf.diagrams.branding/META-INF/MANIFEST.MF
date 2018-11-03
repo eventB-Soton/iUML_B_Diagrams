@@ -5,4 +5,4 @@ Bundle-SymbolicName: ac.soton.eventb.emf.diagrams.branding
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Automatic-Module-Name: ac.soton.eventb.diagrams.branding
+Automatic-Module-Name: ac.soton.eventb.emf.diagrams.branding
