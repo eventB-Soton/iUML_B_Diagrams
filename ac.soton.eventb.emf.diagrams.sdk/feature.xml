@@ -4,6 +4,7 @@
       label="%featureName"
       version="7.0.0.qualifier"
       provider-name="%featureVendor"
+      plugin="ac.soton.eventb.emf.diagrams.branding"
       license-feature="org.rodinp.license"
       license-feature-version="1.0.0.release">
 
