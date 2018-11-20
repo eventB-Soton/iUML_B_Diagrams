@@ -15,6 +15,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.InternalEObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.RecordingCommand;
@@ -24,6 +25,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eventb.emf.core.EventBElement;
+import org.eventb.emf.persistence.EMFRodinDB;
 import org.eventb.emf.persistence.SaveResourcesCommand;
 
 import ac.soton.eventb.emf.diagrams.generator.commands.DeleteGeneratedCommand;
@@ -47,44 +49,58 @@ public class DeleteDiagramElementHandler extends AbstractHandler {
 		ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
 		if (selection instanceof IStructuredSelection) {
 			Object element = ((IStructuredSelection) selection).getFirstElement();
-			if (element instanceof IAdaptable) {
-				final EObject eobject = (EObject) ((IAdaptable) element).getAdapter(EObject.class);
-				final Resource resource = eobject.eResource();
-				if (eobject instanceof EventBElement &&
-						resource != null &&
-						resource.isLoaded()) {
-					TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(resource);
-					if (editingDomain != null) {
-						// command to delete the diagram element from the model
-						Command deleteDiagramCommand = 
-								new RecordingCommand(editingDomain, "Delete Diagram Command") {
-									protected void doExecute() {
-										EcoreUtil.delete(eobject, true);}
-								};
-						//command to delete any model elements that have been generated from the diagram element
-						// (this command is provided by the generator plug-in)
-						DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, (EventBElement)eobject);
-						if (deleteDiagramCommand.canExecute() && deleteGeneratedCommand.canExecute()){
-							//delete the diagram layout file
-							DiagramUtil.deleteDiagramFile(eobject);
-							//delete the elements that have been generated from the diagram
-							deleteGeneratedCommand.execute(monitor, null);
-							//delete the diagram model element (done last as elements and layout can be re-generated)
-							deleteDiagramCommand.execute();
-							resource.setModified(true);
-							// save all resources that have been modified
-							SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
-							if (saveCommand.canExecute()){
-									saveCommand.execute(monitor, null);
-							}
-						}else{
-							DiagramsNavigatorExtensionPlugin.logError("Failed to delete diagram and generated elements - aborted delete of : "+eobject);
-						}
+			final EventBElement eventBElement = getDiagramElementToDelete(element);
+			final Resource resource = eventBElement.eResource();
+			TransactionalEditingDomain editingDomain = TransactionUtil.getEditingDomain(resource);
+			if (editingDomain != null) {
+				// command to delete the diagram element from the model
+				Command deleteDiagramCommand = 
+						new RecordingCommand(editingDomain, "Delete Diagram Command") {
+							protected void doExecute() {
+								EcoreUtil.delete(eventBElement, true);}
+						};
+				//command to delete any model elements that have been generated from the diagram element
+				// (this command is provided by the generator plug-in)
+				DeleteGeneratedCommand deleteGeneratedCommand = new DeleteGeneratedCommand(editingDomain, eventBElement);
+				if (deleteDiagramCommand.canExecute() && deleteGeneratedCommand.canExecute()){
+					//delete the diagram layout file
+					DiagramUtil.deleteDiagramFile(eventBElement);
+					//delete the elements that have been generated from the diagram
+					deleteGeneratedCommand.execute(monitor, null);
+					//delete the diagram model element (done last as elements and layout can be re-generated)
+					deleteDiagramCommand.execute();
+					resource.setModified(true);
+					// save all resources that have been modified
+					SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
+					if (saveCommand.canExecute()){
+							saveCommand.execute(monitor, null);
 					}
+				}else{
+					DiagramsNavigatorExtensionPlugin.logError("Failed to delete diagram and generated elements - aborted delete of : "+eventBElement);
 				}
 			}
 		}
 		return null;
 	}
 
+/**
+ * if element is adaptable, adapts the element to an EObject and then if necessary loads it
+ * and returns it as an EventBElement
+ * @param element
+ * @return EventBElement (loaded)
+ */
+	private EventBElement getDiagramElementToDelete(Object element) {
+		if (element instanceof IAdaptable) {
+			EObject eobject = (EObject) ((IAdaptable) element).getAdapter(EObject.class);
+			if (eobject.eIsProxy()) {
+				EMFRodinDB emfrdb = new EMFRodinDB();
+				eobject = emfrdb.loadElement(((InternalEObject)eobject).eProxyURI());
+			}
+			if (eobject instanceof EventBElement) {
+				return (EventBElement)eobject;
+			}
+		}
+		return null;
+	}
+	
 }
