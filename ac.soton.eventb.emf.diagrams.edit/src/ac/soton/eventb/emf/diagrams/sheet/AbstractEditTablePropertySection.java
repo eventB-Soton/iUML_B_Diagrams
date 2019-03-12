@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 University of Southampton and others.
+ * Copyright (c) 2014-2019 University of Southampton and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -245,12 +245,14 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 	}
 
 	private class BLabelProvider extends LabelProvider{
+		
 		@Override
 		public String getText(final Object element){
 			if (element==null) return "<null>";
 			else if (element instanceof EventBNamed) return ((EventBNamed)element).getName();
 			return "<unknown element>";
 		}
+		
 		@Override
 		public org.eclipse.swt.graphics.Image getImage(final Object element){
 			if (element==null) return null;
@@ -272,10 +274,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		if (!(getFeature() instanceof EReference)) return null;
 		EReference feature = (EReference) getFeature();
 		EClass eClass = feature.getEReferenceType();
-		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
-		if (container == null){
-			container = owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-		}
+		EventBObject container = getTranslationTarget();
 		if (container == null){ return ECollections.EMPTY_ELIST;}
 		EList<EObject> possibles = container.getAllContained(eClass, false);
 		possibles.removeAll(this.getElements());

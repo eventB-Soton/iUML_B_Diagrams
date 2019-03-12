@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2013 University of Southampton.
+/**
+ * Copyright (c) 2013-2019 University of Southampton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,9 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.emf.common.command.CompoundCommand;
-import org.eclipse.emf.common.util.ECollections;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
@@ -34,6 +32,7 @@ import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBObject;
+import org.eventb.emf.core.Project;
 import org.eventb.emf.core.context.CarrierSet;
 import org.eventb.emf.core.context.Constant;
 import org.eventb.emf.core.context.Context;
@@ -118,22 +117,6 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 		return 	refines == null? false : 
 				refines instanceof EList? !((EList)refines).isEmpty() : true;	
 	}
-	
-	protected EList<?> getPossibleReferences() {
-		if (!(getFeature() instanceof EReference)) return null;
-		EReference feature = (EReference) getFeature();
-		EClass eClass = feature.getEReferenceType();
-		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
-		if (container == null){
-			container = owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-		}
-		if (container == null){ return ECollections.EMPTY_ELIST;}
-		EList<EObject> possibles = container.getAllContained(eClass, false);
-		possibles.removeAll(this.getElements());
-		possibles.remove(owner);
-		possibles.remove(null);
-		return possibles;
-	}
 
 	@Override
 	protected Object createNewElement(){
@@ -142,7 +125,7 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 		String defaultName = eObject instanceof EventBNamed ? ((EventBNamed)eObject).getName() : null ;
 		NewDataDialog dialog = new NewDataDialog(
 				getPart().getSite().getShell(), 
-				getComponentList((EventBNamedCommentedComponentElement)((EventBElement) eObject).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT)),
+				getComponentList(getTranslationTarget()),
 				((EventBDataElaboration)eObject).getDataKind(),
 				dataLabelProvider, defaultName );
 		if (Dialog.OK == dialog.open()) {
@@ -158,9 +141,11 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 		return newData;
 	}
 
-	private List<EventBNamedCommentedComponentElement> getComponentList(EventBNamedCommentedComponentElement component) {
+	private List<EventBNamedCommentedComponentElement> getComponentList(EventBObject component) {
 		List<EventBNamedCommentedComponentElement> list =  new ArrayList<EventBNamedCommentedComponentElement>() ;
-		if (component instanceof Machine){
+		if (component instanceof Project){
+			list.addAll(((Project)component).getComponents());
+		}else if (component instanceof Machine){
 			Machine m = ((Machine)component);
 			list.add(m);
 			for (Context c : m.getSees()){
