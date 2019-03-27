@@ -28,6 +28,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.change.util.ChangeRecorder;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.AddCommand;
 import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.edit.command.MoveCommand;
@@ -75,7 +76,6 @@ import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBCommented;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
-import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBObject;
 import org.rodinp.keyboard.ui.RodinKeyboardUIPlugin;
 import org.rodinp.keyboard.ui.preferences.PreferenceConstants;
@@ -295,8 +295,19 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		Object feature = getFeatureForCol(col);
 		if (feature instanceof EReference){
 			EClass eClass = ((EReference)feature).getEReferenceType();
-			EventBNamedCommentedComponentElement container = (EventBNamedCommentedComponentElement) owner.getContaining(CorePackage.eINSTANCE.getEventBNamedCommentedComponentElement());
-			return container.getAllContained(eClass, true);
+			List<Object> ret = new ArrayList<Object>();
+			//add suitable elements from target
+			EventBObject container = getTranslationTarget();
+			if (container!=null) {
+				ret.addAll(container.getAllContained(eClass, true));
+			}
+			//add suitable elements from source
+			EObject root = EcoreUtil.getRootContainer(owner, true);
+			if (root!=container && root instanceof EventBElement) {
+				ret.addAll(((EventBElement)root).getAllContained(eClass, true));
+			}
+			ret.removeIf(o-> o==null);
+			return ret;
 		}else if (feature instanceof EAttribute) {
 			EDataType dataType = ((EAttribute)feature).getEAttributeType();
 			if (dataType instanceof EEnum){
@@ -769,9 +780,9 @@ private final Listener tableMouseListener = new Listener() {
 				Object feature = getFeatureForCol(column);
 				if (feature instanceof EStructuralFeature){
 					if (((EStructuralFeature)feature).isMany()){
-						editingDomain.getCommandStack().execute(AddCommand.create(editingDomain, object, getFeatureForCol(column), newValue));						
+						editingDomain.getCommandStack().execute(AddCommand.create(editingDomain, object, feature, newValue));						
 					}else{
-						editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, object, getFeatureForCol(column), newValue));
+						editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, object, feature, newValue));
 					}
 				}
 				refresh();
