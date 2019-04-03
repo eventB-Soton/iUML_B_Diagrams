@@ -40,9 +40,20 @@
                      variable="selection">
                   <iterate
                         ifEmpty="false">
-                     <instanceof
-                           value="org.eventb.core.IMachineRoot">
-                     </instanceof>
+                     <or>
+	                   <instanceof
+	                         value="org.eventb.core.IMachineRoot">
+	                   </instanceof>
+	                   <instanceof
+	                         value="org.eventb.core.IContextRoot">
+	                   </instanceof>
+		               <adapt
+		                     type="org.eclipse.emf.ecore.EObject">
+		                  <instanceof
+		                        value="ac.soton.eventb.emf.diagrams.Diagram">
+		                  </instanceof>
+		               </adapt>
+                     </or>
                   </iterate>
                </with>
             </visibleWhen>

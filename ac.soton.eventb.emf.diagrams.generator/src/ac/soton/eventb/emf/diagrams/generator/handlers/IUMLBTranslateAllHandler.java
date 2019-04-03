@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2017 University of Southampton.
+ * Copyright (c) 2012-2019 University of Southampton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -31,7 +32,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
-import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.persistence.EMFRodinDB;
 import org.eventb.emf.persistence.SaveResourcesCommand;
@@ -58,51 +58,48 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 	 */
 	@Override
 	public final IStatus execute(final ExecutionEvent event) throws ExecutionException {
-		EObject sourceElement;
+
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
+		
+		final EObject root;
 		if (selection instanceof IStructuredSelection && !selection.isEmpty()){
 			Object obj = ((IStructuredSelection)selection).getFirstElement();
-			sourceElement = getEObject(obj);
-		} else sourceElement = null;
-		if (!(sourceElement instanceof EventBElement)) {
-			return new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.TRANSLATOR_MSG_07);
-		}
-		
-		IWorkbenchWindow activeWorkbenchWindow = HandlerUtil.getActiveWorkbenchWindow(event);
-		final Shell shell = activeWorkbenchWindow.getShell();		
-	
-		final EventBElement component = (EventBElement) ((EventBElement)sourceElement).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-		if (component==null ){
-			Activator.getDefault().getLog().log(new Status(Status.WARNING, Activator.PLUGIN_ID, 
-					"Selected element is not a component\n"+
-					"Element: "+sourceElement, null));
-			report = "Translation ABORTED - Selected element is not a component";
-			return new Status(IStatus.ERROR, Activator.PLUGIN_ID, report);
-		}else{
-			report = "";
+			root = getEObject(obj);
+		}else {
+			root=null;
 		}
 
+		IWorkbenchWindow activeWorkbenchWindow = HandlerUtil.getActiveWorkbenchWindow(event);
+		final Shell shell = activeWorkbenchWindow.getShell();
 		try {
-			ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
-			dialog.run(true, true, new IRunnableWithProgress(){
-				public void run(IProgressMonitor monitor) throws InvocationTargetException { 
-					try {
-						TransactionalEditingDomain editingDomain = TransactionalEditingDomain.Factory.INSTANCE.getEditingDomain(component.eResource().getResourceSet());
-						TranslateAllCommand translateAllCmd = new TranslateAllCommand(editingDomain,component);
-						if (translateAllCmd.canExecute()){
-							status = translateAllCmd.execute(null, null);
-							report = report+status.getMessage();
-							// save all resources that have been modified
-							SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
-							if (saveCommand.canExecute()){
-									saveCommand.execute(monitor, null);
+			if (!(root instanceof EventBElement)){
+				status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.TRANSLATOR_MSG_07);
+				Activator.getDefault().getLog().log(new Status(Status.WARNING, Activator.PLUGIN_ID,
+						"Selected element is not suitable for translation\n"+
+						"Root of selected element: "+root, null));
+				report = "Translation ABORTED - Selected element cannot be translated";
+			}else{
+				ProgressMonitorDialog dialog = new ProgressMonitorDialog(shell);
+				dialog.run(true, true, new IRunnableWithProgress(){
+					public void run(IProgressMonitor monitor) throws InvocationTargetException {
+						try {
+							TransactionalEditingDomain editingDomain = TransactionalEditingDomain.Factory.INSTANCE.getEditingDomain(root.eResource().getResourceSet());
+							TranslateAllCommand translateAllCmd = new TranslateAllCommand(editingDomain, (EventBElement) root);
+							if (translateAllCmd.canExecute()){
+								status = translateAllCmd.execute(null, null);
+								report = report+status.getMessage();
+								// save all resources that have been modified
+								SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
+								if (saveCommand.canExecute()){
+										saveCommand.execute(monitor, null);
+								}
 							}
+						} catch (Exception e) {
+							throw new InvocationTargetException(e);
 						}
-					} catch (Exception e) {
-						throw new InvocationTargetException(e);
 					}
-				}
-			});
+				});
+			}
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 	    	status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.TRANSLATOR_MSG_07, e);
@@ -127,11 +124,11 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 		if (obj instanceof IInternalElement){
 			return (new EMFRodinDB()).loadEventBComponent((IInternalElement)obj) ;
 		}else if (obj instanceof EObject){
-			return (EObject)obj;
+			return EcoreUtil.getRootContainer((EObject)obj);
 		}else if (obj instanceof IAdaptable) {
 			Object adaptedObj = ((IAdaptable) obj).getAdapter(EObject.class);
 			if (adaptedObj instanceof EObject){
-				return (EObject) adaptedObj; 
+				return EcoreUtil.getRootContainer((EObject)adaptedObj); 
 			} else return null;
 		}else if (obj instanceof Resource){
 			return ((Resource)obj).getContents().get(0);

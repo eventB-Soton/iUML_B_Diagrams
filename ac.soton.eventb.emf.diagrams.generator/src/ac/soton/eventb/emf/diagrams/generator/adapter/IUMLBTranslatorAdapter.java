@@ -15,13 +15,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
-import org.eventb.emf.core.Annotation;
-import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBObject;
@@ -31,6 +28,7 @@ import org.eventb.emf.core.machine.Machine;
 import ac.soton.emf.translator.configuration.IAdapter;
 import ac.soton.emf.translator.eventb.adapter.EventBTranslatorAdapter;
 import ac.soton.emf.translator.eventb.utils.Utils;
+import ac.soton.eventb.emf.diagrams.util.custom.DiagramUtils;
 
 
 /**
@@ -88,29 +86,15 @@ public class IUMLBTranslatorAdapter extends EventBTranslatorAdapter implements I
 		}
 		return list;
 	}
-
-	private static final String DIAGRAMS_TRANSLATION_TARGET = "ac.soton.diagrams.translationTarget";
 	
 	/* (non-Javadoc)
 	 * @see ac.soton.emf.translator.eventb.adapter.EventBTranslatorAdapter#getTargetComponent(java.lang.Object)
 	 */
 	@Override
 	public Object getTargetComponent(Object sourceElement) {
-		EventBNamedCommentedComponentElement container = null;
-		if (sourceElement instanceof EObject) {
-		EObject root = EcoreUtil.getRootContainer((EObject) sourceElement);
-		if (root instanceof EventBObject) {
-			container = (EventBNamedCommentedComponentElement) ((EventBObject)root).getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-			if (container==null){
-				Annotation annotation = ((EventBObject)root).getAnnotation(DIAGRAMS_TRANSLATION_TARGET);
-				if (annotation!=null){
-					EList<EObject> references = annotation.getReferences();
-					if (!references.isEmpty() && references.get(0) instanceof EventBObject) {
-						container = (EventBNamedCommentedComponentElement)references.get(0);
-					}
-				}
-			}
-		}
+		Object container = null;
+		if (sourceElement instanceof EventBObject) {
+			container = DiagramUtils.getTranslationTarget((EventBObject)sourceElement);
 		}
 		return container == null? 
 			super.getTargetComponent(sourceElement) :
