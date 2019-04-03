@@ -1,8 +1,14 @@
+/*******************************************************************************
+ * Copyright (c) 2014-2019 University of Southampton and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.util.custom;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -10,10 +16,8 @@ import org.eclipse.gef.EditPart;
 import org.eclipse.gmf.runtime.notation.View;
 import org.eventb.emf.core.Annotation;
 import org.eventb.emf.core.CorePackage;
-import org.eventb.emf.core.EventBCommented;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBObject;
-import org.eventb.emf.persistence.EMFRodinDB;
 
 public class DiagramUtils {
 
