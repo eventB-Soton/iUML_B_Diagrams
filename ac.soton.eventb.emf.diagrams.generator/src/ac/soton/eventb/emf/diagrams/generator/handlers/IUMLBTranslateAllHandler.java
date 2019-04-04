@@ -50,7 +50,7 @@ import ac.soton.eventb.emf.diagrams.generator.commands.TranslateAllCommand;
  */
 public class IUMLBTranslateAllHandler extends AbstractHandler {
 
-	String report = null;
+	String report = "";
 	IStatus status = null;
 	
 	/* (non-Javadoc)
@@ -87,7 +87,7 @@ public class IUMLBTranslateAllHandler extends AbstractHandler {
 							TranslateAllCommand translateAllCmd = new TranslateAllCommand(editingDomain, (EventBElement) root);
 							if (translateAllCmd.canExecute()){
 								status = translateAllCmd.execute(null, null);
-								report = report+status.getMessage();
+								report = status.getMessage();
 								// save all resources that have been modified
 								SaveResourcesCommand saveCommand = new SaveResourcesCommand(editingDomain);
 								if (saveCommand.canExecute()){
