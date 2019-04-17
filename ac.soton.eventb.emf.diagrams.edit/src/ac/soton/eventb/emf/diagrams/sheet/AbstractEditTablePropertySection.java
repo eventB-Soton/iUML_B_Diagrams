@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 University of Southampton and others.
+ * Copyright (c) 2014-2019 University of Southampton and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -28,6 +28,7 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcoreFactory;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.change.util.ChangeRecorder;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.AddCommand;
 import org.eclipse.emf.edit.command.ChangeCommand;
 import org.eclipse.emf.edit.command.MoveCommand;
@@ -75,7 +76,6 @@ import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBCommented;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
-import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.EventBObject;
 import org.rodinp.keyboard.ui.RodinKeyboardUIPlugin;
 import org.rodinp.keyboard.ui.preferences.PreferenceConstants;
@@ -245,12 +245,14 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 	}
 
 	private class BLabelProvider extends LabelProvider{
+		
 		@Override
 		public String getText(final Object element){
 			if (element==null) return "<null>";
 			else if (element instanceof EventBNamed) return ((EventBNamed)element).getName();
 			return "<unknown element>";
 		}
+		
 		@Override
 		public org.eclipse.swt.graphics.Image getImage(final Object element){
 			if (element==null) return null;
@@ -272,10 +274,7 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		if (!(getFeature() instanceof EReference)) return null;
 		EReference feature = (EReference) getFeature();
 		EClass eClass = feature.getEReferenceType();
-		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
-		if (container == null){
-			container = owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-		}
+		EventBObject container = getTranslationTarget();
 		if (container == null){ return ECollections.EMPTY_ELIST;}
 		EList<EObject> possibles = container.getAllContained(eClass, false);
 		possibles.removeAll(this.getElements());
@@ -296,8 +295,19 @@ public abstract class AbstractEditTablePropertySection extends AbstractIumlbProp
 		Object feature = getFeatureForCol(col);
 		if (feature instanceof EReference){
 			EClass eClass = ((EReference)feature).getEReferenceType();
-			EventBNamedCommentedComponentElement container = (EventBNamedCommentedComponentElement) owner.getContaining(CorePackage.eINSTANCE.getEventBNamedCommentedComponentElement());
-			return container.getAllContained(eClass, true);
+			List<Object> ret = new ArrayList<Object>();
+			//add suitable elements from target
+			EventBObject container = getTranslationTarget();
+			if (container!=null) {
+				ret.addAll(container.getAllContained(eClass, true));
+			}
+			//add suitable elements from source
+			EObject root = EcoreUtil.getRootContainer(owner, true);
+			if (root!=container && root instanceof EventBElement) {
+				ret.addAll(((EventBElement)root).getAllContained(eClass, true));
+			}
+			ret.removeIf(o-> o==null);
+			return ret;
 		}else if (feature instanceof EAttribute) {
 			EDataType dataType = ((EAttribute)feature).getEAttributeType();
 			if (dataType instanceof EEnum){
@@ -770,9 +780,9 @@ private final Listener tableMouseListener = new Listener() {
 				Object feature = getFeatureForCol(column);
 				if (feature instanceof EStructuralFeature){
 					if (((EStructuralFeature)feature).isMany()){
-						editingDomain.getCommandStack().execute(AddCommand.create(editingDomain, object, getFeatureForCol(column), newValue));						
+						editingDomain.getCommandStack().execute(AddCommand.create(editingDomain, object, feature, newValue));						
 					}else{
-						editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, object, getFeatureForCol(column), newValue));
+						editingDomain.getCommandStack().execute(SetCommand.create(editingDomain, object, feature, newValue));
 					}
 				}
 				refresh();

@@ -1,5 +1,5 @@
 /*******************************************************************************
- *  Copyright (c) 2017 University of Southampton.
+ *  Copyright (c) 2017-2019 University of Southampton.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -25,14 +25,15 @@ import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.util.Diagnostician;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.transaction.Transaction;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.workspace.AbstractEMFOperation;
-import org.eventb.emf.core.CorePackage;
+import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBNamed;
-import org.eventb.emf.core.EventBNamedCommentedElement;
 
 import ac.soton.emf.translator.TranslatorFactory;
 import ac.soton.eventb.emf.diagrams.generator.Activator;
@@ -65,10 +66,10 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 		try {
 			//get the translator factory
 			factory = TranslatorFactory.getFactory();
-			//get the diagram elements to be translated
-			final EventBNamedCommentedElement component = (EventBNamedCommentedElement) sourceElement.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-			generateList = getDiagramRoots(component, null);
-			report = commandTitle+" in "+component.getName();
+			//get the diagram elements to be translated (supports any root, not just Event-B components) 
+			final EObject root = EcoreUtil.getRootContainer(sourceElement);
+			generateList = getDiagramRoots(root, null);
+			report = commandTitle+" in "+(root instanceof EventBNamed? ((EventBNamed)root).getName() : root.toString());
 		} catch (CoreException e) {
 			factory = null;
 			generateList = null;
@@ -164,6 +165,15 @@ public class TranslateAllCommand extends AbstractEMFOperation {
 		}
 		for (EObject eObject : element.eContents()){
 			generateList.addAll(getDiagramRoots(eObject, lastType));
+		}
+		// diagrams may also be contained by reference via abstract extensions
+		if (element instanceof AbstractExtension) {
+			for (EReference r : element.eClass().getEReferences()) {
+				Object referencedObject = element.eGet(r);
+				if (referencedObject instanceof EObject) {
+					generateList.addAll(getDiagramRoots((EObject) referencedObject, lastType));
+				}
+			}
 		}
 		return generateList;
 	}

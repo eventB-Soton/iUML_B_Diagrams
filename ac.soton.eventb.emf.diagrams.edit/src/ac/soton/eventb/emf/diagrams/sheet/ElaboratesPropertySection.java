@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2013 University of Southampton.
+/**
+ * Copyright (c) 2013-2019 University of Southampton.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.eventb.emf.core.CorePackage;
+import org.eventb.emf.core.EventBObject;
 import org.eventb.emf.core.machine.Event;
 import org.eventb.emf.core.machine.Machine;
 import org.eventb.emf.core.machine.MachinePackage;
@@ -102,7 +103,8 @@ public class ElaboratesPropertySection extends AbstractEditTableWithReferencedOb
 	protected Object createNewElement(){
 		EObject newEvent = null;
 		// create and add new element
-		Machine machine = (Machine) owner.getContaining(MachinePackage.Literals.MACHINE);
+		EventBObject target = getTranslationTarget();
+		Machine machine = target instanceof Machine? (Machine) target : null;
 		NewEventDialog dialog = new NewEventDialog(getPart().getSite().getShell(), machine, null);
 		if (Dialog.OK == dialog.open()) {
 			newEvent = dialog.getEvent();
