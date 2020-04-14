@@ -29,5 +29,7 @@
     <module>ac.soton.eventb.emf.diagrams.generator</module>
     <module>ac.soton.eventb.emf.diagrams.navigator</module>
     <module>ac.soton.eventb.emf.diagrams.refactor</module>
+    <module>ac.soton.eventb.emf.diagrams.feature</module>
+    <module>ac.soton.eventb.emf.diagrams.sdk</module>
   </modules>
 </project>
