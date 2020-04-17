@@ -5,7 +5,7 @@
       version="7.0.1.qualifier"
       provider-name="%featureVendor"
       plugin="ac.soton.eventb.emf.diagrams.branding"
-      license-feature="org.rodinp.license"
+      license-feature="org.rodinp.licence"
       license-feature-version="1.0.0.release">
 
    <description>
@@ -24,8 +24,46 @@
          id="ac.soton.eventb.emf.diagrams.feature"
          version="0.0.0"/>
 
-   <includes
-         id="ac.soton.eventb.emf.diagrams.source.feature"
-         version="0.0.0"/>
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.branding.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.edit.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.generator.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.navigator.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="ac.soton.eventb.emf.diagrams.refactor.source"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
 </feature>
