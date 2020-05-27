@@ -19,6 +19,23 @@
          </enablement>
       </actionProvider>
    </extension>
+   
+   <extension
+        point="ac.soton.eventb.emf.core.extension.navigator.emfFileExtensions">
+     <model
+           extension="umlb">
+     </model>
+   </extension>
+  
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <file-association
+            content-type="ac.soton.eventb.emf.core.extension.persistence.contentType"
+            file-extensions="umlb">
+      </file-association>
+   </extension>
+  
+  
    <extension
          point="org.eclipse.ui.navigator.viewer">
       <viewerActionBinding
@@ -30,6 +47,7 @@
          </includes>
       </viewerActionBinding>
    </extension>
+   
    <extension
          point="org.rodinp.core.refinements">
       <Participant
