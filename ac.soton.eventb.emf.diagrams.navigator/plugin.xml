@@ -114,17 +114,33 @@
                </with>
             </visibleWhen>
          </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:fr.systerel.explorer.navigator.view">
-         <menu
-               icon="icons/IUMLB.png"
-               id="ac.soton.eventb.emf.diagrams.navigator.addDiagram"
-               label="Add iUML-B....">
-         </menu>
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.refine"
+               icon="icons/Refine_IUMLB.png"
+               label="Refine iUML-B Diagrams"
+               style="push"
+               tooltip="Create a refinement of an iUML-B diagram">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <or>
+		               <adapt
+		                     type="org.eclipse.emf.ecore.EObject">
+		                  <instanceof
+		                        value="ac.soton.eventb.emf.diagrams.Diagram">
+		                  </instanceof>
+		               </adapt>
+                     </or>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
       </menuContribution>
    </extension>
+   
    <extension
          point="org.eclipse.ui.commands">
      <category
@@ -145,6 +161,13 @@
             description="Delete the selected iUML-B diagram"
             id="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
             name="Delete">
+      </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.RefineDiagramElementHandler"
+            description="Refine the selected iUML-B diagram"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.refine"
+            name="Refine">
       </command>
    </extension>
    
