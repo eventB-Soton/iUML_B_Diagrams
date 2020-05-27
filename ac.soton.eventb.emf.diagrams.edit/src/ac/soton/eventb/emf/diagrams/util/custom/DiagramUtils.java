@@ -88,7 +88,7 @@ public class DiagramUtils {
 	 * 	that referenced object is returned.
 	 * 
 	 * @return
-	 * @since 2.4
+	 * @since 3.0
 	 */
 	public static EventBObject getTranslationTarget(EventBObject owner) {
 		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
