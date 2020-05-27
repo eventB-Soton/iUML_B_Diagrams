@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-14 - University of Southampton.
+ * Copyright (c) 2012-2020 - University of Southampton.
  * All rights reserved. This program and the accompanying materials  are made
  * available under the terms of the Eclipse Public License v1.0 which accompanies this 
  * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
@@ -9,8 +9,8 @@
 package ac.soton.eventb.emf.diagrams.provider;
 
 
-import ac.soton.eventb.emf.diagrams.DiagramOwner;
 import ac.soton.eventb.emf.diagrams.DiagramsPackage;
+import ac.soton.eventb.emf.diagrams.UMLB;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,11 +18,9 @@ import java.util.List;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.notify.Notification;
 
-import org.eclipse.emf.common.util.ResourceLocator;
-
 import org.eclipse.emf.ecore.EStructuralFeature;
 
-import org.eclipse.emf.edit.provider.IChildCreationExtender;
+import org.eclipse.emf.edit.provider.ComposeableAdapterFactory;
 import org.eclipse.emf.edit.provider.IEditingDomainItemProvider;
 import org.eclipse.emf.edit.provider.IItemColorProvider;
 import org.eclipse.emf.edit.provider.IItemLabelProvider;
@@ -30,17 +28,19 @@ import org.eclipse.emf.edit.provider.IItemPropertyDescriptor;
 import org.eclipse.emf.edit.provider.IItemPropertySource;
 import org.eclipse.emf.edit.provider.IStructuredItemContentProvider;
 import org.eclipse.emf.edit.provider.ITreeItemContentProvider;
-import org.eclipse.emf.edit.provider.ItemProviderAdapter;
 import org.eclipse.emf.edit.provider.ViewerNotification;
 
+import org.eventb.emf.core.provider.EventBNamedCommentedElementItemProvider;
+
 /**
- * This is the item provider adapter for a {@link ac.soton.eventb.emf.diagrams.DiagramOwner} object.
+ * This is the item provider adapter for a {@link ac.soton.eventb.emf.diagrams.UMLB} object.
  * <!-- begin-user-doc -->
  * <!-- end-user-doc -->
  * @generated
+ * @since 3.0
  */
-public class DiagramOwnerItemProvider
-	extends ItemProviderAdapter
+public class UMLBItemProvider
+	extends EventBNamedCommentedElementItemProvider
 	implements
 		IEditingDomainItemProvider,
 		IStructuredItemContentProvider,
@@ -54,7 +54,7 @@ public class DiagramOwnerItemProvider
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public DiagramOwnerItemProvider(AdapterFactory adapterFactory) {
+	public UMLBItemProvider(AdapterFactory adapterFactory) {
 		super(adapterFactory);
 	}
 
@@ -69,8 +69,54 @@ public class DiagramOwnerItemProvider
 		if (itemPropertyDescriptors == null) {
 			super.getPropertyDescriptors(object);
 
+			addElaboratesPropertyDescriptor(object);
+			addRefinesPropertyDescriptor(object);
 		}
 		return itemPropertyDescriptors;
+	}
+
+	/**
+	 * This adds a property descriptor for the Elaborates feature.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	protected void addElaboratesPropertyDescriptor(Object object) {
+		itemPropertyDescriptors.add
+			(createItemPropertyDescriptor
+				(((ComposeableAdapterFactory)adapterFactory).getRootAdapterFactory(),
+				 getResourceLocator(),
+				 getString("_UI_UMLB_elaborates_feature"),
+				 getString("_UI_PropertyDescriptor_description", "_UI_UMLB_elaborates_feature", "_UI_UMLB_type"),
+				 DiagramsPackage.Literals.UMLB__ELABORATES,
+				 true,
+				 false,
+				 true,
+				 null,
+				 null,
+				 null));
+	}
+
+	/**
+	 * This adds a property descriptor for the Refines feature.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	protected void addRefinesPropertyDescriptor(Object object) {
+		itemPropertyDescriptors.add
+			(createItemPropertyDescriptor
+				(((ComposeableAdapterFactory)adapterFactory).getRootAdapterFactory(),
+				 getResourceLocator(),
+				 getString("_UI_UMLB_refines_feature"),
+				 getString("_UI_PropertyDescriptor_description", "_UI_UMLB_refines_feature", "_UI_UMLB_type"),
+				 DiagramsPackage.Literals.UMLB__REFINES,
+				 true,
+				 false,
+				 true,
+				 null,
+				 null,
+				 null));
 	}
 
 	/**
@@ -104,6 +150,17 @@ public class DiagramOwnerItemProvider
 	}
 
 	/**
+	 * This returns UMLB.gif.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Object getImage(Object object) {
+		return overlayImage(object, getResourceLocator().getImage("full/obj16/UMLB"));
+	}
+
+	/**
 	 * This returns the label text for the adapted class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -111,7 +168,10 @@ public class DiagramOwnerItemProvider
 	 */
 	@Override
 	public String getText(Object object) {
-		return getString("_UI_DiagramOwner_type");
+		String label = ((UMLB)object).getName();
+		return label == null || label.length() == 0 ?
+			getString("_UI_UMLB_type") :
+			getString("_UI_UMLB_type") + " " + label;
 	}
 
 	/**
@@ -125,8 +185,8 @@ public class DiagramOwnerItemProvider
 	public void notifyChanged(Notification notification) {
 		updateChildren(notification);
 
-		switch (notification.getFeatureID(DiagramOwner.class)) {
-			case DiagramsPackage.DIAGRAM_OWNER__DIAGRAMS:
+		switch (notification.getFeatureID(UMLB.class)) {
+			case DiagramsPackage.UMLB__DIAGRAMS:
 				fireNotifyChanged(new ViewerNotification(notification, notification.getNotifier(), true, false));
 				return;
 		}
@@ -143,17 +203,6 @@ public class DiagramOwnerItemProvider
 	@Override
 	protected void collectNewChildDescriptors(Collection<Object> newChildDescriptors, Object object) {
 		super.collectNewChildDescriptors(newChildDescriptors, object);
-	}
-
-	/**
-	 * Return the resource locator for this item provider's resources.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public ResourceLocator getResourceLocator() {
-		return ((IChildCreationExtender)adapterFactory).getResourceLocator();
 	}
 
 }

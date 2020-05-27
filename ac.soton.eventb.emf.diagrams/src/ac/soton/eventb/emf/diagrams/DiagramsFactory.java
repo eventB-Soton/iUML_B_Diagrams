@@ -18,18 +18,22 @@ import org.eclipse.emf.ecore.EFactory;
  */
 public interface DiagramsFactory extends EFactory {
 	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	String copyright = "Copyright (c) 2012-14 - University of Southampton.\rAll rights reserved. This program and the accompanying materials  are made\ravailable under the terms of the Eclipse Public License v1.0 which accompanies this \rdistribution, and is available at http://www.eclipse.org/legal/epl-v10.html";
-	/**
 	 * The singleton instance of the factory.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
 	DiagramsFactory eINSTANCE = ac.soton.eventb.emf.diagrams.impl.DiagramsFactoryImpl.init();
+
+	/**
+	 * Returns a new object of class '<em>UMLB</em>'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return a new object of class '<em>UMLB</em>'.
+	 * @generated
+	 * @since 5.0
+	 */
+	UMLB createUMLB();
 
 	/**
 	 * Returns the package supported by this factory.

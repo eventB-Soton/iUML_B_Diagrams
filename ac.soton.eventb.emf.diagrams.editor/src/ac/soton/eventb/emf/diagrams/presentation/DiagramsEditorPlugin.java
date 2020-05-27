@@ -1,34 +1,38 @@
 /**
- * Copyright (c) 2012-14 - University of Southampton.
+ * Copyright (c) 2012-2020 - University of Southampton.
  * All rights reserved. This program and the accompanying materials  are made
  * available under the terms of the Eclipse Public License v1.0 which accompanies this 
  * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
  *
  * $Id$
  */
-package ac.soton.eventb.emf.diagrams.provider;
+package ac.soton.eventb.emf.diagrams.presentation;
 
 import org.eclipse.emf.common.EMFPlugin;
 
+import org.eclipse.emf.common.ui.EclipseUIPlugin;
+
 import org.eclipse.emf.common.util.ResourceLocator;
+
 import org.eclipse.emf.ecore.provider.EcoreEditPlugin;
+
 import org.eventb.emf.core.provider.EventbcoreEditPlugin;
 
 /**
- * This is the central singleton for the Diagrams edit plugin.
+ * This is the central singleton for the Diagrams editor plugin.
  * <!-- begin-user-doc -->
  * <!-- end-user-doc -->
  * @generated
  */
-public final class DiagramsEditPlugin extends EMFPlugin {
+public final class DiagramsEditorPlugin extends EMFPlugin {
 	/**
 	 * Keep track of the singleton.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public static final DiagramsEditPlugin INSTANCE = new DiagramsEditPlugin();
-
+	public static final DiagramsEditorPlugin INSTANCE = new DiagramsEditorPlugin();
+	
 	/**
 	 * Keep track of the singleton.
 	 * <!-- begin-user-doc -->
@@ -43,12 +47,12 @@ public final class DiagramsEditPlugin extends EMFPlugin {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public DiagramsEditPlugin() {
+	public DiagramsEditorPlugin() {
 		super
-		  (new ResourceLocator [] {
-		     EcoreEditPlugin.INSTANCE,
-		     EventbcoreEditPlugin.INSTANCE,
-		   });
+			(new ResourceLocator [] {
+				EcoreEditPlugin.INSTANCE,
+				EventbcoreEditPlugin.INSTANCE,
+			});
 	}
 
 	/**
@@ -62,7 +66,7 @@ public final class DiagramsEditPlugin extends EMFPlugin {
 	public ResourceLocator getPluginResourceLocator() {
 		return plugin;
 	}
-
+	
 	/**
 	 * Returns the singleton instance of the Eclipse plugin.
 	 * <!-- begin-user-doc -->
@@ -73,14 +77,14 @@ public final class DiagramsEditPlugin extends EMFPlugin {
 	public static Implementation getPlugin() {
 		return plugin;
 	}
-
+	
 	/**
 	 * The actual implementation of the Eclipse <b>Plugin</b>.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public static class Implementation extends EclipsePlugin {
+	public static class Implementation extends EclipseUIPlugin {
 		/**
 		 * Creates an instance.
 		 * <!-- begin-user-doc -->
@@ -89,7 +93,7 @@ public final class DiagramsEditPlugin extends EMFPlugin {
 		 */
 		public Implementation() {
 			super();
-
+	
 			// Remember the static instance.
 			//
 			plugin = this;

@@ -15,7 +15,9 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.EReference;
 
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.impl.EPackageImpl;
+import org.eventb.emf.core.CorePackage;
 
 /**
  * <!-- begin-user-doc -->
@@ -29,13 +31,6 @@ public class DiagramsPackageImpl extends EPackageImpl implements DiagramsPackage
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public static final String copyright = "Copyright (c) 2012-14 - University of Southampton.\rAll rights reserved. This program and the accompanying materials  are made\ravailable under the terms of the Eclipse Public License v1.0 which accompanies this \rdistribution, and is available at http://www.eclipse.org/legal/epl-v10.html";
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
 	private EClass diagramEClass = null;
 
 	/**
@@ -44,6 +39,13 @@ public class DiagramsPackageImpl extends EPackageImpl implements DiagramsPackage
 	 * @generated
 	 */
 	private EClass diagramOwnerEClass = null;
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	private EClass umlbEClass = null;
 
 	/**
 	 * Creates an instance of the model <b>Package</b>, registered with
@@ -90,6 +92,10 @@ public class DiagramsPackageImpl extends EPackageImpl implements DiagramsPackage
 		DiagramsPackageImpl theDiagramsPackage = (DiagramsPackageImpl)(EPackage.Registry.INSTANCE.get(eNS_URI) instanceof DiagramsPackageImpl ? EPackage.Registry.INSTANCE.get(eNS_URI) : new DiagramsPackageImpl());
 
 		isInited = true;
+
+		// Initialize simple dependencies
+		EcorePackage.eINSTANCE.eClass();
+		CorePackage.eINSTANCE.eClass();
 
 		// Create package meta-data objects
 		theDiagramsPackage.createPackageContents();
@@ -138,6 +144,33 @@ public class DiagramsPackageImpl extends EPackageImpl implements DiagramsPackage
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EClass getUMLB() {
+		return umlbEClass;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EReference getUMLB_Elaborates() {
+		return (EReference)umlbEClass.getEStructuralFeatures().get(0);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EReference getUMLB_Refines() {
+		return (EReference)umlbEClass.getEStructuralFeatures().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public DiagramsFactory getDiagramsFactory() {
 		return (DiagramsFactory)getEFactoryInstance();
 	}
@@ -165,6 +198,10 @@ public class DiagramsPackageImpl extends EPackageImpl implements DiagramsPackage
 
 		diagramOwnerEClass = createEClass(DIAGRAM_OWNER);
 		createEReference(diagramOwnerEClass, DIAGRAM_OWNER__DIAGRAMS);
+
+		umlbEClass = createEClass(UMLB);
+		createEReference(umlbEClass, UMLB__ELABORATES);
+		createEReference(umlbEClass, UMLB__REFINES);
 	}
 
 	/**
@@ -190,17 +227,26 @@ public class DiagramsPackageImpl extends EPackageImpl implements DiagramsPackage
 		setNsPrefix(eNS_PREFIX);
 		setNsURI(eNS_URI);
 
+		// Obtain other dependent packages
+		CorePackage theCorePackage = (CorePackage)EPackage.Registry.INSTANCE.getEPackage(CorePackage.eNS_URI);
+
 		// Create type parameters
 
 		// Set bounds for type parameters
 
 		// Add supertypes to classes
+		umlbEClass.getESuperTypes().add(theCorePackage.getEventBNamedCommentedElement());
+		umlbEClass.getESuperTypes().add(this.getDiagramOwner());
 
 		// Initialize classes and features; add operations and parameters
 		initEClass(diagramEClass, Diagram.class, "Diagram", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 
 		initEClass(diagramOwnerEClass, DiagramOwner.class, "DiagramOwner", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEReference(getDiagramOwner_Diagrams(), this.getDiagram(), null, "diagrams", null, 0, -1, DiagramOwner.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+		initEClass(umlbEClass, ac.soton.eventb.emf.diagrams.UMLB.class, "UMLB", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+		initEReference(getUMLB_Elaborates(), theCorePackage.getEventBNamedCommentedComponentElement(), null, "elaborates", null, 0, 1, ac.soton.eventb.emf.diagrams.UMLB.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getUMLB_Refines(), this.getUMLB(), null, "refines", null, 0, 1, ac.soton.eventb.emf.diagrams.UMLB.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		// Create resource
 		createResource(eNS_URI);
