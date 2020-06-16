@@ -203,4 +203,17 @@
             name="%prefpage.ac.soton.eventb.iumlb">
       </page>
    </extension>
+      <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.eventb.ui.wizards"
+            class="ac.soton.eventb.emf.diagrams.navigator.wizards.NewUMLBWizard"
+            finalPerspective="org.eventb.ui.perspective.eventb"
+            icon="icons/UMLB.gif"
+            id="ac.soton.eventb.emf.diagrams.NewUMLB"
+            name="New UML-B wizard"
+            preferredPerspectives="org.eventb.ui.perspective.eventb,org.eventb.ui.perspective.proving"
+            project="false"/>
+   </extension>
+   
 </plugin>
