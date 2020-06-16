@@ -9,17 +9,13 @@
 package ac.soton.eventb.emf.diagrams.provider;
 
 
-import ac.soton.eventb.emf.diagrams.DiagramsPackage;
-import ac.soton.eventb.emf.diagrams.UMLB;
-
 import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.notify.Notification;
-
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EStructuralFeature;
-
 import org.eclipse.emf.edit.provider.ComposeableAdapterFactory;
 import org.eclipse.emf.edit.provider.IEditingDomainItemProvider;
 import org.eclipse.emf.edit.provider.IItemColorProvider;
@@ -29,8 +25,11 @@ import org.eclipse.emf.edit.provider.IItemPropertySource;
 import org.eclipse.emf.edit.provider.IStructuredItemContentProvider;
 import org.eclipse.emf.edit.provider.ITreeItemContentProvider;
 import org.eclipse.emf.edit.provider.ViewerNotification;
-
+import org.eventb.emf.core.EventBNamedCommentedComponentElement;
 import org.eventb.emf.core.provider.EventBNamedCommentedElementItemProvider;
+
+import ac.soton.eventb.emf.diagrams.DiagramsPackage;
+import ac.soton.eventb.emf.diagrams.UMLB;
 
 /**
  * This is the item provider adapter for a {@link ac.soton.eventb.emf.diagrams.UMLB} object.
@@ -163,15 +162,25 @@ public class UMLBItemProvider
 	/**
 	 * This returns the label text for the adapted class.
 	 * <!-- begin-user-doc -->
+	 * the label is constructed from the name followed by the filename of the elaborated component in brackets
 	 * <!-- end-user-doc -->
-	 * @generated
+	 * @generated NOT
 	 */
 	@Override
 	public String getText(Object object) {
 		String label = ((UMLB)object).getName();
-		return label == null || label.length() == 0 ?
-			getString("_UI_UMLB_type") :
-			getString("_UI_UMLB_type") + " " + label;
+		if (label == null || label.length() == 0 ) {
+			label = "<name?>";
+		}
+		String elaborates;
+		EventBNamedCommentedComponentElement elaborated = ((UMLB)object).getElaborates();
+		if (elaborated==null || elaborated.eResource()==null) {
+			elaborates = "<elaborates?>";
+		}else {
+			URI uri = elaborated.eResource().getURI();
+			 elaborates = uri.lastSegment();
+		}
+		return   label+"("+elaborates+")";
 	}
 
 	/**
