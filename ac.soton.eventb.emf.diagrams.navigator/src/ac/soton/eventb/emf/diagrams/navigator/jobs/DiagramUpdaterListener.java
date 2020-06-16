@@ -7,6 +7,7 @@
  *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.navigator.jobs;
 
+import org.eclipse.ui.IStartup;
 import org.eventb.core.IEventBRoot;
 import org.rodinp.core.ElementChangedEvent;
 import org.rodinp.core.IElementChangedListener;
@@ -14,7 +15,6 @@ import org.rodinp.core.IRodinElement;
 import org.rodinp.core.IRodinElementDelta;
 import org.rodinp.core.IRodinFile;
 import org.rodinp.core.IRodinProject;
-import org.eclipse.ui.IStartup;
 
 public class DiagramUpdaterListener implements IElementChangedListener, IStartup {
 
