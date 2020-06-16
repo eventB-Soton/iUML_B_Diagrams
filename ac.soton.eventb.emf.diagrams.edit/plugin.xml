@@ -14,7 +14,7 @@
 
    <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
       <factory
-            uri="http://soton.ac.uk/models/eventb/diagrams"
+            uri="http://soton.ac.uk/models/eventb/diagrams/2020"
             class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory"
             supportedTypes=
               "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
