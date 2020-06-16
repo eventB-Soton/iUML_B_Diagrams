@@ -9,7 +9,6 @@
 package ac.soton.eventb.emf.diagrams.provider;
 
 import org.eclipse.emf.common.EMFPlugin;
-
 import org.eclipse.emf.common.util.ResourceLocator;
 import org.eclipse.emf.ecore.provider.EcoreEditPlugin;
 import org.eventb.emf.core.provider.EventbcoreEditPlugin;
