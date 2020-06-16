@@ -44,6 +44,9 @@ public class NamePropertySection extends AbstractTextPropertySection {
 
 	@Override
 	protected String getPropertyValueString() {
+		if (!(getEObject() instanceof EventBNamed)) {
+			return getEObject().eClass().toString();
+		}
 		return ((EventBNamed) getEObject()).getName();
 	}
 
