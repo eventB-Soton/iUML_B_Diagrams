@@ -91,7 +91,7 @@ public abstract class AbstractIumlbPropertySection extends
 	 * 	that referenced object is returned.
 	 * 
 	 * @return
-	 * @since 2.4
+	 * @since 3.0
 	 */
 	protected EventBObject getTranslationTarget() {
 		return DiagramUtils.getTranslationTarget(owner);
@@ -101,7 +101,7 @@ public abstract class AbstractIumlbPropertySection extends
 	 * This gets all Event-B components that are in scope of the translation target
 	 * i.e. the target itself as well as the closure of all seen or extended contexts 
 	 * 
-	 * @since 2.4
+	 * @since 3.0
 	 */
 	protected List<EventBNamedCommentedComponentElement> getComponentsInScope() {
 		return getComponentsInScope(getTranslationTarget());
@@ -111,7 +111,7 @@ public abstract class AbstractIumlbPropertySection extends
 	 * This gets all Event-B components that are in scope of the one passed as input
 	 * i.e. the input itself as well as the closure of all seen or extended contexts 
 	 * 
-	 * @since 2.4
+	 * @since 3.0
 	 */
 	protected List<EventBNamedCommentedComponentElement> getComponentsInScope(EventBObject eventBObject) {
 		List<EventBNamedCommentedComponentElement> list =  new ArrayList<EventBNamedCommentedComponentElement>() ;

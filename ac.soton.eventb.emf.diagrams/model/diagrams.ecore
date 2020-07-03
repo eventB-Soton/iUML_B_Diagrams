@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="diagrams" nsURI="http://soton.ac.uk/models/eventb/diagrams"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="diagrams" nsURI="http://soton.ac.uk/models/eventb/diagrams/2020"
     nsPrefix="diagrams">
   <eClassifiers xsi:type="ecore:EClass" name="Diagram" abstract="true"/>
   <eClassifiers xsi:type="ecore:EClass" name="DiagramOwner" abstract="true">
     <eStructuralFeatures xsi:type="ecore:EReference" name="diagrams" upperBound="-1"
         eType="#//Diagram" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="UMLB" eSuperTypes="../../org.eventb.emf.core/model/eventbcore.ecore#//EventBNamedCommentedElement #//DiagramOwner">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="elaborates" eType="ecore:EClass ../../org.eventb.emf.core/model/eventbcore.ecore#//EventBNamedCommentedComponentElement"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="refines" eType="#//UMLB"/>
   </eClassifiers>
 </ecore:EPackage>

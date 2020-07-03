@@ -9,8 +9,9 @@
 package ac.soton.eventb.emf.diagrams.provider;
 
 import org.eclipse.emf.common.EMFPlugin;
-
 import org.eclipse.emf.common.util.ResourceLocator;
+import org.eclipse.emf.ecore.provider.EcoreEditPlugin;
+import org.eventb.emf.core.provider.EventbcoreEditPlugin;
 
 /**
  * This is the central singleton for the Diagrams edit plugin.
@@ -19,13 +20,6 @@ import org.eclipse.emf.common.util.ResourceLocator;
  * @generated
  */
 public final class DiagramsEditPlugin extends EMFPlugin {
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public static final String copyright = "Copyright (c) 2012-14 - University of Southampton.\rAll rights reserved. This program and the accompanying materials  are made\ravailable under the terms of the Eclipse Public License v1.0 which accompanies this \rdistribution, and is available at http://www.eclipse.org/legal/epl-v10.html";
-
 	/**
 	 * Keep track of the singleton.
 	 * <!-- begin-user-doc -->
@@ -51,6 +45,8 @@ public final class DiagramsEditPlugin extends EMFPlugin {
 	public DiagramsEditPlugin() {
 		super
 		  (new ResourceLocator [] {
+		     EcoreEditPlugin.INSTANCE,
+		     EventbcoreEditPlugin.INSTANCE,
 		   });
 	}
 

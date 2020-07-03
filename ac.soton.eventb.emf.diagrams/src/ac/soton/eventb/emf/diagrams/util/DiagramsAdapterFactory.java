@@ -14,6 +14,12 @@ import org.eclipse.emf.common.notify.Notifier;
 import org.eclipse.emf.common.notify.impl.AdapterFactoryImpl;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eventb.emf.core.EventBCommented;
+import org.eventb.emf.core.EventBCommentedElement;
+import org.eventb.emf.core.EventBElement;
+import org.eventb.emf.core.EventBNamed;
+import org.eventb.emf.core.EventBNamedCommentedElement;
+import org.eventb.emf.core.EventBObject;
 
 /**
  * <!-- begin-user-doc -->
@@ -24,12 +30,6 @@ import org.eclipse.emf.ecore.EObject;
  * @generated
  */
 public class DiagramsAdapterFactory extends AdapterFactoryImpl {
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public static final String copyright = "Copyright (c) 2012-14 - University of Southampton.\rAll rights reserved. This program and the accompanying materials  are made\ravailable under the terms of the Eclipse Public License v1.0 which accompanies this \rdistribution, and is available at http://www.eclipse.org/legal/epl-v10.html";
 	/**
 	 * The cached model package.
 	 * <!-- begin-user-doc -->
@@ -86,6 +86,34 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 				return createDiagramOwnerAdapter();
 			}
 			@Override
+			public Adapter caseUMLB(UMLB object) {
+				return createUMLBAdapter();
+			}
+			@Override
+			public Adapter caseEventBObject(EventBObject object) {
+				return createEventBObjectAdapter();
+			}
+			@Override
+			public Adapter caseEventBElement(EventBElement object) {
+				return createEventBElementAdapter();
+			}
+			@Override
+			public Adapter caseEventBCommented(EventBCommented object) {
+				return createEventBCommentedAdapter();
+			}
+			@Override
+			public Adapter caseEventBCommentedElement(EventBCommentedElement object) {
+				return createEventBCommentedElementAdapter();
+			}
+			@Override
+			public Adapter caseEventBNamed(EventBNamed object) {
+				return createEventBNamedAdapter();
+			}
+			@Override
+			public Adapter caseEventBNamedCommentedElement(EventBNamedCommentedElement object) {
+				return createEventBNamedCommentedElementAdapter();
+			}
+			@Override
 			public Adapter defaultCase(EObject object) {
 				return createEObjectAdapter();
 			}
@@ -130,6 +158,111 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * @generated
 	 */
 	public Adapter createDiagramOwnerAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link ac.soton.eventb.emf.diagrams.UMLB <em>UMLB</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see ac.soton.eventb.emf.diagrams.UMLB
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createUMLBAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eventb.emf.core.EventBObject <em>Event BObject</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eventb.emf.core.EventBObject
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createEventBObjectAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eventb.emf.core.EventBElement <em>Event BElement</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eventb.emf.core.EventBElement
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createEventBElementAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eventb.emf.core.EventBCommented <em>Event BCommented</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eventb.emf.core.EventBCommented
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createEventBCommentedAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eventb.emf.core.EventBCommentedElement <em>Event BCommented Element</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eventb.emf.core.EventBCommentedElement
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createEventBCommentedElementAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eventb.emf.core.EventBNamed <em>Event BNamed</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eventb.emf.core.EventBNamed
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createEventBNamedAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.eventb.emf.core.EventBNamedCommentedElement <em>Event BNamed Commented Element</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.eventb.emf.core.EventBNamedCommentedElement
+	 * @generated
+	 * @since 5.0
+	 */
+	public Adapter createEventBNamedCommentedElementAdapter() {
 		return null;
 	}
 

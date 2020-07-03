@@ -19,6 +19,9 @@ import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBObject;
 
+import ac.soton.eventb.emf.diagrams.DiagramsPackage;
+import ac.soton.eventb.emf.diagrams.UMLB;
+
 public class DiagramUtils {
 
 	/**
@@ -88,7 +91,7 @@ public class DiagramUtils {
 	 * 	that referenced object is returned.
 	 * 
 	 * @return
-	 * @since 2.4
+	 * @since 3.0
 	 */
 	public static EventBObject getTranslationTarget(EventBObject owner) {
 		EventBObject container = owner.getContaining(CorePackage.Literals.PROJECT);
@@ -96,7 +99,14 @@ public class DiagramUtils {
 		if (container == null){
 			container = owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
 		}
-		//this is the new way when diagrams have their own resource and an Annotation that references the machine/context
+		//this is the new way when diagrams are contained in a UMLB diagram owner element
+		if (container == null){
+			EventBObject umlb = owner.getContaining(DiagramsPackage.Literals.UMLB);
+			if (umlb instanceof UMLB) {
+				container = ((UMLB) umlb).getElaborates();
+			}
+		}
+		//this is another new way that we tried - when diagrams have their own resource and an Annotation that references the machine/context
 		// (in the long-run we might replace annotation with a dedicated reference in the Diagram element).
 		if (container == null) {
 			EObject root = EcoreUtil.getRootContainer(owner);

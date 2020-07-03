@@ -12,7 +12,7 @@
 
    <extension point="org.eclipse.emf.ecore.generated_package">
       <package
-            uri="http://soton.ac.uk/models/eventb/diagrams"
+            uri="http://soton.ac.uk/models/eventb/diagrams/2020"
             class="ac.soton.eventb.emf.diagrams.DiagramsPackage"
             genModel="model/diagrams.genmodel"/>
    </extension>

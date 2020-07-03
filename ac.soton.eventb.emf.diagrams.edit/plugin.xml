@@ -2,7 +2,7 @@
 <?eclipse version="3.0"?>
 
 <!--
- Copyright (c) 2012-14 - University of Southampton.
+ Copyright (c) 2012-2020 - University of Southampton.
  All rights reserved. This program and the accompanying materials  are made
  available under the terms of the Eclipse Public License v1.0 which accompanies this 
  distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
@@ -14,7 +14,7 @@
 
    <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
       <factory
-            uri="http://soton.ac.uk/models/eventb/diagrams"
+            uri="http://soton.ac.uk/models/eventb/diagrams/2020"
             class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory"
             supportedTypes=
               "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
@@ -25,7 +25,16 @@
                org.eclipse.emf.edit.provider.IItemColorProvider"/>
    </extension>
 
-   <extension
+   <extension point="org.eclipse.emf.edit.childCreationExtenders">
+      <extender
+            uri="http://emf.eventb.org/models/core/machine/2014"
+            class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory$CoreChildCreationExtender"/>
+      <extender
+            uri="http://emf.eventb.org/models/core/context/2014"
+            class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory$CoreChildCreationExtender"/>
+   </extension>
+   
+  <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             allPopups="false"

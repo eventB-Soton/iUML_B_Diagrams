@@ -24,13 +24,6 @@ import org.eclipse.emf.ecore.plugin.EcorePlugin;
  */
 public class DiagramsFactoryImpl extends EFactoryImpl implements DiagramsFactory {
 	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public static final String copyright = "Copyright (c) 2012-14 - University of Southampton.\rAll rights reserved. This program and the accompanying materials  are made\ravailable under the terms of the Eclipse Public License v1.0 which accompanies this \rdistribution, and is available at http://www.eclipse.org/legal/epl-v10.html";
-
-	/**
 	 * Creates the default factory implementation.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -38,7 +31,7 @@ public class DiagramsFactoryImpl extends EFactoryImpl implements DiagramsFactory
 	 */
 	public static DiagramsFactory init() {
 		try {
-			DiagramsFactory theDiagramsFactory = (DiagramsFactory)EPackage.Registry.INSTANCE.getEFactory("http://soton.ac.uk/models/eventb/diagrams"); 
+			DiagramsFactory theDiagramsFactory = (DiagramsFactory)EPackage.Registry.INSTANCE.getEFactory("http://soton.ac.uk/models/eventb/diagrams/2020"); 
 			if (theDiagramsFactory != null) {
 				return theDiagramsFactory;
 			}
@@ -67,9 +60,20 @@ public class DiagramsFactoryImpl extends EFactoryImpl implements DiagramsFactory
 	@Override
 	public EObject create(EClass eClass) {
 		switch (eClass.getClassifierID()) {
+			case DiagramsPackage.UMLB: return createUMLB();
 			default:
 				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
 		}
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public UMLB createUMLB() {
+		UMLBImpl umlb = new UMLBImpl();
+		return umlb;
 	}
 
 	/**

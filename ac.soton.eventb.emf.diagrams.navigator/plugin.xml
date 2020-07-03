@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+
    <extension-point id="ac.soton.eventb.emf.diagrams.navigator.diagramProviders" name="%extension-point.name" schema="schema//ac.soton.eventb.emf.diagrams.navigator.diagramProviders.exsd"/>
+  
    <extension
          point="org.eclipse.ui.navigator.navigatorContent">
+         
       <actionProvider
             class="ac.soton.eventb.emf.diagrams.navigator.provider.DiagramActionProvider"
             id="ac.soton.eventb.emf.diagrams.navigator.provider.diagramActionProvider">
@@ -18,7 +21,21 @@
             </or>
          </enablement>
       </actionProvider>
+      
+      <actionProvider
+            class="ac.soton.eventb.emf.diagrams.navigator.provider.UMLBActionProvider"
+            id="ac.soton.eventb.emf.diagrams.navigator.provider.UMLBActionProvider">
+         <enablement>
+            <or>
+              <reference
+                     definitionId="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+               </reference>
+            </or>
+         </enablement>
+      </actionProvider>
+      
    </extension>
+   
    <extension
          point="org.eclipse.ui.navigator.viewer">
       <viewerActionBinding
@@ -27,9 +44,44 @@
             <actionExtension
                   pattern="ac.soton.eventb.emf.diagrams.navigator.provider.diagramActionProvider">
             </actionExtension>
+            <actionExtension
+                  pattern="ac.soton.eventb.emf.diagrams.navigator.provider.UMLBActionProvider">
+            </actionExtension>
          </includes>
       </viewerActionBinding>
    </extension>
+   
+   
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <file-association
+            content-type="ac.soton.eventb.emf.core.extension.persistence.contentType"
+            file-extensions="umlb">
+      </file-association>
+      <file-association
+            content-type="org.eclipse.emf.compare.content.type"
+            file-extensions="umlb">
+      </file-association>
+      <file-association
+            content-type="ac.soton.eventb.emf.diagrams.navigator.file-association2"
+            file-extensions="umlb">
+      </file-association>
+   </extension>
+   
+   <extension
+        point="ac.soton.eventb.emf.core.extension.navigator.emfFileExtensions">
+     <model
+           extension="umlb">
+     </model>
+   </extension>
+  
+   <extension
+         point="ac.soton.eventb.emf.core.extension.navigator.adapterFactories">
+      <factory
+            class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory">
+      </factory>
+   </extension>
+   
    <extension
          point="org.rodinp.core.refinements">
       <Participant
@@ -61,38 +113,47 @@
       </Order>
    </extension>
 
+   
+   <extension
+         point="org.eclipse.ui.commands">
+     <category
+        description="Commands associated with iUML-B Diagrams"
+        id="ac.soton.eventb.emf.diagrams.iUMLB"
+        name="iUML-B Commands">
+      </category>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.ArchiveProjectHandler"
+            description="Archive the project using iUML-B preference settings"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.archiveProject"
+            name="Archive Project">
+      </command>
+      <command
+            description="create a new UML-B model"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.newUMLB"
+            name="New UML-B">
+      </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.DeleteDiagramElementHandler"
+            description="Delete the selected iUML-B diagram"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
+            name="Delete">
+      </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.RefineDiagramElementHandler"
+            description="Refine the selected iUML-B diagram"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.refine"
+            name="Refine">
+      </command>
+   </extension>
+   
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
             locationURI="popup:fr.systerel.explorer.navigator.view">
-         <command
-               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
-               icon="icons/Delete.png"
-               label="Delete"
-               style="push"
-               tooltip="Delete the selected iUML-B diagram">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <iterate
-                        ifEmpty="false">
-                     <and>
-                        <adapt
-                              type="org.eclipse.emf.ecore.EObject">
-                           <instanceof
-                                 value="ac.soton.eventb.emf.diagrams.Diagram">
-                           </instanceof>
-                        </adapt>
-                        <test
-                              property="ac.soton.eventb.emf.core.extension.navigator.eventBRootChild"
-                              value="true">
-                        </test>
-                     </and>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
+         
          <command
                commandId="ac.soton.eventb.emf.diagrams.navigator.commands.archiveProject"
                icon="icons/Archive.png"
@@ -114,39 +175,66 @@
                </with>
             </visibleWhen>
          </command>
-      </menuContribution>
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:fr.systerel.explorer.navigator.view">
-         <menu
-               icon="icons/IUMLB.png"
-               id="ac.soton.eventb.emf.diagrams.navigator.addDiagram"
-               label="Add iUML-B....">
-         </menu>
+         
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.newUMLB"
+               icon="icons/UMLB.gif"
+               tooltip="Create a new container for UML-B diagrams">
+         </command>
+            
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
+               icon="icons/Delete.png"
+               label="Delete"
+               style="push"
+               tooltip="Delete the selected iUML-B diagram">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <or>
+                        <adapt
+                              type="org.eclipse.emf.ecore.EObject">
+                           <instanceof
+                                 value="ac.soton.eventb.emf.diagrams.Diagram">
+                           </instanceof>
+                        </adapt>                        
+                     </or>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+         
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.refine"
+               icon="icons/Refine_IUMLB.png"
+               label="Refine iUML-B Diagrams"
+               style="push"
+               tooltip="Create a refinement of an iUML-B diagram">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+                     <or>
+		               <adapt
+		                     type="org.eclipse.emf.ecore.EObject">
+		                  <instanceof
+		                        value="ac.soton.eventb.emf.diagrams.Diagram">
+		                  </instanceof>
+		               </adapt>
+                     </or>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+         
       </menuContribution>
    </extension>
-   <extension
-         point="org.eclipse.ui.commands">
-     <category
-        description="Commands associated with iUML-B Diagrams"
-        id="ac.soton.eventb.emf.diagrams.iUMLB"
-        name="iUML-B Commands">
-      </category>
-      <command
-            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
-            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.ArchiveProjectHandler"
-            description="Archive the project using iUML-B preference settings"
-            id="ac.soton.eventb.emf.diagrams.navigator.commands.archiveProject"
-            name="Archive Project">
-      </command>
-      <command
-            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
-            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.DeleteDiagramElementHandler"
-            description="Delete the selected iUML-B diagram"
-            id="ac.soton.eventb.emf.diagrams.navigator.commands.deleteDiagramElement"
-            name="Delete">
-      </command>
-   </extension>
+
    
    <extension
          point="org.eclipse.ui.startup">
@@ -162,4 +250,63 @@
             name="%prefpage.ac.soton.eventb.iumlb">
       </page>
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.handlers">
+     <handler
+            class="ac.soton.eventb.emf.diagrams.navigator.handlers.CopyUMLBHandler"
+            commandId="org.eclipse.ui.edit.copy">
+         <activeWhen>
+            <and>
+               <with
+                     variable="activePartId">
+                  <equals
+                        value="fr.systerel.explorer.navigator.view">
+                  </equals>
+               </with>
+             <iterate
+                 ifEmpty="false">
+	               <reference
+	                     definitionId="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+	               </reference>
+              </iterate>
+            </and>
+         </activeWhen>
+      </handler>
+    </extension>     
+      
+   <extension
+         point="org.eclipse.core.expressions.definitions">
+      <definition
+            id="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+	            <or>
+	               <adapt type="org.eclipse.emf.ecore.EObject">
+	                  <instanceof value="ac.soton.eventb.emf.diagrams.UMLB"/>
+	               </adapt>
+	            </or>
+      </definition>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.navigator.navigatorContent">
+      <commonWizard
+            type="new"
+            wizardId="ac.soton.eventb.emf.diagrams.NewUMLB">
+         <enablement></enablement>
+      </commonWizard>
+   </extension>
+   
+      <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.eventb.ui.wizards"
+            class="ac.soton.eventb.emf.diagrams.navigator.wizards.NewUMLBWizard"
+            finalPerspective="org.eventb.ui.perspective.eventb"
+            icon="icons/UMLB.gif"
+            id="ac.soton.eventb.emf.diagrams.NewUMLB"
+            name="New UML-B wizard"
+            preferredPerspectives="org.eventb.ui.perspective.eventb,org.eventb.ui.perspective.proving"
+            project="false"/>
+   </extension>
+   
 </plugin>
