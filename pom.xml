@@ -8,7 +8,7 @@
   <name>UML-B Diagrams Root POM</name>
   <description>Root artifact for UML-B Diagrams</description>
   <!-- REQUIRED: Version number (using semantic versioning) -->
-  <version>7.1.0-SNAPSHOT</version>
+  <version>7.1.0.release</version>
   <packaging>pom</packaging>
   <parent>
     <!-- REQUIRED: Group ID is the feature ID -->
@@ -16,7 +16,7 @@
     <!-- Name of the release engineering artifact -->
     <artifactId>releng</artifactId>
     <!-- REQUIRED: Version number of the release engineering artifact -->
-    <version>7.1.0-SNAPSHOT</version>
+    <version>7.1.0.release</version>
     <!-- REQUIRED: Relative path to the release engineering artifact -->
     <relativePath>./ac.soton.eventb.emf.diagrams.releng</relativePath>
   </parent>
