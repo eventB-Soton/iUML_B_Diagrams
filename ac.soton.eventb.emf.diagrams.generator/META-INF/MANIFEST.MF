@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %Bundle-Name
 Bundle-SymbolicName: ac.soton.eventb.emf.diagrams.generator;singleton:=true
-Bundle-Version: 4.0.1.qualifier
+Bundle-Version: 4.0.1.release
 Bundle-Activator: ac.soton.eventb.emf.diagrams.generator.Activator
 Bundle-Vendor: %Bundle-Vendor
 Require-Bundle: org.eclipse.gmf.runtime.diagram.ui.resources.editor;bundle-version="[1.4.0,2.0.0)",
