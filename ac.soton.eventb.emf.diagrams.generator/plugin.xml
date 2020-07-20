@@ -7,6 +7,7 @@
 <extension
       name="EventB Diagrams"
       point="org.eclipse.ui.menus">
+      
 	<menuContribution
          allPopups="true"
          locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=validations">
@@ -17,6 +18,7 @@
             style="push">
 		</command>
 	</menuContribution>
+	
 	<menuContribution
 	    allPopups="true"
 	    locationURI="toolbar:ac.soton.eventb.emf.diagrams.toolbar?after=transformations">
@@ -27,6 +29,7 @@
 	       style="push">
 		</command>
 	</menuContribution>
+	
 	<menuContribution
             locationURI="popup:fr.systerel.explorer.navigator.view">
          <command
@@ -47,12 +50,17 @@
 	                   <instanceof
 	                         value="org.eventb.core.IContextRoot">
 	                   </instanceof>
-		               <adapt
+	                   <reference
+	                   		definitionId="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+	                   </reference>
+	                   
+		               <!--adapt
 		                     type="org.eclipse.emf.ecore.EObject">
 		                  <instanceof
 		                        value="ac.soton.eventb.emf.diagrams.Diagram">
 		                  </instanceof>
-		               </adapt>
+		               </adapt-->
+		               
                      </or>
                   </iterate>
                </with>

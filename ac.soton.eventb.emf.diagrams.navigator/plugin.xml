@@ -219,14 +219,9 @@
                      variable="selection">
                   <iterate
                         ifEmpty="false">
-                     <or>
-		               <adapt
-		                     type="org.eclipse.emf.ecore.EObject">
-		                  <instanceof
-		                        value="ac.soton.eventb.emf.diagrams.Diagram">
-		                  </instanceof>
-		               </adapt>
-                     </or>
+		               <reference
+		                     definitionId="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+		               </reference>
                   </iterate>
                </with>
             </visibleWhen>
