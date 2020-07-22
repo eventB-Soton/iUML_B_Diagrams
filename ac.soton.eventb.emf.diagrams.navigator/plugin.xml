@@ -62,10 +62,6 @@
             content-type="org.eclipse.emf.compare.content.type"
             file-extensions="umlb">
       </file-association>
-      <file-association
-            content-type="ac.soton.eventb.emf.diagrams.navigator.file-association2"
-            file-extensions="umlb">
-      </file-association>
    </extension>
    
    <extension
@@ -129,11 +125,6 @@
             name="Archive Project">
       </command>
       <command
-            description="create a new UML-B model"
-            id="ac.soton.eventb.emf.diagrams.navigator.commands.newUMLB"
-            name="New UML-B">
-      </command>
-      <command
             categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.DeleteDiagramElementHandler"
             description="Delete the selected iUML-B diagram"
@@ -174,12 +165,6 @@
                   </iterate>
                </with>
             </visibleWhen>
-         </command>
-         
-         <command
-               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.newUMLB"
-               icon="icons/UMLB.gif"
-               tooltip="Create a new container for UML-B diagrams">
          </command>
             
          <command
@@ -299,10 +284,11 @@
             finalPerspective="org.eventb.ui.perspective.eventb"
             icon="icons/UMLB.gif"
             id="ac.soton.eventb.emf.diagrams.NewUMLB"
-            name="New UML-B wizard"
+            name="UML-B"
             preferredPerspectives="org.eventb.ui.perspective.eventb,org.eventb.ui.perspective.proving"
             project="false"/>
    </extension>
+   
       <extension
             point="ac.soton.eventb.emf.core.extension.navigator.elementRefinement">
          <refinementDefinition
