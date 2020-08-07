@@ -10,7 +10,6 @@ package ac.soton.eventb.emf.diagrams.sheet;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.command.RemoveCommand;
 import org.eclipse.emf.edit.domain.EditingDomain;
 import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
@@ -90,7 +89,7 @@ public abstract class AbstractEditTableWithReferencedObjectCreationDeletionPrope
 				removeObject(objectToBeRemoved);
 				//delete the element
 				EditingDomain editingDomain = ((DiagramEditor) getPart()).getEditingDomain();
-				EObject container = EcoreUtil.getRootContainer(eObject);
+				EObject container = getTranslationTarget();
 				editingDomain.getCommandStack().execute(
 						RemoveCommand.create(editingDomain, container, null, objectToBeRemoved));
 			}
