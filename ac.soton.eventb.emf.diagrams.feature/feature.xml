@@ -33,6 +33,7 @@
       <import plugin="ac.soton.eventb.emf.diagrams.generator" version="4.0.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.8.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams" version="5.0.0" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.1.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.edit" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.4.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.5.0" match="compatible"/>
@@ -41,7 +42,6 @@
       <import plugin="ac.soton.emf.translator" version="3.0.0" match="compatible"/>
       <import plugin="ac.soton.emf.translator.eventb" version="0.0.1" match="compatible"/>
       <import plugin="org.eventb.core" version="3.3.0" match="compatible"/>
-      <import plugin="org.eclipse.emf.ecore.edit" version="2.13.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.properties" version="1.0.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.0.0" match="compatible"/>
       <import plugin="org.rodinp.keyboard.ui" version="2.0.0" match="compatible"/>
@@ -50,7 +50,7 @@
       <import plugin="fr.systerel.explorer" version="2.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.navigator" version="3.0.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.1.0" match="compatible"/>
+      <import plugin="org.eclipse.emf.ecore.edit" version="2.9.0" match="compatible"/>
    </requires>
 
    <plugin
