@@ -87,6 +87,7 @@ public class DiagramUtils {
 	 * 
 	 * If the 'owner' is contained in a project, the project is returned
 	 * Otherwise, If the 'owner' is contained in a Event-B component, the component is returned
+	 * Otherwise, If the 'owner' is contained in an UML-B the elaborated component (of the UML-B) is return
 	 * Otherwise, If the 'owner' has an "ac.soton.diagrams.translationTarget" annotation that references an EventBObject,
 	 * 	that referenced object is returned.
 	 * 
