@@ -284,8 +284,8 @@ public class CommitAssistant extends RefactorAssistant {
 	 * Generates a command to apply a (reversed) feature change to the refined parent
 	 * 
 	 * Note that the feature change is in reversed (i.e. undo) format. Hence the value it contains is the original old value. 
-	 * The current (new) valaue must be obtained by reading the feature in the abstract Parent. 
-	 * The given refiner is used to generate new refined elements for additions aas well as to find corresponding elements 
+	 * The current (new) value must be obtained by reading the feature in the abstract Parent. 
+	 * The given refiner is used to generate new refined elements for additions as well as to find corresponding elements 
 	 * to be changed.
 	 * @param cc2 
 	 * 
