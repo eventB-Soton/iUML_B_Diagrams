@@ -20,8 +20,6 @@ import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
 import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
 import org.eclipse.jface.action.Action;
 
-import ac.soton.eventb.emf.diagrams.generator.IValidator;
-
 
 /**
  * <p>
