@@ -185,9 +185,9 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 	 */
 	@Override
 	protected Object getNewValue() {
-		EventBNamedCommentedComponentElement container = (EventBNamedCommentedComponentElement)owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-		PopupDialog dataDialog = new PopupDialog(getPart().getSite().getShell(), getAvailableDataElements(container), dataLabelProvider);
-		dataDialog.setTitle( "Data elements in scope of" + container.getName());
+		EventBNamedCommentedComponentElement target = (EventBNamedCommentedComponentElement) DiagramUtils.getTranslationTarget(owner);
+		PopupDialog dataDialog = new PopupDialog(getPart().getSite().getShell(), getAvailableDataElements(target), dataLabelProvider);
+		dataDialog.setTitle( "Data elements in scope of" + target.getName());
 		dataDialog.setMessage("Please select data to elaborate");
 		//return the chosen one
 		if (Dialog.OK == dataDialog.open()) {
@@ -258,13 +258,14 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 		if (newElaboratedElement instanceof CarrierSet) dataKind = DataKind.SET;
 		else if (newElaboratedElement instanceof Constant) dataKind = DataKind.CONSTANT;
 		else if (newElaboratedElement instanceof Variable) dataKind = DataKind.VARIABLE;
-		else dataKind = SetCommand.UNSET_VALUE;
-		command = (SetCommand) SetCommand.create(
-				editingDomain,
-				eObject, 
-				CoreextensionPackage.Literals.EVENT_BDATA_ELABORATION__DATA_KIND,
-				dataKind);;
-		editingDomain.getCommandStack().execute(command);
+		if (dataKind != null) {
+			command = (SetCommand) SetCommand.create(
+					editingDomain,
+					eObject, 
+					CoreextensionPackage.Literals.EVENT_BDATA_ELABORATION__DATA_KIND,
+					dataKind);;
+			editingDomain.getCommandStack().execute(command);
+		}
 	}
 
 	@Override
