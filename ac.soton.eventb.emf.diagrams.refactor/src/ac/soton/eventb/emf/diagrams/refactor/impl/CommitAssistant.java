@@ -273,7 +273,7 @@ public class CommitAssistant extends RefactorAssistant {
 						if (!indexMap.containsKey(eObject)){
 							indexMap.put(eObject,new HashMap<EStructuralFeature,Integer>());
 						}
-						indexMap.get(eObject).put(feature, new Integer(indexOffset+1));
+						indexMap.get(eObject).put(feature, Integer.valueOf(indexOffset+1));
 					}
 				}
 			}
