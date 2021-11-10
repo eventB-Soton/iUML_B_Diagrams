@@ -16,7 +16,7 @@ Require-Bundle: org.eclipse.ui.navigator;bundle-version="[3.5.0,4.0.0)",
  ac.soton.eventb.emf.diagrams;bundle-version="[5.0.0,6.0.0)",
  ac.soton.eventb.emf.core.extension.navigator;bundle-version="[5.1.0,6.0.0)",
  ac.soton.eventb.emf.diagrams.edit;bundle-version="[3.0.0,4.0.0)"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: %Bundle-Vendor
 Export-Package: ac.soton.eventb.emf.diagrams.navigator,
  ac.soton.eventb.emf.diagrams.navigator.handler,

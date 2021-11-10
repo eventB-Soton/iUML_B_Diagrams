@@ -7,7 +7,7 @@ Bundle-ClassPath: .
 Bundle-Activator: ac.soton.eventb.emf.diagrams.provider.DiagramsEditPlugin$Implementation
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: ac.soton.eventb.emf.diagrams.provider,
  ac.soton.eventb.emf.diagrams.sheet,
  ac.soton.eventb.emf.diagrams.util.custom
