@@ -12,11 +12,10 @@
     Contributors:
        University of Southampton - initial API and implementation
  -->
-
 <feature
       id="ac.soton.eventb.emf.diagrams.sdk"
       label="%featureName"
-      version="9.0.0.release"
+      version="9.0.0.qualifier"
       provider-name="%featureVendor"
       plugin="ac.soton.eventb.emf.diagrams.branding"
       license-feature="org.rodinp.licence"
