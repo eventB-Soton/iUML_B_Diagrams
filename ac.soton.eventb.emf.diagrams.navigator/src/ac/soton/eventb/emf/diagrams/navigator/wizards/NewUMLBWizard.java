@@ -244,18 +244,22 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 					 });
 			}
 
-			// Open an editor on the new file.
-			//
-			try {
-				page.openEditor
-					(new FileEditorInput(modelFile),
-					 workbench.getEditorRegistry().getDefaultEditor(modelFile.getFullPath().toString()).getId());
-			}
-			catch (PartInitException exception) {
-				exception.printStackTrace();
-				MessageDialog.openError(workbenchWindow.getShell(), "Open Editor", exception.getMessage());
-				return false;
-			}
+// causes exceptions since the new FileEditor has null input.
+// we probably do not want to open an editor anyway.
+			
+//			// Open an editor on the new file.
+//			//
+//			try {
+//				
+//				page.openEditor
+//					(new FileEditorInput(modelFile),
+//					 workbench.getEditorRegistry().getDefaultEditor(modelFile.getFullPath().toString()).getId());
+//			}
+//			catch (PartInitException exception) {
+//				exception.printStackTrace();
+//				MessageDialog.openError(workbenchWindow.getShell(), "Open Editor", exception.getMessage());
+//				return false;
+//			}
 
 			return true;
 		}
