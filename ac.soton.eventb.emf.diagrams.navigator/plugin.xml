@@ -148,10 +148,17 @@
       <command
             categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.RefineDiagramElementHandler"
-            description="Refine the selected iUML-B diagram"
+            description="Refine the selected iUML-B diagram container"
             id="ac.soton.eventb.emf.diagrams.navigator.commands.refine"
             name="Refine">
       </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.EditDiagramElementHandler"
+            description="Edit the selected iUML-B diagram container"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.edit"
+            name="Edit">
+      </command>      
    </extension>
    
    <extension
@@ -211,7 +218,27 @@
                icon="icons/Refine_IUMLB.png"
                label="Refine iUML-B Diagrams"
                style="push"
-               tooltip="Create a refinement of an iUML-B diagram">
+               tooltip="Create a refinement of an iUML-B diagram container">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+		               <reference
+		                     definitionId="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+		               </reference>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+        
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.edit"
+               icon="icons/Edit_IUMLB.gif"
+               label="Edit iUML-B properties"
+               style="push"
+               tooltip="Edit the name/target/refines properties of the iUML-B diagram container">
             <visibleWhen
                   checkEnabled="false">
                <with
