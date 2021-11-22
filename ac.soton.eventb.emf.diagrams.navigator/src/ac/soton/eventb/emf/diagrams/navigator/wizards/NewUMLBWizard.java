@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020-2020 - University of Southampton.
+ * Copyright (c) 2020-2021 - University of Southampton.
  * All rights reserved. This program and the accompanying materials  are made
  * available under the terms of the Eclipse Public License v1.0 which accompanies this 
  * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
@@ -27,12 +27,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -51,23 +50,17 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.ISetSelectionTarget;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eventb.emf.core.EventBNamedCommentedComponentElement;
-import org.eventb.emf.core.context.ContextFactory;
-import org.eventb.emf.core.context.ContextPackage;
-import org.eventb.emf.core.impl.EventBElementImpl;
-import org.eventb.emf.core.machine.MachineFactory;
-import org.eventb.emf.core.machine.MachinePackage;
 
 import ac.soton.eventb.emf.diagrams.DiagramsFactory;
 import ac.soton.eventb.emf.diagrams.DiagramsPackage;
 import ac.soton.eventb.emf.diagrams.UMLB;
 import ac.soton.eventb.emf.diagrams.navigator.DiagramsNavigatorExtensionPlugin;
+import ac.soton.eventb.emf.diagrams.navigator.UmlbDiagramUtils;
 import ac.soton.eventb.emf.diagrams.provider.DiagramsEditPlugin;
 
 
@@ -79,10 +72,6 @@ import ac.soton.eventb.emf.diagrams.provider.DiagramsEditPlugin;
  */
 public class NewUMLBWizard extends Wizard implements INewWizard {
 
-	/**
-	 * The file extension for umlb files.
-	 */
-	public static final String UMLB_FILE_EXTENSION = "umlb";
 
 	/**
 	 * This is the file creation page.
@@ -160,7 +149,7 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 				IResource[] members = prj.members();
 				for (IResource member : members) {
 					String ext = member.getFileExtension();
-					if (UMLB_FILE_EXTENSION.equals(ext)) {
+					if (UmlbDiagramUtils.UMLB_FILE_EXTENSION.equals(ext)) {
 						umlbNames.add(member.getName());
 					}
 				}
@@ -215,7 +204,7 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 							// Save the contents of the resource to the file system.
 							//
 							Map<Object, Object> options = new HashMap<Object, Object>();
-							options.put(XMLResource.OPTION_ENCODING, elaboratedComponentPage.getEncoding());
+							options.put(XMLResource.OPTION_ENCODING, elaboratedComponentPage.getEncoding()); //default = ENCODING=UTF-8
 							resource.save(options);
 						}
 						catch (Exception exception) {
@@ -290,8 +279,8 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 		protected boolean validatePage() {
 			if (super.validatePage()) {
 				String extension = new Path(getFileName()).getFileExtension();
-				if (extension == null || !UMLB_FILE_EXTENSION.equals(extension)) {		
-					setErrorMessage("The file name must end in ."+UMLB_FILE_EXTENSION);
+				if (extension == null || !UmlbDiagramUtils.UMLB_FILE_EXTENSION.equals(extension)) {		
+					setErrorMessage("The file name must end in ."+UmlbDiagramUtils.UMLB_FILE_EXTENSION);
 					return false;
 				}
 				return true;
@@ -522,25 +511,12 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 		 * @throws CoreException
 		 */
 		protected EventBNamedCommentedComponentElement getElaboratedComponent() throws CoreException {
-			String componentName = elaboratedComponentField.getText();
-			int lio = componentName.lastIndexOf('.');
-			if(lio<1) return null;
-			String componentFileName = componentName.substring(0,lio);
-			String componentExtension = componentName.substring(lio+1);
-			EventBNamedCommentedComponentElement component;
-			if ("bum".equals(componentExtension)) {
-				component= (EventBNamedCommentedComponentElement) MachineFactory.eINSTANCE.create(MachinePackage.Literals.MACHINE);
-			}else if("buc".equals(componentExtension)) {
-				component= (EventBNamedCommentedComponentElement) ContextFactory.eINSTANCE.create(ContextPackage.Literals.CONTEXT);
-			}else return null;
-
-			((InternalEObject)component).eSetProxyURI(
-					URI.createPlatformResourceURI(getModelFile().getProject().getName(), true) 	//project name
-					  .appendSegment(componentFileName)											//resource name
-					  .appendFileExtension(componentExtension)									//file extension
-					  .appendFragment(((EventBElementImpl)component).getElementTypePrefix()+"::"+componentFileName));
-			  
-			return component;
+			EObject proxy = UmlbDiagramUtils.createRootElementProxy(
+					getModelFile().getProject().getName(), 
+					elaboratedComponentField.getText()
+					);
+			return proxy instanceof EventBNamedCommentedComponentElement? 
+				(EventBNamedCommentedComponentElement) proxy : null;
 		}
 		
 		/**
@@ -551,24 +527,15 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 		 * @throws CoreException
 		 */
 		protected UMLB getRefinedUmlb() throws CoreException {
-			String refinedUmlbName = refinedUmlbField.getText();
-			int lio = refinedUmlbName.lastIndexOf('.');
-			if(lio<1) return null;
-			String refinedUmlbFileName = refinedUmlbName.substring(0,lio);
-			String refinedUmlbExtension = refinedUmlbName.substring(lio+1);
-			UMLB umlb;
-			if (UMLB_FILE_EXTENSION.equals(refinedUmlbFileName)) {
-				umlb= (UMLB) DiagramsFactory.eINSTANCE.create(DiagramsPackage.Literals.UMLB);
-			}else return null;
-
-			((InternalEObject)umlb).eSetProxyURI(
-					URI.createPlatformResourceURI(getModelFile().getProject().getName(), true) 		//project name
-					  .appendSegment(refinedUmlbFileName)											//resource name
-					  .appendFileExtension(refinedUmlbExtension)									//file extension
-					  .appendFragment(((EventBElementImpl)umlb).getElementTypePrefix()+"::"+refinedUmlbFileName));
-			  
-			return umlb;
+			
+			EObject proxy = UmlbDiagramUtils.createRootElementProxy(
+					getModelFile().getProject().getName(), 
+					refinedUmlbField.getText()
+					);
+			return proxy instanceof UMLB? 
+				(UMLB) proxy : null;
 		}
+		
 	}
 	
 	/**
@@ -583,7 +550,7 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 		newFileCreationPage.setTitle("UML-B Diagrams Model"); //DiagramsEditorPlugin.INSTANCE.getString("_UI_DiagramsModelWizard_label"));
 		newFileCreationPage.setDescription("Create a new UML-B Diagrams model");  //DiagramsEditorPlugin.INSTANCE.getString("_UI_DiagramsModelWizard_description"));
 		newFileCreationPage.setFileName("ChangeMe"  //DiagramsEditorPlugin.INSTANCE.getString("_UI_DiagramsEditorFilenameDefaultBase") 
-				+ "." + UMLB_FILE_EXTENSION);
+				+ "." + UmlbDiagramUtils.UMLB_FILE_EXTENSION);
 		addPage(newFileCreationPage);
 
 		// Try and get the resource selection to determine a current directory for the file dialog.
@@ -610,7 +577,7 @@ public class NewUMLBWizard extends Wizard implements INewWizard {
 					// Make up a unique new name here.
 					//
 					String defaultModelBaseFilename = "ChangeMe" ; //DiagramsEditorPlugin.INSTANCE.getString("_UI_DiagramsEditorFilenameDefaultBase");
-					String defaultModelFilenameExtension = UMLB_FILE_EXTENSION;
+					String defaultModelFilenameExtension = UmlbDiagramUtils.UMLB_FILE_EXTENSION;
 					String modelFilename = defaultModelBaseFilename + "." + defaultModelFilenameExtension;
 					for (int i = 1; ((IContainer)selectedResource).findMember(modelFilename) != null; ++i) {
 						modelFilename = defaultModelBaseFilename + i + "." + defaultModelFilenameExtension;
