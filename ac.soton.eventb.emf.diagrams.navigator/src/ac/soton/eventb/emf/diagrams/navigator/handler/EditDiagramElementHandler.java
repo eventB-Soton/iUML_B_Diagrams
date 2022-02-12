@@ -84,7 +84,15 @@ public class EditDiagramElementHandler extends AbstractHandler implements IHandl
 			//final String oldUmlbName = resourceURI.trimFileExtension().lastSegment();
 			final String projectName = resourceURI.segment(resourceURI.segmentCount()-2);
 			final EventBNamedCommentedComponentElement oldElaborates = umlb.getElaborates();
+			String oldElaboratesFileName = "";
+			if (oldElaborates!=null) {
+				oldElaboratesFileName = oldElaborates.eResource().getURI().lastSegment();
+			}
 			final UMLB oldRefines = umlb.getRefines();
+			String oldRefinesFileName = "";
+			if (oldRefines!=null) {
+				oldRefinesFileName = oldRefines.eResource().getURI().lastSegment();
+			}
 			
 			//TODO: Would be better to have a single custom dialogue to enter all details
 			//TODO: do we allow name changes.. it has to change the resource name as well as the internal name since they should always match
@@ -94,7 +102,7 @@ public class EditDiagramElementHandler extends AbstractHandler implements IHandl
 					Display.getCurrent().getActiveShell(), 
 					"Target Machine or Context", 
 					"file name: ",
-					oldElaborates.getName() + ".bum",
+					oldElaboratesFileName,     //oldElaborates.getName() + "." + ext,
 					nameValidator);
 			if (dialog.open() != InputDialog.CANCEL) {
 				try {
@@ -109,9 +117,9 @@ public class EditDiagramElementHandler extends AbstractHandler implements IHandl
 					Display.getCurrent().getActiveShell(), 
 					"Refined UML-B Diagram Model", 
 					" name.ext: ",
-					oldRefines.getName()+".umlb",
+					oldRefinesFileName,
 					nameValidator);
-			if (dialog.open() == InputDialog.CANCEL) {
+			if (dialog.open() != InputDialog.CANCEL) {
 				try {
 					umlb.setRefines(UmlbDiagramUtils.createRefinedUmlbProxy(projectName, dialog.getValue().trim()));
 				} catch (CoreException e) {
