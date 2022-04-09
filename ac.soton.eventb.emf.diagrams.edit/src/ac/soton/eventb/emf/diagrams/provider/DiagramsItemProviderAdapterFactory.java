@@ -107,9 +107,9 @@ public class DiagramsItemProviderAdapterFactory extends DiagramsAdapterFactory i
 	/**
 	 * This keeps track of the one adapter used for all {@link ac.soton.eventb.emf.diagrams.UMLB} instances.
 	 * <!-- begin-user-doc -->
+	 * @since 3.0
 	 * <!-- end-user-doc -->
 	 * @generated
-	 * @since 3.0
 	 */
 	protected UMLBItemProvider umlbItemProvider;
 
@@ -260,9 +260,9 @@ public class DiagramsItemProviderAdapterFactory extends DiagramsAdapterFactory i
 	/**
 	 * A child creation extender for the {@link CorePackage}.
 	 * <!-- begin-user-doc -->
+	 * @since 3.0
 	 * <!-- end-user-doc -->
 	 * @generated
-	 * @since 3.0
 	 */
 	public static class CoreChildCreationExtender implements IChildCreationExtender {
 		/**

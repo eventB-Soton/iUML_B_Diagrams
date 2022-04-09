@@ -28,10 +28,10 @@ public interface DiagramsFactory extends EFactory {
 	/**
 	 * Returns a new object of class '<em>UMLB</em>'.
 	 * <!-- begin-user-doc -->
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return a new object of class '<em>UMLB</em>'.
 	 * @generated
-	 * @since 5.0
 	 */
 	UMLB createUMLB();
 
