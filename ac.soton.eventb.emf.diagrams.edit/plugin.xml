@@ -32,10 +32,10 @@
 
    <extension point="org.eclipse.emf.edit.childCreationExtenders">
       <extender
-            uri="http://emf.eventb.org/models/core/machine/2014"
+            uri="http://emf.eventb.org/models/core/machine/2022"
             class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory$CoreChildCreationExtender"/>
       <extender
-            uri="http://emf.eventb.org/models/core/context/2014"
+            uri="http://emf.eventb.org/models/core/context/2022"
             class="ac.soton.eventb.emf.diagrams.provider.DiagramsItemProviderAdapterFactory$CoreChildCreationExtender"/>
    </extension>
    
