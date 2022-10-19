@@ -16,7 +16,6 @@ package ac.soton.eventb.emf.diagrams.generator.commands;
 import java.util.Collections;
 
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -51,11 +50,7 @@ public class DeleteGeneratedCommand extends AbstractEMFOperation {
 	public DeleteGeneratedCommand(TransactionalEditingDomain editingDomain, EventBElement sourceElement) {
 		super(editingDomain, "Delete generated elements", null);
 		setOptions(Collections.singletonMap(Transaction.OPTION_UNPROTECTED, Boolean.TRUE));
-		try {
-			factory = TranslatorFactory.getFactory();
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
+		factory = TranslatorFactory.getFactory();
 		this.sourceElement = sourceElement;
 	}
 

@@ -18,7 +18,6 @@ package ac.soton.eventb.emf.diagrams.generator.handlers;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -86,16 +85,9 @@ public class IUMLBTranslateHandler extends EventBTranslateHandler {
 	 */
 	protected EObject getTranslatable(EObject eObject){
 		EObject ret = eObject.eContainer();
-		
-		try {
-			while (ret!= null && !TranslatorFactory.getFactory().canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, ret.eClass())){
-				ret = ret.eContainer();
-			}
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while (ret!= null && !TranslatorFactory.getFactory().canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, ret.eClass())){
+			ret = ret.eContainer();
 		}
-		
 		return ret;
 	}
 	
