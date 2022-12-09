@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (c) 2014, 2021 University of Southampton.
+   
+    This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License 2.0
+    which accompanies this distribution, and is available at
+    https://www.eclipse.org/legal/epl-2.0/
+   
+    SPDX-License-Identifier: EPL-2.0
+   
+    Contributors:
+       University of Southampton - initial API and implementation
+ -->
 <feature
       id="ac.soton.eventb.emf.diagrams.feature"
       label="%featureName"
-      version="8.0.1.release"
+      version="9.0.0.qualifier"
       provider-name="%featureVendor"
       plugin="ac.soton.eventb.emf.diagrams.branding"
       license-feature="org.rodinp.licence"
@@ -23,7 +36,6 @@
    <requires>
       <import plugin="org.eclipse.core.runtime" version="3.13.0" match="compatible"/>
       <import plugin="org.eclipse.emf.ecore" version="2.7.0" match="compatible"/>
-      <import plugin="org.eventb.emf.core" version="5.0.0" match="compatible"/>
       <import plugin="org.eclipse.ui.navigator" version="3.5.0" match="compatible"/>
       <import plugin="org.eclipse.ui.ide" version="3.7.0" match="compatible"/>
       <import plugin="org.eclipse.emf.common.ui" version="2.6.0" match="compatible"/>
@@ -32,7 +44,6 @@
       <import plugin="org.eventb.emf.persistence" version="3.4.1" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.generator" version="4.0.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui" version="1.8.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.diagrams" version="5.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.1.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.edit" version="3.0.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.4.0" match="compatible"/>
@@ -42,15 +53,17 @@
       <import plugin="ac.soton.emf.translator" version="3.0.0" match="compatible"/>
       <import plugin="ac.soton.emf.translator.eventb" version="0.0.1" match="compatible"/>
       <import plugin="org.eventb.core" version="3.3.0" match="compatible"/>
+      <import plugin="org.eclipse.emf.ecore.edit" version="2.9.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.properties" version="1.0.0" match="compatible"/>
       <import plugin="org.eclipse.gmf.runtime.diagram.ui.resources.editor" version="1.0.0" match="compatible"/>
       <import plugin="org.rodinp.keyboard.ui" version="2.0.0" match="compatible"/>
-      <import plugin="org.eventb.emf.core.edit" version="2.0.0" match="compatible"/>
-      <import plugin="ac.soton.eventb.emf.core.extension" version="5.0.0" match="compatible"/>
       <import plugin="fr.systerel.explorer" version="2.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.core.extension.navigator" version="5.0.0" match="compatible"/>
       <import plugin="ac.soton.eventb.emf.diagrams.navigator" version="3.0.0" match="compatible"/>
-      <import plugin="org.eclipse.emf.ecore.edit" version="2.9.0" match="compatible"/>
+      <import plugin="org.eventb.emf.core" version="6.0.0" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.diagrams" version="6.0.0" match="compatible"/>
+      <import plugin="org.eventb.emf.core.edit" version="3.0.0" match="compatible"/>
+      <import plugin="ac.soton.eventb.emf.core.extension" version="6.0.0" match="compatible"/>
    </requires>
 
    <plugin

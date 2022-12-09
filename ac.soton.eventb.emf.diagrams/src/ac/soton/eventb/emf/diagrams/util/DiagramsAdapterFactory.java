@@ -166,11 +166,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see ac.soton.eventb.emf.diagrams.UMLB
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createUMLBAdapter() {
 		return null;
@@ -181,11 +181,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see org.eventb.emf.core.EventBObject
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createEventBObjectAdapter() {
 		return null;
@@ -196,11 +196,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see org.eventb.emf.core.EventBElement
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createEventBElementAdapter() {
 		return null;
@@ -211,11 +211,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see org.eventb.emf.core.EventBCommented
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createEventBCommentedAdapter() {
 		return null;
@@ -226,11 +226,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see org.eventb.emf.core.EventBCommentedElement
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createEventBCommentedElementAdapter() {
 		return null;
@@ -241,11 +241,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see org.eventb.emf.core.EventBNamed
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createEventBNamedAdapter() {
 		return null;
@@ -256,11 +256,11 @@ public class DiagramsAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
 	 * @see org.eventb.emf.core.EventBNamedCommentedElement
 	 * @generated
-	 * @since 5.0
 	 */
 	public Adapter createEventBNamedCommentedElementAdapter() {
 		return null;

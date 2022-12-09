@@ -1,3 +1,16 @@
+/*******************************************************************************
+ * Copyright (c) 2014, 2018 University of Southampton.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    University of Southampton - initial API and implementation
+ *******************************************************************************/
 /**
  * 
  */
@@ -5,7 +18,6 @@ package ac.soton.eventb.emf.diagrams.generator.handlers;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -73,16 +85,9 @@ public class IUMLBTranslateHandler extends EventBTranslateHandler {
 	 */
 	protected EObject getTranslatable(EObject eObject){
 		EObject ret = eObject.eContainer();
-		
-		try {
-			while (ret!= null && !TranslatorFactory.getFactory().canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, ret.eClass())){
-				ret = ret.eContainer();
-			}
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while (ret!= null && !TranslatorFactory.getFactory().canTranslate(DiagramsGeneratorIdentifiers.COMMAND_ID, ret.eClass())){
+			ret = ret.eContainer();
 		}
-		
 		return ret;
 	}
 	

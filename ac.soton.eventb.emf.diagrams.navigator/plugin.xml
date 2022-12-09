@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
+<!--
+    Copyright (c) 2014, 2020 University of Southampton.
+   
+    This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License 2.0
+    which accompanies this distribution, and is available at
+    https://www.eclipse.org/legal/epl-2.0/
+   
+    SPDX-License-Identifier: EPL-2.0
+   
+    Contributors:
+       University of Southampton - initial API and implementation
+ -->
+
 <plugin>
 
    <extension-point id="ac.soton.eventb.emf.diagrams.navigator.diagramProviders" name="%extension-point.name" schema="schema//ac.soton.eventb.emf.diagrams.navigator.diagramProviders.exsd"/>
@@ -134,10 +148,17 @@
       <command
             categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
             defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.RefineDiagramElementHandler"
-            description="Refine the selected iUML-B diagram"
+            description="Refine the selected iUML-B diagram container"
             id="ac.soton.eventb.emf.diagrams.navigator.commands.refine"
             name="Refine">
       </command>
+      <command
+            categoryId="ac.soton.eventb.emf.diagrams.iUMLB"
+            defaultHandler="ac.soton.eventb.emf.diagrams.navigator.handler.EditDiagramElementHandler"
+            description="Edit the selected iUML-B diagram container"
+            id="ac.soton.eventb.emf.diagrams.navigator.commands.edit"
+            name="Edit">
+      </command>      
    </extension>
    
    <extension
@@ -197,7 +218,27 @@
                icon="icons/Refine_IUMLB.png"
                label="Refine iUML-B Diagrams"
                style="push"
-               tooltip="Create a refinement of an iUML-B diagram">
+               tooltip="Create a refinement of an iUML-B diagram container">
+            <visibleWhen
+                  checkEnabled="false">
+               <with
+                     variable="selection">
+                  <iterate
+                        ifEmpty="false">
+		               <reference
+		                     definitionId="ac.soton.eventb.emf.diagrams.navigator.isUMLB">
+		               </reference>
+                  </iterate>
+               </with>
+            </visibleWhen>
+         </command>
+        
+         <command
+               commandId="ac.soton.eventb.emf.diagrams.navigator.commands.edit"
+               icon="icons/Edit_IUMLB.gif"
+               label="Edit iUML-B properties"
+               style="push"
+               tooltip="Edit the name/target/refines properties of the iUML-B diagram container">
             <visibleWhen
                   checkEnabled="false">
                <with

@@ -157,12 +157,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>UMLB</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseUMLB(UMLB object) {
 		return null;
@@ -173,12 +173,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>Event BObject</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseEventBObject(EventBObject object) {
 		return null;
@@ -189,12 +189,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>Event BElement</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseEventBElement(EventBElement object) {
 		return null;
@@ -205,12 +205,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>Event BCommented</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseEventBCommented(EventBCommented object) {
 		return null;
@@ -221,12 +221,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>Event BCommented Element</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseEventBCommentedElement(EventBCommentedElement object) {
 		return null;
@@ -237,12 +237,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>Event BNamed</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseEventBNamed(EventBNamed object) {
 		return null;
@@ -253,12 +253,12 @@ public class DiagramsSwitch<T> {
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
+	 * @since 5.0
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
 	 * @return the result of interpreting the object as an instance of '<em>Event BNamed Commented Element</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
-	 * @since 5.0
 	 */
 	public T caseEventBNamedCommentedElement(EventBNamedCommentedElement object) {
 		return null;

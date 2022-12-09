@@ -1,11 +1,16 @@
-/**
- * Copyright (c) 2012-14 - University of Southampton.
- * All rights reserved. This program and the accompanying materials  are made
- * available under the terms of the Eclipse Public License v1.0 which accompanies this 
- * distribution, and is available at http://www.eclipse.org/legal/epl-v10.html
+/*******************************************************************************
+ * Copyright (c) 2014, 2020 University of Southampton.
  *
- * $Id$
- */
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    University of Southampton - initial API and implementation
+ *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.provider;
 
 import java.util.ArrayList;
@@ -102,9 +107,9 @@ public class DiagramsItemProviderAdapterFactory extends DiagramsAdapterFactory i
 	/**
 	 * This keeps track of the one adapter used for all {@link ac.soton.eventb.emf.diagrams.UMLB} instances.
 	 * <!-- begin-user-doc -->
+	 * @since 3.0
 	 * <!-- end-user-doc -->
 	 * @generated
-	 * @since 3.0
 	 */
 	protected UMLBItemProvider umlbItemProvider;
 
@@ -255,9 +260,9 @@ public class DiagramsItemProviderAdapterFactory extends DiagramsAdapterFactory i
 	/**
 	 * A child creation extender for the {@link CorePackage}.
 	 * <!-- begin-user-doc -->
+	 * @since 3.0
 	 * <!-- end-user-doc -->
 	 * @generated
-	 * @since 3.0
 	 */
 	public static class CoreChildCreationExtender implements IChildCreationExtender {
 		/**

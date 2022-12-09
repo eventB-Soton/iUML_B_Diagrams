@@ -1,19 +1,26 @@
-/**
- * Copyright (c) 2012 University of Southampton.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+/*******************************************************************************
+ * Copyright (c) 2014, 2017 University of Southampton.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    University of Southampton - initial API and implementation
+ *******************************************************************************/
 
 package ac.soton.eventb.emf.diagrams.generator.utils;
+
 
 import org.eventb.emf.core.AbstractExtension;
 import org.eventb.emf.core.Attribute;
 import org.eventb.emf.core.CorePackage;
 import org.eventb.emf.core.EventBElement;
 import org.eventb.emf.core.EventBObject;
-import org.eventb.emf.persistence.AttributeIdentifiers;
+import ac.soton.emf.translator.configuration.AttributeIdentifiers;
 
 
 
@@ -44,7 +51,7 @@ public class Is {
 	
 	public static boolean generatedBy(Object object, String id){
 		if (object instanceof EventBElement){
-			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
+			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY);
 			if (generatedBy!= null && id.equals(generatedBy.getValue()) ){
 				return true;
 			}
@@ -54,7 +61,7 @@ public class Is {
 	
 	public static boolean generated(Object object){
 		if (object instanceof EventBElement){
-			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.GENERATOR_ID_KEY);
+			Attribute generatedBy = ((EventBElement)object).getAttributes().get(AttributeIdentifiers.TRANSLATOR__TRANSLATION_ID_KEY);
 			if (generatedBy!= null){
 				return true;
 			}

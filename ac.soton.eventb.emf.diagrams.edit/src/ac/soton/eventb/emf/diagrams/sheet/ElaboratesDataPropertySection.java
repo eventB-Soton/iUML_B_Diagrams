@@ -1,10 +1,16 @@
-/**
- * Copyright (c) 2013-2019 University of Southampton.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
+/*******************************************************************************
+ * Copyright (c) 2014, 2021 University of Southampton.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    University of Southampton - initial API and implementation
+ *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.sheet;
 
 import java.util.ArrayList;
@@ -185,9 +191,9 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 	 */
 	@Override
 	protected Object getNewValue() {
-		EventBNamedCommentedComponentElement container = (EventBNamedCommentedComponentElement)owner.getContaining(CorePackage.Literals.EVENT_BNAMED_COMMENTED_COMPONENT_ELEMENT);
-		PopupDialog dataDialog = new PopupDialog(getPart().getSite().getShell(), getAvailableDataElements(container), dataLabelProvider);
-		dataDialog.setTitle( "Data elements in scope of" + container.getName());
+		EventBNamedCommentedComponentElement target = (EventBNamedCommentedComponentElement) DiagramUtils.getTranslationTarget(owner);
+		PopupDialog dataDialog = new PopupDialog(getPart().getSite().getShell(), getAvailableDataElements(target), dataLabelProvider);
+		dataDialog.setTitle( "Data elements in scope of" + target.getName());
 		dataDialog.setMessage("Please select data to elaborate");
 		//return the chosen one
 		if (Dialog.OK == dataDialog.open()) {
@@ -258,13 +264,14 @@ public class ElaboratesDataPropertySection extends AbstractEditTableWithReferenc
 		if (newElaboratedElement instanceof CarrierSet) dataKind = DataKind.SET;
 		else if (newElaboratedElement instanceof Constant) dataKind = DataKind.CONSTANT;
 		else if (newElaboratedElement instanceof Variable) dataKind = DataKind.VARIABLE;
-		else dataKind = SetCommand.UNSET_VALUE;
-		command = (SetCommand) SetCommand.create(
-				editingDomain,
-				eObject, 
-				CoreextensionPackage.Literals.EVENT_BDATA_ELABORATION__DATA_KIND,
-				dataKind);;
-		editingDomain.getCommandStack().execute(command);
+		if (dataKind != null) {
+			command = (SetCommand) SetCommand.create(
+					editingDomain,
+					eObject, 
+					CoreextensionPackage.Literals.EVENT_BDATA_ELABORATION__DATA_KIND,
+					dataKind);;
+			editingDomain.getCommandStack().execute(command);
+		}
 	}
 
 	@Override

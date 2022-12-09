@@ -1,16 +1,15 @@
 /*******************************************************************************
- *  (c) Crown owned copyright 2011, 2017 (UK Ministry of Defence)
- *  
- *  All rights reserved. This program and the accompanying materials  are 
- *  made available under the terms of the Eclipse Public License v1.0 which
- *  accompanies this distribution, and is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *  
- *  This is to identify the UK Ministry of Defence as owners along with the
- *   license rights provided.
- *  
- *  Contributors:
- *  			University of Southampton - Initial implementation
+ * Copyright (c) 2014, 2021 University of Southampton.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *    University of Southampton - initial API and implementation
  *******************************************************************************/
 package ac.soton.eventb.emf.diagrams.refactor.impl;
 
@@ -273,7 +272,7 @@ public class CommitAssistant extends RefactorAssistant {
 						if (!indexMap.containsKey(eObject)){
 							indexMap.put(eObject,new HashMap<EStructuralFeature,Integer>());
 						}
-						indexMap.get(eObject).put(feature, new Integer(indexOffset+1));
+						indexMap.get(eObject).put(feature, Integer.valueOf(indexOffset+1));
 					}
 				}
 			}
@@ -284,8 +283,8 @@ public class CommitAssistant extends RefactorAssistant {
 	 * Generates a command to apply a (reversed) feature change to the refined parent
 	 * 
 	 * Note that the feature change is in reversed (i.e. undo) format. Hence the value it contains is the original old value. 
-	 * The current (new) valaue must be obtained by reading the feature in the abstract Parent. 
-	 * The given refiner is used to generate new refined elements for additions aas well as to find corresponding elements 
+	 * The current (new) value must be obtained by reading the feature in the abstract Parent. 
+	 * The given refiner is used to generate new refined elements for additions as well as to find corresponding elements 
 	 * to be changed.
 	 * @param cc2 
 	 * 

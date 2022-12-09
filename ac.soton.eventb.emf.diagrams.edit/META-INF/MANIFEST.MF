@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: %pluginName
 Bundle-SymbolicName: ac.soton.eventb.emf.diagrams.edit;singleton:=true
-Bundle-Version: 3.0.1.release
+Bundle-Version: 3.1.0.qualifier
 Bundle-ClassPath: .
 Bundle-Activator: ac.soton.eventb.emf.diagrams.provider.DiagramsEditPlugin$Implementation
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: ac.soton.eventb.emf.diagrams.provider,
  ac.soton.eventb.emf.diagrams.sheet,
  ac.soton.eventb.emf.diagrams.util.custom
@@ -15,9 +15,9 @@ Require-Bundle: org.eclipse.emf.ecore.edit;bundle-version="[2.9.0,3.0.0)",
  org.eclipse.gmf.runtime.diagram.ui.properties;bundle-version="[1.0.0,2.0.0)",
  org.eclipse.gmf.runtime.diagram.ui.resources.editor;bundle-version="[1.0.0,2.0.0)",
  org.rodinp.keyboard.ui;bundle-version="[2.0.0,3.0.0)",
- org.eventb.emf.core;bundle-version="[5.0.0,6.0.0)",
- org.eventb.emf.core.edit;bundle-version="[2.0.0,3.0.0)",
- ac.soton.eventb.emf.core.extension;bundle-version="[5.0.0,6.0.0)",
- ac.soton.eventb.emf.diagrams;bundle-version="[5.0.0,6.0.0)"
+ org.eventb.emf.core;bundle-version="[6.0.0,7.0.0)",
+ org.eventb.emf.core.edit;bundle-version="[3.0.0,4.0.0)",
+ ac.soton.eventb.emf.core.extension;bundle-version="[6.0.0,7.0.0)",
+ ac.soton.eventb.emf.diagrams;bundle-version="[6.0.0,7.0.0)"
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: ac.soton.eventb.emf.diagrams.edit
